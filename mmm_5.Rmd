@@ -1,0 +1,134 @@
+---
+title: "Demo 5"
+author: "Yan Pan | all exercises completed | created with R-markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# exercise 1 
+
+$\begin{align} a)\ \bar d _{i\cdot}   &=  \frac{1}{n_i} \sum\limits_{j=1}^{ n_i}   \big( v_1 x _{xy(1)} +v_2 x _{ij(2)}  \big) \\ &= v_1 \cdot \frac{1}{n_i} \sum\limits_{j=1}^{ n_i}   x _{ij(1)} +v_2 \cdot \frac{1}{n_i} \sum\limits_{j=1}^{ n_i}   x _{ij(2)}     \\ &= v_1 \bar x _{i\cdot(1)} + v_2 \bar x _{i\cdot(2)} \\ b)\  \bar d _{\cdot\cdot}  &=  \frac{1}{n} \sum\limits_{i=1}^{ k}  \sum\limits_{j=1}^{ n_i}  d _{ij} \\ &=  \frac{1}{n} \sum\limits_{i=1}^{ k} n_i \bar d _{i\cdot} \\ &=    v_1 \cdot \frac{1}{n} \sum\limits_{i=1}^{ k}  n_i \bar x _{i\cdot(1)}  + v_2 \cdot \frac{1}{n} \sum\limits_{i=1}^{ k}  n_i \bar x _{i\cdot(2)} \\ &=  v_1 \bar x _{\cdot\cdot(1)} + v_2 \bar x _{\cdot\cdot (2)}  \end{align}$
+
+<br>
+
+# exercise 2
+
+
+$\begin{align} \boldsymbol{v'SS} _{A(x)} \boldsymbol{v'}  &= \begin{bmatrix} v_1 & v_2 \end{bmatrix} \begin{bmatrix}  SS _{A(1)}  & SP _{A(1,2)} \\ SP _{A(1,2)}  & SS _{A(2)}  \end{bmatrix}  \begin{bmatrix} v_1 \\ v_2\end{bmatrix}  \\ &=  v_1^2 SS _{A(1)} +2 v_1 v_2 SP _{A(1,2)}  + v_2^2 SS _{A(2)} \\ &=  \sum\limits_{i} \sum\limits_{j}  \bigg( (v_1 \bar x_{i\cdot(1)} - v_1 \bar x _{\cdot\cdot(1)}  )^2 + 2(v_1 \bar x_{i\cdot(1)} - v_1 \bar x _{\cdot\cdot(1)}  )(v_1 \bar x_{i\cdot(2)} - v_1 \bar x _{\cdot\cdot(2)}  ) + (v_1 \bar x_{i\cdot(2)} - v_1 \bar x _{\cdot\cdot(2)}  )^2 \bigg)  \\ &=  \sum\limits_{i} \sum\limits_{j}  \bigg( (v_1 \bar x_{i\cdot(1)} - v_1 \bar x _{\cdot\cdot(1)}  + v_1 \bar x_{i\cdot(2)} - v_1 \bar x _{\cdot\cdot(2)}   \bigg)^2  \\ &=  \sum\limits_{i}^{ k}  \sum\limits_{j}^{ n_i}   \bigg(  v_1 \bar x _{i\cdot(1)} + v_2 \bar x _{i\cdot (2)} -  v_1 \bar x _{\cdot\cdot(1)} - v_2 \bar x _{\cdot\cdot (2)}    \bigg)^2 \\ &=  SS_A(d)  \end{align}$ 
+
+<br>
+
+# exercise 3
+
+```{r}
+
+# (a)
+data1=read.table("koulu.dat")
+data2=data1[,c("V2","V6","V9","V14","V24","V31","V34","V19")]
+data2=data2[complete.cases(data2),]
+names(data2)=c("gender","luke6","kirj6", "vk16", "mate6", "biol6", "maan6", "hist6")
+# (b)
+id.boy <- which(data2$gender == 1)
+group.mean <- rbind(colMeans(data2[id.boy,]),
+                    colMeans(data2[-id.boy,]))
+group.mean
+``` 
+
+The impressions is that for some subjects (reading, writing, English), different groups have different scores, while no significant differences for other subjects.
+
+<br>
+
+# exercise 4
+
+```{r}
+# (a)
+data.boy <- data2[id.boy,2:8]; data.girl <- data2[-id.boy,2:8]
+cov.boy  <- cov(data.boy); cov.girl <-cov(data.girl)
+corr.boy <- cor(data.boy); corr.girl<- cor(data.girl)
+cov.boy
+cov.girl #correlation matricies are not plotted
+
+library(candisc)
+boxM(data2[,-1], data2[,"gender"])
+print("We cannot reject that the cov-matricies are similar")
+
+# (b), using R functions 
+d.boy <- mahalanobis(data.boy, colMeans(data.boy), cov.boy)
+d.girl <- mahalanobis(data.girl, colMeans(data.girl), cov.girl)
+# outlier plot
+par(mfrow=c(1,2))
+plot(d.boy,  ylab="Mahalanobis distance",main="Boy - Outlier")
+abline(h = qchisq(0.975,6), col = "red")
+plot(d.girl, ylab="Mahalanobis distance",main="Girl - Outlier")
+abline(h = qchisq(0.975,6), col = "red")
+# qq plot
+# qqnormPlot(data.boy)
+# qqnormPlot(data.girl)
+# qqnormPlot is unsupported in R markdown
+``` 
+
+<br>
+
+#exercise 5
+
+```{r}
+library(candisc)
+data2.mod<-lm(as.matrix(data2[,-1])~data2$gender)
+resultcda<-candisc(data2.mod)
+resultcda$coeffs.raw
+``` 
+
+(a) The first e discriminant function $d_1 = 0.07Luke 6 -1.05 kirj6 -0.42 vk16 + 0.55 mate6-0.38 biol6 + 0.42 maan6 + 0.23 hist6$.
+ 
+Test stat $F=0.735$ with a p-value=.000, which means the function is significant.
+
+```{r}
+result <- cbind(resultcda$coeffs.std, resultcda$structure)
+colnames(result) <- c("std.coefficients","correlations")
+result
+group.mean[,3]
+``` 
+
+(b) Writing (kirj6) score can discriminate groups, since the std.coef are large, and correlations with the discrimination function is high. We may also see the obvious difference between the mean score among girls and boys.
+
+```{r}
+resultcda$means
+``` 
+
+<br>
+
+# exercise 6
+
+The R code is below is copied from the question sheet
+
+```{r}
+# Division
+M<-ncol(data2)
+N<-nrow(data2)
+train.rows<-sample(1:N,0.5*N)
+data2.train<-data2[train.rows,] # training
+data2.test<-data2[-train.rows,] # testing
+# Formula
+features<-data2[,2:M]
+form<-as.formula(paste("gender~",paste(names(features),collapse="+")))
+# Classification with lda-function and the estimate for the
+# classification error
+library(MASS)
+LDA<-lda(form,data=data2.train)
+LDA
+LDA.pred<-predict(LDA,newdata=data2.test[,2:M])
+Err<-1-sum(LDA.pred$class==data2.test$gender)/nrow(data2.test)
+Err
+# Classification with qda-function and the estimate for
+# the classification error
+QDA<-qda(form,data=data2.train)
+QDA
+QDA.pred<-predict(QDA,newdata=data2.test[,2:M])
+Err<-1-sum(QDA.pred$class==data2.test$gender)/nrow(data2.test)
+Err
+```
+
+The <code>Err</code> value means the probability that the simulated/examed new data belongs to the first group 

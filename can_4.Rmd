@@ -1,0 +1,111 @@
+---
+title: "Complex Analysis Harjoitus 4 | Yan PAN"
+output: 
+  html_document: 
+    df_print: paged 
+    theme: 'readable'
+---
+
+<style>
+h1,h2,h3{
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  padding-top: 20px;
+}
+blockquote{
+  font-size: 16px; !important;
+}
+</style>
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+##Exercise K4.1
+<blockquote>
+$G\subset \mathbb C$ open and $f=u+iv:G\to\mathbb C$ holomorphic. Show that if the real part $u$ is constant, $f$ is constant
+</blockquote>
+
+By Cauchy-Reimann equation, $u_x, u_y, v_x, v_y$ exist as $f$ is holomorphic.
+
+$\forall z_0=x_0+iy_0\in G,\ u_x(z_0) = 0,\ u_y(z_0)=0$
+
+Again, Cauchy-Reimann equation gives $\begin{cases} u_x(z_0) = v_y(z_0) \\ u_y(z_0) = - v_x(z_0) \end{cases}$..
+
+Then, $\forall z_0\in G: \begin{cases} v_x(z_0) = 0 \\ v_y(z_0)=0 \end{cases}$, which impiles $v$ is constant.
+
+Finally, $f$ is constant as both real and imaginary part are constant.
+
+##Exercise K4.2
+<blockquote>
+Hyperbolic triogonometry in $\mathbb C$
+
+$\cosh z:=\frac 1 2 (e^z + e^{-z}), \ \sinh z:=\frac 1 2 (e^z - e^{-z}),\ \tanh z:= \frac {\sinh z}{\cosh z},\ \coth z:= \frac {\cosh z}{\sinh z}$
+
+a) Show the following equations
+</blockquote>
+
+Let $z= x+iy\in\mathbb C,\ x,y\in\mathbb R$
+
+$$\begin{aligned} \cos (iz) &=  \frac 1 2 (e^{iiz} + e^{-iiz}) =\frac 1 2 (e^{-z} + e^{z}) = \cosh z
+\\ \sin (iz) & = \frac 1 {2i} (e^{iiz} - e^{-iiz}) = \frac 1 {2i} (e^{-z} - e^z) = \frac 1 2 i(e^z-e^{-z}) = i\sinh z 
+\\ \tan(iz) &= \frac {\sin(iz)}{\cos(iz)} = \frac {i\sinh z}{\cosh z} = i\tanh z
+\\ \cot(iz) &= \frac {\cos(iz)}{\sin(iz)} = \frac {\cosh z}{i\sinh z} = -i\coth z
+\end{aligned}$$
+
+> Use H) to show T) as in below (PS. my birth month is April)
+
+$$\begin{aligned} \sin(z+w) &= \sin(i (-iz-iw)) 
+\\ &= -  \sin (i(iz + iw))
+\\ &= -i \sinh (iz+iw) & \text{by (a)}
+\\ &= -i (\sinh (iz) \cosh (iw) + \cosh (iz) \sinh (iw)) &\text{by (H)}
+\\ &= -(i\sinh(iz))\cosh(iw) - \cosh(iz)(i\sinh(iw))
+\\ &= - \sin(-z)\cos(-w) - \cos(-z)\sin(-w)& \text{by (a)}
+\\ &= \sin z cos w + \cos z \sin w
+\\
+\\ \cos(z+w) &= \cos(i(iz+iw))
+\\ &= \cosh(iz+iw)
+\\ &= \cosh(iz)\cosh(iw) + \sinh(iz)\sinh(iw)
+\\ &= \cos(-z)\cos(-w) + \frac {\sin(-z)}{i} \frac {\sin(-w)}{i}
+\\ &= \cos z \cos w -\sin z \sin w
+\end{aligned}$$
+
+##Exercise K4.3
+<blockquote>
+Derive the principle branch inverse of sin-function 
+</blockquote>
+
+Let $z, w\in \mathbb C$, and $z=\sin w$. 
+
+$$\begin{aligned}  & z = \sin w = \frac 1 {2i} (e^{iw} - e^{-iw})
+\\ \Rightarrow & \ e^{iw} - (e^{iw})^{-1} = i2z
+\\ \Rightarrow & \ (e^{iw})^2 - 2iz (e^{iw}) - 1 = 0
+\\ \Rightarrow & \ e^{iw} = iz \pm {(1-z^2)^\frac 1 2} &\cdot^\frac 1 2 \text{ is NOT päähaara}
+\\ \Rightarrow & \ e^{iw} = iz \pm e ^{\frac 1 2 (\ln |1-z^2| + i \text{Arg}(1-z^2)+k2\pi i)}
+\\ \Rightarrow & \ w= -i \log(iz \pm e ^{\frac 1 2 (\ln |1-z^2| + i \text{Arg}(1-z^2)+k2\pi i)}) &\log\cdot \text{ is NOT päähaara}
+\\ \Rightarrow & \ \sin^{-1}(z) = \frac 1 i \bigg( \ln|v| + i \text{Arg}(v) + k2\pi i \bigg)
+\\ &\text{ where, }v = iz \pm e ^{\frac 1 2 (\ln |1-z^2| + i \text{Arg}(1-z^2)+k2\pi i)}, \ \ k\in\mathbb Z
+\end{aligned}$$
+
+This is multi-valued equation/branches.
+
+It can be "simplified" into $\sin^{-1}(z)=- i \log (iz \pm \sqrt {1-z^2})$, where the ponential and logrithm funcion is NOT principle branches defining in $\mathbb C$
+
+> Find and explain carefully on the selection of branch that makes the real valued one matches the real-valued arcsin function.
+
+Choose the "principle branch" $ \text{Sin}^{-1}(w) := -i \text{Log}(iw +\sqrt{|1-w^2|}\ e^{i \text{Arg}(1-w^2)/2} )$
+
+Prove:  $w\in[-1, 1]\subset\mathbb R$, note that $\arcsin:[-1,1]\to\mathbb [-\frac \pi 2, \frac \pi 2]$ a real-valued function
+
+$$\begin{aligned}
+& -i \text{Log}(iw +\sqrt{|1-w^2|}\ e^{i \text{Arg}(1-w^2)/2} )
+\\ = & i \text{Log}(iw + \sqrt{1-w^2}) &\text{because } 1-w^2 \in \mathbb R^+ \Rightarrow \text{Arg}(1-w^2) = 0 
+\\ = & i(\ln|\sqrt{1-w^2} + iw| + i \text{Arg}(\sqrt{1-w^2} + iw)) 
+\\ = & i (\ln1 + i \arcsin w) & \text{Re}(\sqrt{1-w^2} + iw) = \sqrt{1-w^2},\ \text{Im}(\cdot) = w 
+\\ = & \arcsin w  
+\end{aligned}$$
+

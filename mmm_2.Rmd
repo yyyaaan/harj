@@ -1,0 +1,91 @@
+---
+title: "Demo 2"
+author: "Yan Pan | 6 exercises completed | created with R-markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+#exercise 1
+###(a) 
+
+$$\begin{align} E(\boldsymbol{Z}) &= E( \boldsymbol{P} ^{T} )  \big( E \boldsymbol{X} - E \boldsymbol{\mu}  \big) \\ &=  E( \boldsymbol{P} ^{T} ) ( \boldsymbol{\mu} - \boldsymbol{\mu} ) \\ &=  \boldsymbol{0}  \\ cov( \boldsymbol{Z} ) &= E  \big( \boldsymbol{P} ^{T}( \boldsymbol{X} -\boldsymbol{\mu} ) \big)  \big( \boldsymbol{P} ^{T}( \boldsymbol{X} -\boldsymbol{\mu} ) \big)^T  \\ &=  E  \bigg(  \boldsymbol{P} ^T (\boldsymbol{X-\mu} ) (\boldsymbol{X-\mu} )^T \boldsymbol{P}  \bigg) \\ &=  \boldsymbol{P} ^T E[(\boldsymbol{X-\mu} ) (\boldsymbol{X-\mu} )^T]  \boldsymbol{P}  \\ &=  \boldsymbol{P} ^T ( \boldsymbol{P\Lambda P}^T ) \boldsymbol{P} \\ &=  \boldsymbol{\Lambda}     \end{align} $$  
+
+###(b)
+By the properties of matrix, $tr(\boldsymbol{P\Lambda P}^T ) = tr(\boldsymbol{\Lambda P P} ^T) = tr(\Lambda)$, since $\boldsymbol{P}$ is orthogonal. This proves $tr(\boldsymbol{\Sigma} ) = tr( \boldsymbol{\Lambda} )$.
+Further, $tr( \boldsymbol{\Sigma} ) = \sum\limits_{i=1}^{ p}  \lambda_i$  is by property of eigenvalues.
+
+#exercise 2
+Calculate the eigenvalues:
+ 
+$\bigg|  \begin{bmatrix} 5-\lambda & 2 \\ 2 & 2- \lambda \end{bmatrix}  \bigg| = \lambda^2 - 7 \lambda + 6 :=0 \ ⇒\  \lambda_1 = 6,\ \lambda_2=1$ and,
+
+the corresponding eigenvectors $\Gamma= \begin{bmatrix} \frac{2}{\sqrt 5} & -\frac{1}{\sqrt 5}   \\ \frac{1}{\sqrt 5} & \frac{2}{\sqrt 5}  \end{bmatrix}$
+
+Therefore the first principal component is $z_1 = \frac{2}{\sqrt 5} x_1 + \frac{1}{\sqrt 5} x_2$, and its variance is $var(Z_1)=\lambda_1=6$  .
+
+
+#exercise 4
+###(a)
+```{r}
+library(mclust)
+data("banknote")
+X <- banknote[,2:7]
+cov <- cov(X)
+Lambda <- diag(eigen(cov)$values)
+P <- eigen(cov)$vectors
+# set mu matrix
+meanValue <- sapply(X, mean)
+mu <- t( matrix(rep(meanValue,200), ncol = 200))
+# only print first 15 lines
+Z <- t(P) %*% t(X-mu)
+head(t(Z), n=15)
+pairs(t(Z))
+``` 
+
+###(b)
+Based on the fact that the variances equal eigenvalues
+
+```{r}
+barplot(eigen(cov)$values, main = "Variances")
+``` 
+
+#exercise 5
+```{r}
+pka <- prcomp(X)
+head(pka$x, n=15)
+pairs(pka$x)
+screeplot(pka)
+``` 
+
+#exercise 6
+```{r}
+X.new <- X
+X.new[,4:6] <- X.new[,4:6] / 100
+pka.new <- prcomp(X.new)
+vars <- pka.new$sdev^2
+firstPK <- vars[1] / sum(vars)
+print( paste("The first principal component score explains", firstPK))
+``` 
+
+#exercise 7
+```{r}
+library(MASS)
+
+plotpk <- function(X){
+  center <- colMeans(X)
+  eigen(cov(X))$vectors
+  p1 <- eigen(cov(X))$vectors[,1]
+  p2 <- eigen(cov(X))$vectors[,2]
+  
+  par(pty="s") # force to be square
+  plot(X, col = "gray", xlim = c(-10,10), ylim = c(-10,10))
+  points(center[1], y=center[2])
+  arrows(center[1], center[2], x1 = center[1] + 3*p1[1], y1 = center[2] + 3*p1[2], col = "red")
+  arrows(center[1], center[2], x1 = center[1] + 3*p2[1], y1 = center[2] + 3*p2[2], col = "blue")
+}
+
+plotpk(mvrnorm(500, c(1,2), matrix(c(4,2,2,9), 2)))
+``` 

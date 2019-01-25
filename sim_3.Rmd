@@ -1,0 +1,219 @@
+---
+title: "Stochastic Simulation | Problems 3"
+author: " Yan PAN"
+output: 
+  html_document: 
+    df_print: paged 
+    theme: 'readable'
+---
+
+<style>
+h1,h2,h3{
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  padding-top: 20px;
+}
+blockquote{
+  font-size: 16px; !important;
+}
+</style>
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+##Exercise 1
+> $f:A\to\mathbb R$ non-decreasing. Prove that $f(\min\{x,y\})=\min\{f(x),f(y)\}$.
+
+Suppose $x\geq y$. Then $f(\min\{x,y\})= f(y) \overset =\min\{f(x),f(y)\}$, because $f$ non-decreasing.
+
+The above is sufficient as $x,y$ are equivalent in the expression.
+
+> $f$ non-increasing. Find expression for $f(\min\{x,y\})$.
+
+$f(\min\{x,y\})=\max\{f(x),f(y)\}$
+
+> What about max functions?
+
+$f$ non-decreasing $\Rightarrow\ f(\max\{x,y\})=\max\{f(x),f(y)\}$;
+
+$g$ non-increasing $\Rightarrow\ f(\max\{x,y\})=\min\{f(x),f(y)\}$.
+
+##Exercise 2
+<blockquote>
+Importance sampling confidence intervals for tail probablilty.
+</blockquote>
+
+Although the asymptotic variance of the IS is analytical, the following code use the empirical confidence interval.
+
+```{r demo32}
+myIS <- function(n = 1e5){
+  yt <- rexp(n, rate = 4)
+  y <- yt + 4
+  In <- exp( - y^2 / 2 + 4 * yt) / (4 * sqrt(2 * pi) ) 
+  In <- sort(In)
+  list(est = mean(In),
+       ci.lower = In[n * 0.025],
+       ci.upper = In[n * 0.975],
+       ci.length = In[n * 0.975] - In[n * 0.025])
+}
+myIS()
+```
+
+> b. Use antithetic variable to reduce variance.
+
+Use the inverve c.d.f to simulate for $Y = - \ln U /4$ and the antithetic $Y_\text{anti} = - \ln (1-U) / 4$. The formula is used directly for the coding
+
+```{r demo32b}
+myIS2 <- function(n = 1e5){
+  u <- runif(n)
+  y <- - log(u) / 4 # have to use the inverse to simulate exp-distribution
+  y.anti <- - log(1-u) / 4 
+  
+  In1 <- exp( - (y+4)^2 / 2 + 4 * y) / (4 * sqrt(2 * pi) )  
+  In2 <- exp( - (y.anti+4)^2 / 2 + 4 * y.anti) / (4 * sqrt(2 * pi) )  
+  In <- (In1 + In2) / 2
+  
+  In <- sort(In)
+  list(est = mean(In),
+       ci.lower = In[n * 0.025],
+       ci.upper = In[n * 0.975],
+       ci.length = In[n * 0.975] - In[n * 0.025])
+}
+myIS2()
+```
+
+##Exercise 3
+<blockquote>
+Suppose $p(1),\dots,p(m)\geq 0,\ \sum \limits_{i=1}^{m} p(i) =1$ p.m.fs on $\mathbb X = \{1,\dots,m\}$, and let $f:\mathbb X\to \mathbb R$.
+
+a.  Implement a stratified sampling approach, with uniform stratification, which approximates $\mathbb E_p [f(X)] = \sum \limits_{i=1}^{m} p(i)f(i)$
+</blockquote>
+
+```{r demo33}
+myStrat <- function(n, m = 10, p = NULL, f = function(x) x){
+  if(is.null(p)){
+    p <- function(x) x/sum(1:m) # p(i) propto i
+  }
+  zm <- numeric(m)
+  for (i in 1:m) { # the stratification
+    ppp <- rep(p(i), n) #? no randomness possible here?
+    fff <- rep(f(i), n)
+    zm[i] <- mean(ppp * fff)
+  }
+  sum(zm)
+}
+
+myStrat(1e5)
+
+myP <- function(x){
+  #x must be interger
+  l10 <- c(1,3,5,9,7,2,6,8,4,10)
+  return(l10[x]/ sum(l10))
+}
+
+myStrat(1e5, 10, myP)
+```
+
+When each strata are not with same probability, it creates a bias. It can be see from the formula, that the $p(i)$ is some how the "weight" for each stratum.
+
+##Exercise 4
+<blockquote>
+Estimating mean and variance for $Y,\ \ \ Y|X\sim N(X,X^2)$ and $X\sim\mathcal U(-1,1)$
+
+a. Use Monte Carlo directly.
+</blockquote>
+
+```{r demo24a}
+n <- 1e5
+x <- runif(n, -1, 1)
+y <- numeric(n)
+for (i in 1:n) {
+  y[i] <- rnorm(1, mean = x[i], sd = abs(x[i])) #rnorm use sd!
+}
+cat("Monte Carlo: mean =", mean(y), "and var =", var(y))
+```
+
+> b. Use Rao-Blackwellisation and only $(X_k)\overset{i.i.d.}\sim p$
+
+Foucs on the marginal distribution,
+
+$E[Y|X=x] = E[X]$ is given by the definition, which holds constant for given $x$
+
+Let $Z=Y^2$ and suppose $z\geq 0, \ y\geq 0$; then,
+
+$$\begin{aligned} F_Z(z|X=x) &= \mathbb P (Y^2 \leq z | X=x)
+\\ &= \mathbb P( - \sqrt z \leq Y \leq \sqrt z| X=x)
+\\ &= F_Y(\sqrt z | X=x) - F_Y(- \sqrt z | X=x) &\text{both are known normal dist.}
+\\ &= F_Y(y | X=x) - F_Y(- y | X=x)
+\\ &= 2F_Y(y | X=x) - 1
+\\ &= 2F_Y(y | X=x) -1 
+\\ \text{Therefore,}
+\\ E[Y^2|X=x] & = 2E[X^2]
+\end{aligned}$$
+
+```{r demo24b}
+x <- runif(n, -1, 1)
+Ey <- mean(x) # no need to sim in RB; marginal dist is known.
+Ey2 <-2 *  mean(x^2) 
+varY <- Ey2 - Ey^2
+cat("Rao-Blackwellisation: mean =", Ey, "and var =", varY)
+```
+
+> c. Compare the vairance of estimators
+
+Without theoretic prove, it can be concluded that Rao-Blackwellisation provides small variance. In the classic Monte Carlo, the total variance is the sum from the simulation of $x$ and of $y$, but the later mehtods only incur the variance from simulation of $x$.
+
+##Exercise 5 (NOT OK)
+<blockquote>
+Show that $nv_{p,q}^{(n)}\overset{n\to\infty}\longrightarrow \bar\sigma_{p,q}^2$
+</blockquote>
+
+$$\begin{aligned} nv_{p,q}^{(n)}
+&= n\ \sum \limits_{k=1}^{n}(W_k^{(n)})^2 [f(Y_k)-\hat I_{p,q}^{(n)}(f)]^2
+\\ &= \sum \limits_{k=1}^{n} n(W_k^{(n)})^2 [\bar f(Y_k)-\hat I_{p,q}^{(n)}(\bar f)]^2 &(i)
+\\ &= \sum \limits_{k=1}^{n} \frac{\frac 1 n w_u^2(Y_k)}{ \bigg( \frac 1 n \sum_{j=1}^n w_u(Y_j) \bigg)^2} [\bar f(Y_k)-\hat I_{p,q}^{(n)}(\bar f)]^2 &(ii)
+\\ &=\frac{\sum \limits_{k=1}^{n} \frac 1 n w_u^2(Y_k)\bar f^2(Y_k) + \sum \limits_{k=1}^{n} \frac 1 n w_u^2(Y_k) \bigg((\hat I_{p,q}^{(n)}(\bar f))^2 - 2 \bar f(Y_k) \hat I_{p,q}^{(n)}(\bar f)  \bigg) }
+{ \bigg( \frac 1 n \sum_{j=1}^n w_u(Y_j) \bigg)^2}
+\\ &\to\frac{\sum \limits_{k=1}^{n} \frac 1 n w_u^2(Y_k)\bar f^2(Y_k) } { \bigg( \frac 1 n \sum_{j=1}^n w_u(Y_j) \bigg)^2} & *
+\\ &= \frac 1 n \sum \limits_{k=1}^{n} \frac{w_u^2(Y_k)}{\bigg( \frac 1 n \sum_{j=1}^n w_u(Y_j) \bigg)^2}\bar f^2(Y_k)
+\\&= ? \sigma_{p,q}^2
+\end{aligned}$$
+
+##Exercise 6
+<blockquote>
+Fisher-Yates shuffle algorithm. (i) Pick $J_k \sim \mathcal U(\{1,\dots,k\})$; (b) Exchange the elements $a_k \leftrightarrow a_{J_k}$
+
+a. How to efficiently transform $U\sim\mathcal U(0,1)$ into 
+$j \sim \mathcal U(\{1,\dots,k\})$
+</blockquote>
+
+"Slice" the interval $(0,1)$ into $k$ disjoint ones, i.e. 
+
+$(0,1) = (0, \frac 1 k]\bigcup (\frac 1 k, \frac 2 k] \bigcup \cdots \bigcup (\frac {k-1} {k}, 1) $
+
+In practice, $U\sim\mathcal U(0,1) \ \rightarrow\ \lceil \frac U k \rceil$ (ceiling interger) gives the discrete uniform.
+
+> b. Show that the algorithm gives an vector a random permutation.
+
+Let $a=\{a_1,\dots,a_n\}$ denotes the values of the initial vector, while the big letters $\{A_1,\dots,A_n\}$ denotes the indicies/loctaions. For example, $A_1 = a_i$ means that $a_i$ is the first element of the vector/ at position 1/ index 1. Further, $i_1,\dots, i_n \in\{1,2,\dots,n\}$
+
+Step 1, $k=n:\ \mathbb P (A_n = a_{i_1}) = \mathbb P(u_1 = i_1) = \frac 1 n$ becuase $u_1 \sim \mathcal U(\{1,2,\dots,n\})$
+
+Step 2, $k=n-1:\ \mathbb P (A_{n-1} = a_{i_2} | A_n = a_{i_1}) = \mathbb P(u_2 = i_2) = \frac 1 {n-1}$ becuase $u_2 \sim \mathcal U(\{1,2,\dots,n-1\})$
+
+...
+
+Step $n-2,\ k= 3:\mathbb P (A_{3} = a_{i_{n-2}} | A_n = a_{i_{n-2}}, A_{n-1} = a_{i_{n-3}}, \dots, A_{4} = a_{i_3}) = \mathbb P(u_{n-2} = i_{n-2}) = \frac 1 3$ becuase $u_{n-2} \sim \mathcal U(\{1,2,3\})$
+
+Step $n-1,\ k= 2:\mathbb P (A_{2} = a_{i_{n-1}} | A_n = a_{i_{n-2}}, A_{n-1} = a_{i_{n-3}}, \dots, A_{3} = a_{i_2}) = \frac 1 2$ becuase $u_{n-1} \sim \mathcal U(\{1,2\})$
+
+Apply the conditional probability definition ("Bayesian formula" specifically) 
+
+$\mathbb P(A_1 = a_{i_1},\dots, A_n = a_{i_n}) \\= \mathbb P(A_n = a_{i_n}) \mathbb P(A_{n-1} = a_{i_2} | A_n = a_{i_n} ) \cdots  P (A_{3} = a_{i_{n-2}} | A_n = a_{i_{n-2}}, A_{n-1} = a_{i_{n-3}}, \dots, A_{4} = a_{i_3}) P (A_{2} = a_{i_{n-1}} | A_n = a_{i_{n-2}}, A_{n-1} = a_{i_{n-3}}, \dots, A_{3} = a_{i_2}) \\ = \frac 1 n \frac 1 {n-1} \cdots \frac 1 3 \frac 1 2 = \frac 1 {n!}$
+
+This is exactly the probability of permutation, which concludes the proof.

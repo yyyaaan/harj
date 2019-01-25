@@ -1,0 +1,232 @@
+---
+title: "Demo 3"
+author: "Yan PAN"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: kable
+    theme: 'readable'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Exercise 1
+
+Consider the generalized linear regression model $y=X\beta +\epsilon, \ \epsilon\sim N(0,\sigma^2V)$. Derive the ML-estimators.
+
+<blockquote>
+$$\begin{aligned} L(\beta,\sigma^2)
+&= |2\pi\sigma^2 V|^{-\frac n 2} \exp \bigg( -\frac 1 2 (y-X\beta)^T (\sigma^2 V)^{-1} (y-X\beta) \bigg) 
+\\ l(\beta,\sigma^2) &= -\frac n 2 \log(2\pi\sigma^2 |V|) - \frac 1 {2\sigma^2} (y-X\beta)^T V^{-1}(y-X\beta) 
+\\ &=-\frac n 2 \log(2\pi\sigma^2 |V|) - \frac 1 {2\sigma^2}\bigg (y^T V^{-1} y - \beta^T X^T V^{-1} y - y^T V^{-1} X \beta  + \beta^T X^T V^{-1} X\beta\bigg)
+\\ \frac{\partial l(\beta,\sigma^2)}{\partial\beta}&=  \frac 1 {2\sigma^2}\bigg ( - (X^T V^{-1} y)^T - y^T V^{-1} X + \beta^T (X^T V^{-1} X + (X^T V^{-1} X)^T)\bigg)=:0 
+\\ &\Rightarrow\ 2y^T  V^{-1}  X -2\beta^T X^T V^{-1} X = 0
+\\ &\Rightarrow\ X V^{-1} y = X^T V^{-1} X \beta
+\\ &\Rightarrow\ \hat\beta = (X^T V^{-1} X)^{-1} X^T V^{-1} y
+\\
+\\ \frac{\partial l(\beta,\sigma^2)}{\partial\beta}&= -\frac n 2 \frac{2\pi |V|}{2\pi\sigma^2 |V|} + \frac 1 2 (y-X\beta)^T V^{-1}(y-X\beta) \frac 1 {(\sigma^2)^2} :=0
+\\ &\Rightarrow\ n \sigma^2 -  (y-X\beta)^T V^{-1}(y-X\beta) = 0
+\\ &\Rightarrow\ \hat\sigma^2 = \frac {(y-X\beta)^T V^{-1}(y-X\beta)} n
+\end{aligned}$$
+</blockquote>
+
+#Exercise 2
+
+Show that $E(\hat\beta)=\beta$ and $\text{Cov}(\hat\beta) = \sigma^2(X^T V^{-1}X)^{-1}$
+
+<blockquote>
+
+$$\begin{aligned} E(\hat\beta)
+&= E((X^T V^{-1} X)^{-1} X^T V^{-1} y) &\text{suppose all inverse exist}
+\\ &= E(X^{-1}V (X^T)^{-1}X^T V^{-1}y)
+\\ &= E(X^{-1}y)
+\\ &= E(X^{-1}(X\beta +\epsilon))
+\\ &=E(\beta + X^{-1}\epsilon)
+\\ &= \beta + X^{-1}E(\epsilon)
+\\ & = \beta
+\\ \text{Cov}(\hat\beta) &= E[(\hat\beta-\beta)(\hat\beta-\beta)^T]
+\\ &= E[\hat\beta \hat\beta^T - \hat\beta \beta^T - \beta \hat\beta^T + \beta \beta^T]
+\\ &= E[\hat\beta\hat\beta^T] -E[\hat\beta]\beta^T - \beta E[\hat\beta^T] + \beta\beta^T
+\\ &= E[X^{-1}y (X^{-1}y)^T] - \beta \beta^T
+\\ &= E[X^{-1} (X\beta +\epsilon)(X\beta +\epsilon)^T (X^{-1})^T] - \beta\beta^T
+\\ &= E[X^{-1} ( X\beta\beta^T X^T + \epsilon\epsilon^T + X\beta\epsilon + \epsilon X\beta)(X^{-1})^T] - \beta\beta^T
+\\ &= E[\beta\beta^T ] + E[X^{-1}\epsilon\epsilon^T (X^{-1})^T] + 0 + 0 - \beta\beta^T 
+\\ &= X^{-1}E[\epsilon\epsilon^T] (X^{-1})^T
+\\ &= X^{-1}\sigma^2 V (X^{-1})^T
+\\ &= \sigma^2(X^T V^{-1}X)^{-1}
+\end{aligned}$$
+
+</blockquote>
+
+#Exercise 3
+
+Show that the profile likelihood $l(\theta) = \text{vakio} - \frac n 2 \log \hat\sigma_\theta^2 - \frac 1 2 \log|V_\theta|$
+
+<blockquote>
+Exercise 1 has shown the $l(\beta,\sigma^2)$. Put the result into the expression, and we can get the result.
+</blockquote>
+
+#Exercise 4R
+
+PISA-data regression with sample code.
+
+a. $t$-distribution defined confidence interval
+
+<blockquote>
+
+Use R-funcion
+
+```{r d304x}
+pisa <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/pisa.txt", header = T)
+mat <- pisa$matem
+sp <- as.numeric(pisa$sukup == "tytto")
+sij <- as.numeric(pisa$koulusij == "maaseutu")
+ita <- as.numeric(pisa$koulualue == "Ita-Suomi")
+lansi <- as.numeric(pisa$koulualue == "Lansi-Suomi")
+pohjoinen <- as.numeric(pisa$koulualue == "Pohjois-Suomi")
+X <- cbind(rep(1,200), mat, sp, sij, ita, lansi, pohjoinen)
+y <- pisa$mpist
+
+fit <- lm(mpist ~ matem + sukup + koulusij + koulualue, data = pisa)
+confint(fit)
+```
+</blockquote>
+
+b. Non-paramtric bootstrap confidence interval
+
+<blockquote>
+
+```{r d304b}
+# all code referenced
+bootstrap <- function(y,X) 
+{
+  n <- length(y)
+  s <- sample(1:n, replace=TRUE)
+  out <- lm(y[s] ~ X[s,] - 1)
+  coef(out)
+}
+b.boot <- replicate(10000, bootstrap(y,X))
+tab.boot <- apply(b.boot, 1, quantile, c(.025, .975))
+colnames(tab.boot) <- colnames(X)
+t(tab.boot)
+
+```
+
+</blockquote>
+
+c. Parametric bootstrap methods
+
+<blockquote>
+
+```{r d304c}
+hatbeta <- coef(fit)
+bootstrap2 <- function(y,X) 
+{
+  n <- length(y)
+  s <- sample(1:n, replace=TRUE)
+  out <- lm(y[s] ~ X[s,] - 1)
+  coefs <- coef(summary(out))
+  # all z values
+  (coefs[,1] - hatbeta) / coefs[,2]
+}
+boot <- replicate(10000, bootstrap2(y,X))
+z.boot <- t(apply(boot, 1, quantile, c(.025, .975))) # transpose
+
+coefs <- coef(summary(fit)) # non-boot betas and their s.e.
+cbind(coefs[,1] + z.boot[,1] * coefs[,2], coefs[,1] + z.boot[,2] * coefs[,2])
+```
+
+d. Three methods give very similar result. 
+
+</blockquote>
+
+#Exercise 5
+
+On use of Bootstrap-methodology.
+
+<blockquote>
+Bootstrap has many advantage, but the following can be considered as major disadvantage
+
+1. Resource-demanding
+
+2. When sampling is small and/or asympototic distribution is not nice, Bootstrap result is most likely very bad, too.
+
+3. Bootstrap does not change the model, and it cannot help to elimate modeling issues while it also creates challenge in model diagnostics.
+</blockquote>
+
+#Exercise 6
+
+Generalized linear model on 2009 PISA-data.
+
+<blockquote>
+```{r d306}
+  #a) read data
+pisa <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/pisafull.txt")
+  #b) ggpairs plot; this gives the most useful plots for explore data
+library(GGally)
+ggpairs(pisa)
+  #c) d)
+attach(pisa)
+library(nlme)
+  #e) generalized linear model fitting
+fit <- gls(sciescore ~ matem + gender + ESCS + motiv + urban + region,
+           correlation = corCompSymm(form = ~ 1 | SCHOOLID))
+summary(fit)
+  #f) 
+s <- vcov(fit)[7:9, 7:9]
+beta <- matrix(coef(fit)[7:9], nrow = 3)
+F <- t(beta) %*% solve(s) %*% beta / 3
+qF <- qf(.95, df1 = 3, df2 = nrow(pisa) - length(coef(fit)) - 1)
+cat("F is caculated to be", F, "\nF-distribution quantile is", qF)
+  #g)
+fit2 <- gls(sciescore ~ matem * motiv + gender + ESCS + urban + region,
+            correlation = corCompSymm(form = ~ 1 | SCHOOLID))
+summary(fit2)
+  #h)
+df <- data.frame(school = SCHOOLID, residual = residuals(fit2))
+library(ggplot2)
+ggplot(df, aes(school, residual)) + geom_jitter()
+  #i) glm is indeed better
+fit.lm <- lm(sciescore ~ matem * motiv + gender + ESCS + urban + region)
+anova.lme(fit.lm, fit2)
+  #j)
+fit2.ml <- gls(sciescore ~ matem * motiv + gender + ESCS + urban + region,
+            correlation = corCompSymm(form = ~ 1 | SCHOOLID), method = "ML")
+cbind("ML - se" = coef(summary(fit2.ml))[,2],
+      "REML - se" = coef(summary(fit2))[,2])
+```
+</blockquote>
+
+#Exercise 7
+
+Hierarchical model on 2009 PISA-data
+
+<blockquote>
+```{r d307}
+# includes the interactive items
+fith <- lme(sciescore ~ matem * motiv + gender + ESCS + urban + region,
+            random = ~ 1 | SCHOOLID)
+summary(fith)
+anova.lme(fit2, fith)
+plot(random.effects(fith))
+
+```
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+

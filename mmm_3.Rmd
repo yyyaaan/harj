@@ -1,0 +1,114 @@
+---
+title: "Demo 3"
+author: "Yan Pan | 7 exercises completed | created with R-markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+#exercise 1
+(a) Except for $\boldsymbol{x}$, the rest ($\boldsymbol{A} $ and $\boldsymbol{s}$) are unknow and unspecified. That is to say the combination may not be analytical without further assumptions.
+
+(b) The joint density of two Gaussian are perfectly symmetric. Also, the sum of Gaussian is also Gaussian, which makes it indistinguishable for the two components (as it can be analytically expressed as sum of any two components)
+
+(c) The following equation link the nongaussianity and the components.
+
+$\boldsymbol{y} = \boldsymbol{w} ^T \boldsymbol{x}= \boldsymbol{w} ^T \boldsymbol{As} = \boldsymbol{Z} ^T \boldsymbol{s}$.
+
+By maximize the above, the nongaussianity also maximized, while the other side of the equations indicates the components.
+
+<br>
+
+#exercise 2
+$\begin{align} f(x_1)&= \displaystyle\int_{ 0 } ^1 \frac{1}{2} (x_1 + 3x_2) d x_2 \\ &=  \frac{1}{2} x_1 + \frac{3}{4} \bigg/_{0}^{1}x _{2}^{2} \\ &=  \frac{1}{2} x_1 + \frac{3}{4} & x_1 \in [0,1] \\ f(x_2) &=  \displaystyle\int_{ 0 } ^1 \frac{1}{2} (x_1 + 3x_2) d x_1 \\ &= \frac{1}{4} \bigg/ _{0}^{1} x_1^2 + \frac{3}{2} x_2 \\ &=  \frac{3}{2} x_2 + \frac{1}{4}  & x_2 \in [0,1] \end{align}$
+
+Let $x_1 = x_2 = 0.1$ , $f( \boldsymbol{x} ) = 0.2 \neq 0.8 \times 0.4 = f(x_1) f(x_2)$.
+  
+Therefore, they are dependent. 
+
+<br>
+
+#exercise 3
+Denote $\cdot^\star$ the corresponding symbol for rotated vectors.
+
+By property of covariance, $\boldsymbol{\Sigma^\star} = \boldsymbol{U\Sigma U} ^{T}$.
+
+$\begin{align} \boldsymbol{U\Sigma U} ^T&= \boldsymbol{UP\Lambda P}^T \boldsymbol{U}^T \\ &=  (\boldsymbol{UP} ) \boldsymbol\Lambda (\boldsymbol{UP})^T \\ \text{So, }  \boldsymbol{P} ^\star&= \boldsymbol{UP}\end{align}$ 
+
+$\begin{align} \boldsymbol{Z} ^\star&= \boldsymbol{P} ^{\star T} (\boldsymbol{X^\star - \mu^\star} ) \\ &=  (\boldsymbol{UP} )^T ( \boldsymbol{UX - U\mu} ) \\ &=  \boldsymbol{P} ^T \boldsymbol{U} ^T \boldsymbol{U} (\boldsymbol{X-\mu} ) & (*) \\ &=    \boldsymbol{P} ^T (\boldsymbol{X-\mu} )\end{align}$ 
+
+* is because $\boldsymbol{U}$, as a rotation matrix, is orthogonal. 
+
+<br>
+
+#exercise 4
+All three graphs are plotted in a single picture below
+
+```{r}
+s1 <- runif(500, -sqrt(3), sqrt(3))
+s2 <- runif(500, -sqrt(3), sqrt(3))
+matS <- cbind(s1,s2)
+matA <- matrix(c(1,1,2,5), ncol =2)
+matX <- matS %*% t(matA)
+# (a)
+par(pty="s")
+par(mfrow = c (2,2))
+plot(s1, s2, main = "independent components", 
+     xlab = "s1", ylab = "s2", pch =".",
+     xlim = c(-3,3), ylim = c(-3,3))
+# (b)
+plot(matX[,1], matX[,2], main = "mixed data",
+     xlab = "x1", ylab = "x2", pch = ".",
+     xlim = c(-10,10), ylim = c(-10,10))
+# (c)
+library(expm)
+covX <- cov(matX)
+ss <- solve(sqrtm(covX))
+matX.c <- matX - colMeans(matX)
+matZ <- ss %*% t(matX)
+plot(matZ[1,], matZ[2,], main = "whitened data",
+     xlab = "z1", ylab = "z2", pch = ".",
+     xlim = c(-3,3), ylim = c(-3,3))
+
+``` 
+
+<br>
+
+#exercise 5
+```{r}
+library(fICA)
+ica <- fICA(matX)
+solve(ica$W) # almost exactly the same as the mixing matrix
+``` 
+
+<br>
+
+#exercise 6
+```{r}
+par(pty = "m")
+par(mfrow = c (1,1))
+library(mclust)
+data("banknote")
+X <- data.matrix(banknote[,2:7])
+
+ica <- fICA(X)
+colnames(ica$S) <- colnames(banknote[2:7])
+pairs(ica$S, col = c("red", "green")[unclass(banknote$Status)])
+``` 
+
+<br>
+
+#exercise 7
+
+Signal 1 and 3 seems to speech signals?
+```{r}
+X <- read.table("http://users.jyu.fi/~slahola/files/ica_datoja/speech.txt")
+ica <- fICA(data.matrix(X)) # independent ca
+pca <- prcomp(X)
+
+plot.ts(X, main = "(a) plot.ts")
+plot.ts(ica$S, main = "(b) fICA")
+plot.ts(pca$x, main = "(c) PCA")
+``` 

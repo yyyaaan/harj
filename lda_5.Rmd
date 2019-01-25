@@ -1,0 +1,117 @@
+---
+title: "R-exercise 5"
+author: "Yan Pan"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(plotly)
+library(DT)
+```
+
+# Exercise 1 (Muscle Strength)
+
+```{r}
+library(nlme)
+wlong <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/wlong.txt", 
+                    header = TRUE)
+wlong$trt <- factor(wlong$trt)
+
+weights.lme <- lme(st ~ time * trt, random = ~ 1 + time | id, data = wlong)
+summary(weights.lme)$coefficients$fixed
+``` 
+
+Conclusions based on fixed effect: trt2 (increasing weights) seems to be positively beneficial to muscle strength.
+
+```{r}
+weights.2 <- lme(st ~ time * trt, random = ~ 1 |id, data = wlong)
+anova(weights.lme, weights.2)
+``` 
+
+Model comparison suggest the original model is better, i.e. the random effect multiplier is indeed necessary.
+
+```{r}
+# summary(weights.lme)$coefficients also gives a nice table
+datatable(data.frame(random.effects(weights.lme)))
+```
+
+```{r results='hide'}
+plotdata <- cbind(wlong, weights.lme$fitted)
+plot1 <- ggplot(aes(x = time, y = fixed, color = trt), data = plotdata) + 
+  geom_line() + 
+  geom_point(aes(y = st)) +
+  facet_wrap(~id) +
+  ggtitle("Lines are fitted values, points are the observed")
+```
+
+```{r}
+ggplotly(plot1)
+``` 
+
+# Exercise 2 (PISA-maths)
+```{r}
+pisa <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/pisamat.txt",
+                   header = TRUE)
+plot(mathscore ~ factor(SCHOOLID), data = pisa)
+``` 
+
+There seems no difference among schools.
+
+```{r}
+pisa$alue <- factor(pisa$alue)
+pisa$mot <- factor(pisa$mot)
+pisa.lm <- lm(mathscore ~ matem + ESCS + alue + mot, data = pisa)
+# using summary instead of coef() to get p value also
+datatable(data.frame(summary(pisa.lm)[4]))
+``` 
+
+Last mathematics schools, social economics status and motivations are somewhat positively influence PISA-mathematics socre.
+
+```{r}
+index50 <- which(pisa$SCHOOLID < unique(pisa$SCHOOLID)[51])
+plotdata <- data.frame(residuals = pisa.lm$residuals[index50],
+                       SchoolID = pisa$SCHOOLID[index50])
+plot2 <- ggplot(aes(x=SchoolID, y=residuals), data = plotdata) +
+  geom_point() + ggtitle("residual of 50 schools (lm)")
+ggplotly(plot2)
+``` 
+
+```{r}
+pisa.lme <- lme(mathscore ~ matem + ESCS + alue + mot,
+                random = ~ 1 | SCHOOLID ,data = pisa)
+summary(pisa.lme)$coefficients
+
+sigma <- colMeans(pisa.lme$residuals^2)
+sigma
+rho <- sigma[2] / sum(sigma)
+rho
+```
+
+The variance components and correlation are calculated from residuals.
+
+```{r}
+plotdata <- data.frame(fitted = pisa.lme$fitted[,2],
+                       residuals = pisa.lme$residuals[,2],
+                       alue = pisa$alue)
+plot3 <- ggplot(aes(x=fitted, y=residuals), data = plotdata) + 
+  geom_point() + facet_wrap(~alue) + ggtitle("Residuals of Random Effect")
+ggplotly(plot3)
+``` 
+
+For different regions, there seem to be concentration difference in residual/fitted.
+
+# Exercise 3 (multi-level model)
+
+```{r}
+for (i in 1:nrow(pisa)) {
+  index <- which(pisa$SCHOOLID == pisa$SCHOOLID[i])
+  pisa$meanmath[i] <- as.numeric(mean(pisa$matem[index]) > 7.6)
+  pisa$meanmot[i] <- as.numeric(mean(as.numeric(pisa$mot[index])) > 0.6)
+}
+
+pisa.multi <- lme(mathscore ~ matem * meanmath,
+                  random = ~ (meanmath + meanmot) | SCHOOLID,
+                  data = pisa)
+summary(pisa.multi)
+``` 

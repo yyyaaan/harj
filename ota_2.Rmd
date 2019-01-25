@@ -1,0 +1,121 @@
+---
+title: "Harjoitus 2"
+author: "PAN Yan"
+output:
+  html_document:
+    df_print: paged
+    theme: readable
+---
+
+<style>
+h1,h2,h3{
+	font-family: Georgia,"Times New Roman",Times,serif !important;
+	padding-top: 20px;
+}
+</style>
+
+All exercises done.
+
+## Exercise 1
+
+Kyselytutkimukseen vastasi $20\%$ erään oppiaineen lukionopettajista. Aineistosta estimoitiin mm. populaatiokeskiarvoja ($95%$:n) luottamusväleineen. Laskennoissa ei käytetty äärellisen populaation korjausta (luennot 1.3). Entä, jos olisi käytetty, paljonko luottamusväli olisi kaventunut (suhteellisesti)? Entä, jos vastaajien osuus olisi ollut $10\%$, $30\%$, $50\%$?
+
+<blockquote>
+$$\begin{aligned} 
+\text{Var}(\bar y ) &= \underbrace{\bigg( 1 - \frac n N \bigg)}_{fpc} \frac{s^2}{n}
+\\ \text{as the sample variance is empirical,} & \text{the only difference comes from }fpc
+\\ \text{relative length of confidence interval } &= \sqrt{1- \frac n N}
+\\ \text{Therefore,}
+\\ 10\% \text{ sample } &\Rightarrow 5.1\% \text{ reduced length}
+\\ 20\% \text{ sample } &\Rightarrow 10.6\% \text{ reduced length}
+\\ 30\% \text{ sample } &\Rightarrow 16.3\% \text{ reduced length}
+\\ 50\% \text{ sample } &\Rightarrow 29.3\% \text{ reduced length}
+\end{aligned}$$
+</blockquote>
+
+
+#Exercise 2
+
+Kalastaja sai Keski-Päijänteellä eräänä päivänä muikkunuotalla 271 kg saaliin (käytännössä kaikki kalat olivat muikkuja). Hänen ostajansa oli kiinnostunut vain vähintään 15 cm:n pituisista muikuista. Kuinka monta sellaista nuotassa mahtoi olla? Yksitellen mittaaminen ja laskeminen oli aivan liian työlästä. Kalastaja kouhaisi saaliistaan 3 800 gramman otoksen. Siinä oli täsmälleen 100 kalaa, joista 72 oli vähintään 15-senttisiä. Auta kalastajaa arvioimaan pitkien muikkujen lukumäärä koko saaliissa suhde-estimoinnilla käyttämällä painoa apumuuttujana.
+
+<blockquote>
+$$\begin{aligned}
+\text{ratio of fish number, >15 vs. all } \hat r_l &= \frac {72}{100} = 0.72
+\\ \text{ratio of weight vs. fish number } \hat r_p &= \frac {3.8}{100} = 0.038
+\\ \hat \tau &= \frac{\tau_p \cdot \hat r_l}{\hat r_p} \approx 5135
+\end{aligned}$$
+</blockquote>
+
+#Exercise 3
+
+Viljelyalan laajuutta USA:ssa selvitettiin. Koko maan 3 078 piirikunnassa oli viisi vuotta aiemmin toteutetun selvityksen mukaan yhteensä 964 470 625 eekkeriä viljelysmaata. Piirikunnista arvottiin (YSO palauttamatta) 300 piirikunnan otos, ja niiden keskimääräiseksi viljelyalaksi saatiin kartoituksessa 297 897 eekkeriä. Samojen piirikuntien viljelyalan laajuus oli viisi vuotta aiemmin ollut keskimäärin 301 954 eekkeriä. Arvioi koko viljelyalan laajuutta käyttäen viiden vuoden takaisia tietoja apumuuttujana. (Käytä origon kautta kulkevaa regressiomallia.)
+
+<blockquote>
+$$\begin{aligned} 
+\text{let } x &\text{ be the farming area five years ago, and }y \text{ current farming land area}
+\\ y&= \beta x + \epsilon
+\\ \Rightarrow \ \hat\beta &= \frac y x = \frac{297897}{301954} \approx 0.98656
+\\ \Rightarrow \ \hat y  &=\hat\beta \hat x = 951\ 512\ 170 \text{ arces}
+\end{aligned}$$
+</blockquote>
+
+#Exercise 4
+
+Australialainen botanisti sai päähänsä selvittää erään puuyksilön lehtien (haihduttavan) kokonaispinta-alan. Hän nyppi puun kaikki lehdet ($N=744$) ja alkoi mitata niiden pinta-aloja. Mitattuaan (satunnaisten) 20 lehden alat $y_i$ homman hitaus valkeni. Niinpä hän tyytyi mittaamaan kaikkien lehtien pituuden ja leveyden, joiden tulona hän sai pinta-alan $x_i$ pienimmälle suorakaiteelle, joka sisältää lehden $i$. Lisäksi, $\tau_x = 57 266.6$
+
+Piirrä havainnoista kuva. Estimoi (lineaarisen) regressiomallin parametrit $a$ ja $b$. Estimoi mallilla lehtien kokonaispinta-alaa (totaali) ja estimaatin keskivirhettä. Määrää totaalille 95 %:n luottamusväli. Estimoi totaalia myös pelkästä y-otoksesta.
+
+
+```{r}
+y <- c(80.7, 69.7, 66.1, 124.6, 72.6, 36.3, 37.0, 31.5, 21.1, 49.5, 28.5, 47.8, 73.4, 48.4, 74.1, 24.3, 16.7, 19.3, 91.4, 29.4)
+x <- c(113.08, 98.40, 97.17, 198.40,103.20, 55.10, 55.10, 43.96, 28.35, 61.10, 39.15, 55.35, 101.43, 58.80, 102.50, 36.57, 26.28, 30.20, 143.63, 40.00 )
+plot(y~x)
+```
+
+<blockquote>
+Regression method:
+
+$$\begin{aligned} 
+\text{Malli } \mu_y &= a + b \mu_x
+\\ \text{Estimointi }& \begin{cases} b &= \frac {s_{xy}}{s_y} = \frac{1262.4}{1990} = 0.6343 \\ a &= \bar y - a \bar x = 4.9300 \end{cases}
+\\ \Rightarrow & \begin{cases} \hat\tau_y = N \bar y + b(\tau_x - N \bar x) = 39996.26 \ cm^2\\ \hat{\text{SE}}(\hat \tau_y) = N \sqrt{ \bigg( 1- \frac n N \bigg) \frac 1 n s_y^2 (1- r_{xy}^2)}=  697.47 \end{cases}
+\\ \Rightarrow & \hat \tau_y = 39996.26\ (38629.22,\ 41363.3)
+\end{aligned}$$
+
+Compared with $y$-only method:
+
+$$\begin{aligned} 
+& \begin{cases}  \hat \tau'_y&= N \bar y = 38777.28
+\\ \hat{\text{SE}}(\hat \tau'_y) &= \sqrt{N(N-n) \frac{s^2} n} = 4696.203
+ \end{cases}
+\\ \hat\tau_y' &= 38777.28\  (19572.72, \ 37981.84)
+\\ &=
+\end{aligned}$$
+
+</blockquote>
+
+#Exercise 5
+
+Metsäalueella olevien kuolleiden puiden lukumäärää arvioitiin ilmakuvan avulla. Tätä varten alue jaettiin sataan yhtä suureen suorakaiteen muotoiseen osaan ja ilmakuvasta laskettiin kuolleet puut jokaisesta osa-alueesta. Kuvista laskettujen kuolleiden puiden määrän populaatiokeskiarvo on 11.3 per osa-alue. Ilmakuvasta laskeminen on nopeaa, mutta osa kuolleista puista jää kuvasta huomaamatta ja osa kuolleiksi tulkituista onkin todellisuudessa eläviä. Tämän korjaamiseksi tehtiin
+seuraavaa: Osa-alueista arvottiin (YSO palauttamatta) 25 ja näiden kuolleet puut käytiin laskemassa maastossa. Maastolaskentojen otoskeskiarvo on 11.56 ja otosvarianssi 9.09. Samojen osa-alueiden ilmakuvalaskentojen keskiarvo on 10.6. Ilmakuva- ja maastolaskentojen välinen korrelaatio on 0.6242 ja aineistoon sovitettu lineaarinen malli $y = 5.0593 + 0.6133x$, missä $y$ on todellinen kuolleiden puiden määrä osa-alueella ja $x$ vastaava kuvasta laskettu. Laske kuolleiden puiden populaatiokeskiarvon ja totaalin regressioestimaatit. Miten regressio vaikutti estimaatteihin? Pienenikö keskiarvoestimaattorin keskivirhe? Määrää totaalille 95%:n luottamusväli
+
+<blockquote>
+$$\begin{aligned} 
+N = 100,\ n = 25, \ \mu_x = 11.3 &\ \bar y = 11.56, \ s_y^2 = 9.09, \ \bar x = 10.6, \ r_{xy}=0.6242
+\\
+\\ \hat \mu_y&= \bar y + 0.6133 (\mu_x - \bar x ) = 11.989
+\\ \hat \tau_y &= N \bar y + b(\tau_x - N \bar x) = 1198.931
+\\ \hat{\text{SE}}(\mu_y)&= \sqrt{ \bigg( 1- \frac n N \bigg) \frac 1 n s_y^2 (1- r_{xy}^2)} = 0.408
+\\ &\text{the standard error is considerably reduced}
+\\ \hat \tau_y &= 1199\ (1123,\ 1275)
+\end{aligned}$$
+</blockquote>
+
+#Exercise 6
+
+RKP:n kannatus viime eduskuntavaaleissa oli vaalipiireittäin seuraava (toinen luku on vaalipiirin osuus koko maan äänestäjäkunnasta). Tehtävänä on arvioida RKP:n kannatusta tällä hetkellä n = 1000 henkilön haastattelu-tutkimuksella. Miten jakaisit otoksen alueellisesti (pääpiirteittäin)? Perustele.
+
+<blockquote>
+
+I will use quota sampling. Assign sampling quote based on voter's importance, i.e. divide $n=1000$ to each region according to the voting share.
+</blockquote>

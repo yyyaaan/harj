@@ -1,0 +1,239 @@
+---
+title: "TILS1510 Harjoitustehtävät 5"
+author: "Yan PAN"
+output:
+  html_document:
+    df_print: kable
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    theme: 'readable'
+---
+
+#Exercise 1
+
+About EM-algorithm.
+
+<blockquote>
+
+a) Metaheuristic: EM satisfies 1) a search process 2) find local maxima 3) solve non-analytical problem 4) E-step accepts alternative inputs. Further, EM is also depedent on other theorectical framework, e.g. in our case, MLE
+
+b) Requirements: the model must be analytical (for example how many distributions in the mixtrue)
+
+c) Strength: can handle those MLE that are not possible to solve analytically.
+
+d) Weakness: dependence on initial value; efficiency; is it always convergent? Slow convergence towards true value
+
+(The EM alogrithm and extension)
+</blockquote>
+
+#Exercise 2
+
+$X\sim Bernoulli(\gamma)$ and $X_{1,2,\dots,r}$ are observed and is missing for $X_{r+1, \dots, n}$. Random variable $Y|(X=j) \sim N(\mu_j,\sigma^2_j)$
+
+<blockquote>
+Suppose $\boldsymbol\theta = (\gamma, \mu_0,\mu_1,\sigma^2_0, \sigma^2_1)$ and let the abbreviation $\boldsymbol X = (X^\text{obs}, X^\text{mis})$
+
+The full log-likelihood
+
+$$\begin{aligned} \log f(\boldsymbol X, Y | \boldsymbol \theta)
+&= \log f(  X^\text{obs}, X^\text{mis}, Y | \gamma, \mu_0,\mu_1,\sigma^2_0, \sigma^2_1 )
+\\ &= \sum\limits_{i=1}^n \bigg[ 
+\log \bigg( \gamma\ f_N(y_i|\mu_1,\sigma^2_1) \bigg) I(x_i=1)
++\log \bigg( (1-\gamma)\ f_N(y_i|\mu_0,\sigma^2_0) \bigg) I(x_i=0)
+\bigg]
+\\ &= \sum\limits_{i=1}^n \bigg[ \underbrace 
+{\bigg( \log\gamma  - \frac 1 2 \log(2\pi\sigma^2_1) - \frac 1 2 \frac {(y_i - \mu_1)^2}{\sigma_1^2} \bigg)} _ {:= l_1(y|\theta)} I(x_i =1)
+ \\ &\ \ \ + \underbrace{\bigg( \log (1-\gamma)  - \frac 1 2 \log(2\pi\sigma^2_0) - \frac 1 2 \frac {(y_i - \mu_0)^2}{\sigma_0^2} \bigg)}_{:=l_0(y|\theta)} I(x_i =0)
+\bigg]
+\\ & =\sum\limits_{i=1}^n \bigg[  l_1(y_i|\theta)\ I(x_i = 1) + l_0(y_i|\theta)\ I(x_i = 0)  \bigg]
+\end{aligned}$$
+
+Define the probabilities, for $r + 1\leq i \leq n$ (missing part)
+
+$$\begin{aligned} 
+R_{1i}^{(t)}
+: &= P(x_i=1 | X^\text{obs}, Y, \theta = \theta^\text{(t)})  
+\\ &= P(x_i=1 | Y, \theta = \theta^\text{(t)})  
+\\ &= \frac{\gamma^{(t)} f_N(y_i|\mu_1^{(t)}, \sigma^{2(t)}_1)}
+{\gamma^{(t)} f_N(y_i|\mu_1^{(t)}, \sigma^{2(t)}_1) + (1-\gamma^{(t)}) f_N(y_i|\mu_0^{(t)}, \sigma^{2(t)}_0)}
+\\ R_{0i}^{(t)}&= 1 - R_{1i}^{(t)}
+\end{aligned}$$
+
+For the E-step,
+
+$$\begin{aligned} Q(\theta | \theta^{(t)})
+&= E_{X^\text{mis} | X^\text{obs}, Y, \theta = \theta^{(t)}} [\log f(X^\text{mis}, X^\text{obs},Y|\theta)]
+\\ &= \displaystyle \int \log (f(X^\text{mis}, X^\text{obs},Y|\theta)) \cdot f(X^\text{mis} | X^\text{obs}, Y, \theta = \theta^{(t)}) d X^\text{mis}
+\\ & =  \sum\limits_{i=1}^r \bigg( l_1(y_i | \theta) I(x_i=1) + l_0(y_i | \theta) I(x_i=0) \bigg) &\text{all observed}
+\\ & \ \ + \sum\limits_{i=r+1}^n \bigg( l_1(y_i | \theta) R_{1i}^{(t)} + l_0(y_i | \theta) R_{0i}^{(t)} \bigg) & \text{expectation}
+\end{aligned}$$
+
+M-step by maximize $Q$ through $\frac {\partial Q}{\partial \gamma}, \frac {\partial Q}{\partial \mu_1}, \dots$.
+
+</blockquote>
+
+#Exercise 3
+
+EM algorithm using own code
+
+<blockquote>
+```{r 503}
+myEM <- function(init, x, maxIte) {
+  library(mvtnorm)
+  theta <- list()
+  theta[[1]] <- init
+  
+  for (i in 2:maxIte) {
+    theta.p<- theta[[i-1]] # previous theta
+    R1 <- numeric(nrow(x))
+    R2 <- numeric(nrow(x))
+    # use log for accuracy
+    for (j in 1:nrow(x)) {
+      lf1 <-  dmvnorm((x[j,]),mean = theta.p$mu1, sigma = theta.p$sigma1)
+      lf2 <-  dmvnorm((x[j,]),mean = theta.p$mu2, sigma = theta.p$sigma2)
+      Ra <- theta.p$lambda * lf1
+      Rb <- (1 - theta.p$lambda) * lf2
+      R1[j] <- Ra / (Ra + Rb)
+      R2[j] <- 1- R1[j]
+    }
+    
+    lambda <- mean(R1)
+    # point-wise multiplication
+    mu1 <- colSums(R1 * x) / sum(R1)
+    mu2 <- colSums(R2 * x) / sum(R2)
+    # calculate Rt(xi - mu1)(xi - mu1) !new mu
+    rxx1 <- R1[j] * (x[j,] - mu1) %*% t(x[j,] - mu1)
+    rxx2 <- R2[j] * (x[j,] - mu2) %*% t(x[j,] - mu2)
+    for (j in 2: nrow(x)) {
+      rxx1 <- rxx1 + R1[j] * (x[j,] - mu1) %*% t(x[j,] - mu1)
+      rxx2 <- rxx2 + R2[j] * (x[j,] - mu2) %*% t(x[j,] - mu2)
+    }
+    
+    theta[[i]] <- list(mu1 = mu1,
+                       mu2 = mu2,
+                       sigma1 = rxx1 / sum(R1),
+                       sigma2 = rxx2 / sum(R2),
+                       lambda = lambda)
+  }
+  return(list(all = theta, result = theta[[maxIte]]))
+}
+
+```
+
+```{r 503b, eval = F}
+genData <- function(n, mu1, mu2, sigma1, sigma2, lambda){
+  xa <- mvrnorm(n, mu = mu1, Sigma = sigma1)
+  xb <- mvrnorm(n, mu = mu2, Sigma = sigma2)
+  p <- rbinom(n, 1, lambda)
+  x <- xa
+  x[which(p==0),] <- xb [which(p==0),]
+  plot(x)
+  return(x)
+}
+
+
+xa <- genData(1e3, c(-5,-5), c(5,5), matrix(c(1,0,0,1), ncol = 2), matrix(c(1,0,0,1), ncol = 2), 0.7)
+xb <- genData(1e3, c(-1,-1), c(1,1), matrix(c(1,0,0,1), ncol = 2), matrix(c(1,0,0,1), ncol = 2), 0.7)
+xc <- genData(1e3, c(0,0), c(0,0), matrix(c(1,0.7,0.7,1), ncol = 2), matrix(c(1,-0.9,-0.9,1), ncol = 2), 0.5)
+init <- list(mu1 = matrix(c(-3,-3), ncol = 2),
+             mu2 = matrix(c(5,5), ncol = 2),
+             sigma1 = matrix(c(1,0,0,1), ncol = 2),
+             sigma2 = matrix(c(3,0,0,3), ncol = 2),
+             lambda = 0.5)
+
+xa <- genData(1e3, c(-5,-5), c(5,5), matrix(c(1,0,0,1), ncol = 2), matrix(c(1,0,0,1), ncol = 2), 0.7)
+xb <- genData(1e3, c(-1,-1), c(1,1), matrix(c(1,0,0,1), ncol = 2), matrix(c(1,0,0,1), ncol = 2), 0.7)
+xc <- genData(1e3, c(0,0), c(0,0), matrix(c(1,0.7,0.7,1), ncol = 2), matrix(c(1,-0.9,-0.9,1), ncol = 2), 0.5)
+
+runA <- myEM(init, xa, 100)
+runB <- myEM(init, xb, 100)
+runC <- myEM(init, xc, 100)
+```
+</blockquote>
+
+#Exercise 4
+
+Using `optim` function
+
+<blockquote>
+We utilize the full-likelihood funciton and simulate the missing value $z\sim~Bernoulli(\lambda)$. Further, use the negative likelihood due to the nature of `optim`, and $x$ is parameter for likelihood function, but should be constant in optimization
+
+```{r 504}
+# pars = c( mu1, mu2, sigma1, sigma2, lambda)
+likely <- function(x, pars){
+  n <- nrow(x)
+  p <- ncol(x)
+  mu1 <- matrix(pars[1:p], ncol = p)
+  mu2 <- matrix(pars[(p+1):(2*p)], ncol = p)
+  sigma1 <- matrix(pars[(2*p + 1): (2*p + p*p)], ncol = p)
+  sigma2 <- matrix(pars[(2*p + p*p + 1): (2*p + 2* p*p)], ncol = p)
+  lambda <- pars[-1]
+  
+  z <- rbinom(n, 1, lambda) # simulate z \in {0, 1}
+  logf <- 0
+  for (i in 1:n) {
+    logf <- logf + 0.5 * p * log(2 * pi)
+      ifelse(z == 1, 
+             log(lambda) - 0.5 * log(det(sigma1)) - 
+               0.5 * (x[i,] - mu1) %*% solve(sigma1) %*% t(x[i,] - mu1),
+             log(1 - lambda) - 0.5 * log(det(sigma2)) - 
+               0.5 * (x[i,] - mu2) %*% solve(sigma2) %*% t(x[i,] - mu2))
+      
+  }
+  logf
+}
+
+
+# library(MASS)
+# xa <- mvrnorm(n = 1e3, mu = c(0,1), Sigma = matrix(c(1,0.2,0.2,2), ncol = 2))
+# xb <- mvrnorm(n = 1e3, mu = c(8,9), Sigma = matrix(c(5,0.2,0.2,9), ncol = 2))
+# x <- xa + xb 
+# 
+# init <- c(mu1 = matrix(c(1,2), ncol = 2),
+#           mu2 = matrix(c(8,9), ncol = 2),
+#           sigma1 = matrix(c(1,0.5,0.5,1), ncol = 2),
+#           sigma2 = matrix(c(3,0.5,0.5,3), ncol = 2),
+#           lambda = 0.3) # will always be numeric vector
+# 
+# optim(init, fn = function(pars) likely(x,pars))
+```
+
+</blockquote>
+
+#Exercise 5
+
+Hierarchical model,
+
+$$\begin{aligned} (x_{ih}|\mu_h,\sigma^2) &\sim N(\mu_h,\sigma^2)
+\\ (\mu_h | \mu, \tau^2) &\sim N(\mu,\tau^2)
+\\ P(M_{ih}=1 | X,\mu_h, \psi) &= \frac{\exp(\psi_0+\psi_1\mu_h)}{1+ \exp(\psi_0+\psi_1\mu_h)}
+\end{aligned}$$
+
+Find the likelihood $L_\text{full} (\mu,\sigma^2,\tau^2,\psi)$. Can it be ignorable?
+
+<blockquote>
+
+$$\begin{aligned} L_\text{full} (\mu,\sigma^2,\tau^2,\psi)
+&= \displaystyle \int P(\boldsymbol X | \boldsymbol\mu_{1:h},\sigma^2) P(\boldsymbol \mu_{1:h} | \mu,\tau^2) P(\boldsymbol M_{1:n \times 1:h}| \boldsymbol X ,\boldsymbol\mu _{1:h},\psi )  d\boldsymbol\mu_{1:h}
+\\ &= \prod\limits_{h=1}^H \displaystyle \int P(\boldsymbol X_{ih} | \mu_h,\sigma^2)P(\mu_h | \mu,\tau)P(M_{ih} | X_{ih},\mu_h,\psi) d\mu_h
+\\ &= \prod\limits_{h=1}^H \displaystyle \int  \prod\limits_{i=1}^n f_N(x_{ih}|\mu_h,\sigma^2) f_N(\mu_h|\mu,\tau^2) \bigg( \frac{\exp(\psi_0+\psi_1\mu_h)}{1+ \exp(\psi_0+\psi_1\mu_h)} \bigg)^{m_{ih}}\bigg(1- \frac{\exp(\psi_0+\psi_1\mu_h)}{1+ \exp(\psi_0+\psi_1\mu_h)}\bigg)^{1-m_{ih}} d\mu_h
+\end{aligned}$$
+
+Based on the above likelihood function, it is possible that the missingness is ignorable because $\mu_h$ are integrated and lead to the independence between $\boldsymbol \psi$ and $\mu$.
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+

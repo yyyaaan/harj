@@ -1,0 +1,152 @@
+---
+title: "TILS1510 Harjoitustehtävät 2"
+author: "Yan PAN"
+output:
+  html_document:
+    df_print: kable
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    theme: 'readable'
+---
+
+#Exercise 1
+
+The table shows the survey of mobile phone A's popularity with regards to age group. Suppose the missingness is at random. Estimate the market share and variance for market among age 18-79.
+
+```{r d201}
+options(stringsAsFactors = FALSE)
+puh <- data.frame(ikäryhmä = c("18-25", "26-35", "36-45", "46-65", "66-70"),
+           otoskoko = c(300, 300, 300, 500, 400),
+           vastauksia = c(52, 67, 83, 230, 266),
+           A_käyttäjiä = c(20, 26, 37, 22, 8))
+puh
+```
+
+<blockquote>
+Using conditional mean imputation of weighting classes
+
+$$\begin{aligned} 
+\bar y _{wc} &= \frac 1 n \sum\limits_{h=1}^5 n_h \bar y_h = \frac 1 {1800} (52+67 + 83+ 230 + 266)= 0.06278
+\\ \text{Var}(\bar y_{wc})&= s_j^2 \frac {698-1}{1800-1} = \text{Var}(\frac{\text{A:n käyttäjiä}_h}{\text{vastauksia}_h}) \frac{697}{1799} = 0.01413
+\end{aligned}$$
+
+</blockquote>
+
+#Exercise 3R
+
+Suppose random variables $Y_1, Y_2, U$,
+
+$$\begin{aligned} Y_1&= 1 + Z_1
+\\ Y_2&= 5+2 Z_1 + Z_2
+\\ U&=2(Y_1 -1) + Z_3
+\\ & Z_1,Z_2,Z_3\overset{iid} \sim N(0,1)
+\end{aligned}$$
+
+$Y_2$ is only observed when $U\geq 0$, and $Z_1,Z_2,Z_3,U$ are not observed at all.
+
+Estimate the expectation of $Y_2$ using bootstrap of stochastic regression imputation.
+
+<blockquote>
+
+We have $Y_2 = 5 + 2Z_1 + Z_2 = 5 + 2 (Y_1 -1) + Z_2 = 2 Y_1 + 3 + Z_2$
+
+Since $Z_2$ is not observed and have expectation of 0, the following code use `rnorm` to simulate the error term in stochastic regression model.
+
+The manual bootstrap code use full-size resampling for 1000 times.
+
+```{r d203}
+  # generate data
+z <- matrix(rnorm(3000), nrow = 3)
+y1 <- 1 + z[1,]
+y2 <- 5 + 2 * z[1,] + z[2,]
+u <- 2 * (y1 - 1) + z[3,]
+miss.index <- which(u < 0)
+y2.obs <- y2[-miss.index]
+missN <- length(miss.index)
+
+  # imputation bootstrap
+y1.use <- y1[miss.index]
+B <- 1000 # bootstrap times
+sumEY2 <- 0 # init
+for (i in 1:B) {
+  y1.sample <- sample(y1.use, missN, replace = TRUE)
+  y2.boot <- 2 * y1.sample + 3 + rnorm(missN)
+  Ey2 <- mean(c(y2.obs, y2.boot))
+  sumEY2 = sumEY2 + Ey2
+}
+sumEY2 / B
+
+
+library(mice)
+impMiss <- mice.impute.norm.boot(y2, 
+                                 ry = (u >= 0), 
+                                 x = 2 * y1 + 3)
+mean(c(y2[-miss.index], impMiss))
+
+```
+</blockquote>
+
+#Exercise 4R
+
+Using `norm` method from `mice` package and simulate 1000 times
+
+<blockquote>
+
+```{r d204}
+N <- 1000
+imp <- matrix(nrow = missN, ncol = N)
+for (i in 1:N) {
+  imp[,i] <- mice.impute.norm(y2,ry = (u >= 0), x = 2 * y1 + 3)  
+}
+
+Ey2 <- (colMeans(imp) * missN + sum(y2.obs))/1000
+
+par(mfrow = c(1,2))
+plot(colMeans(imp), pch = 20, col = "grey",
+     main = "mean of imputation values")
+abline(h = mean(colMeans(imp)), col = "red")
+plot(Ey2, pch = 20, col = "grey",
+     main = "Expectation of Y2")
+abline(h = mean(Ey2), col = "red")
+abline(h = 5, col = "blue")
+```
+
+</blockquote>
+
+#Exercise 6
+
+Suppose the random variables:
+
+$$\begin{cases} 
+P(M_{i1}=1, M_{i2}=1)=0.9\\
+P(M_{i1}=1, M_{i2}=0)=0.05 \cdot I(Y_2 \lt 5) \\
+P(M_{i1}=0, M_{i2}=1)=0.05 \cdot I(Y_1 \lt 6) \cdot I (Y_2 \lt 5) \\
+P(M_{i1}=0, M_{i2}=0)=0.05 \cdot I(Y_1 \geq 6)I(Y_2\lt 5) + 0.1 \cdot I(Y_2\geq 5) 
+\end{cases}$$
+
+(a) The observed data is $Y_1 = (8,4,10),\ Y_2 = (5,6,2) $ and then $M_1 = M_2 = (1,1,1)$. In such case, there is no missing data. Show that the missingness is realized MCAR.
+
+(b) Show that the missingness is not everywhere MAR
+
+<blockquote>
+
+This is an updated (and hopefully more correct) solution compared to the last one
+
+(a) $\tilde m = (1,1,1,1,1,1)$, and by the definition above:
+
+$P(\tilde m) \equiv 0.9$, which is not dependent on the data and even regardless of observed and unobserved/missing values.
+
+Therefore, $P(\tilde m | y) = P(\tilde m |y ^*)$ always hold, and this implies realised MCAR.
+
+(b) Everywhere MCAR would require all pattern of $M_1,\ M_2$ to satisfy $g_\psi(M_1,M_2|Y_1,Y_2) = g_\psi(M_1,M_2|Y_1^*,Y_2^*)$.
+
+To illustrate that is not possible, we use $m_1 = (0,1,0), m_2= (0,0,1)$. If we focus only the marginal distribution on the first element in $Y_1,\ Y_2$, $g_\psi(m_{11}=0,m_{12}=0|y_{11},y_{22})=0.05 \cdot I(y_{11} \geq 6)I(y_{12}\lt 5) + 0.1 \cdot I(y_{12}\geq 5)$. This equations implies that $g_\psi$ is dependent on $y_{11}$ and $y_{12}$, and not constant with any arbitrary pair. Since we assume that $y_{11},y_{12}$ are not observed, the missingness cannot be everywhere MCAR
+
+</blockquote>
+
+
+
+

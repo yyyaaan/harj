@@ -1,0 +1,198 @@
+---
+title: "Complex Analyis Harjoitus 1"
+author: "PAN Yan"
+output:
+  html_document:
+    df_print: paged
+    theme: readable
+---
+
+<style>
+h1,h2,h3{
+	font-family: Georgia,"Times New Roman",Times,serif !important;
+	padding-top: 20px;
+}
+</style>
+
+All exercises done. Since I would not be able to participate the demo, hereby attach the solutions for all exercises
+
+##K1.1
+<blockquote> Let $z= \frac 1 2 - \frac{\sqrt3} 2 i$, find $z^{100}$</blockquote>
+
+$z = \frac 1 2 - \frac{\sqrt3} 2 i = \cos(-\frac\pi 3) + i \sin (-\frac\pi 3)$
+
+By de Moivre's theorem,
+
+$$\begin{aligned}
+z^{100}&= \cos(-\frac {100\pi} 3) + i \sin (-\frac{100\pi} 3) \\
+& = \cos(\frac {2\pi}3) + i \sin(\frac {2\pi}3) \\
+& = -\frac 1 2 + \frac{\sqrt 3}2 i
+\end{aligned}$$
+
+##K1.2
+<blockquote> Prove de Moivre's Theorem</blockquote>
+
+Induction:
+
+When $n=2$:
+
+$$\begin{aligned}
+(\cos\theta + i\sin\theta)^2 & =(\cos\theta + i\sin\theta)(\cos\theta + i\sin\theta)\\
+&=\cos\theta\cos\theta - \sin\theta\sin\theta + i(\sin\theta\cos\theta + \cos\theta\sin\theta) \\
+&= \cos(2\theta) + i\sin(2\theta) \ \ \text{by triogometric equations}
+\end{aligned}$$
+
+The result holds.
+
+When $n \leftarrow n+1$,
+
+$$\begin{aligned}
+(\cos\theta + i\sin\theta)^{n+1} & =(\cos\theta + i\sin\theta)^{n}(\cos\theta + i\sin\theta) \\
+& = (\cos(n\theta) + i\sin(n\theta))(\cos\theta + i\sin\theta) \ \ \text{ by induction hypothesis}\\
+& = \cos(n\theta)\cos\theta - \sin(n\theta)\sin\theta + i (\sin(n\theta)\cos(\theta) + \cos(n\theta)\sin(\theta)) \\
+& = \cos\big((n+1)\theta\big) + i \sin\big((n+1)\theta\big)
+\end{aligned}$$
+
+By the above two steps, we conclude $n\in\mathbb N,\ n\geq 2$ the de Moivre theorem holds, and the cases $n=1,\ n=0$ is obvious.
+
+Further, if $n^*\in\mathbb Z,\ n^*<0$, we have $|n^*| = - n^*$
+
+$$\begin{aligned}
+(\cos\theta+i\sin\theta)^{n^*} &= \bigg((\cos\theta+i\sin\theta)^{|n^*|}\bigg)^{-1} \\
+&= \bigg(\cos(|n^*|\theta)+i\sin(|n^*|\theta)\bigg)^{-1}\\
+&= \cos(|n^*|\theta)-i\sin(|n^*|\theta) \\
+&= \cos(n^*\theta) + i\sin(n^*\theta)
+\end{aligned}$$
+
+Finally, we conclude the proof with $n\in\mathbb Z$
+
+
+##K1.3
+<blockquote> Show that the equation $w^2 = z$ always has a solution $w\in\mathbb C$</blockquote>
+
+Let $\theta = Arg(z)$, then for any $z\in\mathbb C$ we may write $z = |z|(\cos\theta + i \sin\theta)$.
+
+Choose $w = |w|(\cos(Arg(w)) + i\sin (Arg(w))) \in \mathbb C$, such that $|w| = \sqrt{|z|}$ and $Arg(w) = \frac\theta 2$.
+
+As the above selection can always be made within the required set, we may now conclude our prove.
+
+
+##1
+<blockquote> Define $z:=1-i$ in polar coordinates. Find real and imaginary part of $z^2,z^3,\dots,z^{12}$</blockquote>
+
+$z = 1-i = \sqrt 2 \bigg(\cos(-\frac\pi 4) + i\sin(-\frac\pi 4)\bigg)$
+
+$z^2 = 2 (\cos\frac\pi 2 + i \sin\frac\pi 2)= -2i$
+
+$z^3 = -2-2i$
+
+$z^4 = -4$
+
+$z^5 = -4+4i$
+
+$z^6 = 8i$
+
+$z^7 = 8+8i$
+
+$z^8 = 16$
+
+$z^9 = 16-16i$
+
+$z^{10} = -32i$
+
+$z^{11} = -32-32i$
+
+$z^{12} = -64$
+
+The above is sufficient to tell the real and imaginary part.
+
+##2
+<blockquote> $(1+i)^{100}$</blockquote>
+
+$$\begin{aligned}
+(1+i)^{100} &= 2^{50}\big(\cos\frac\pi 4 + i \sin\frac\pi 4\big)^{100} \\
+&= 2^{50} (\cos(25\pi) + i \sin (25\pi)) \\
+&= 2^{50} (\cos\pi + i \sin \pi) \\
+&= -2^{50}
+\end{aligned}$$
+
+##3
+<blockquote> Prove the following equations</blockquote>
+
+Let $z=x +iy,\ w = u + iv,\ \ \ x,y,u,v \in \mathbb R$.
+
+$$\begin{aligned}
+\overline{z+w} &= \overline{(x+u) +i(y+v)} = x  + u - iy -iv = \bar z + \bar w \\
+\overline{zw} &= \overline{xu-yv + i(xv+yu)} = xu-yv - ixv - iyu = (x-iy)(u-iv) = \bar z \bar w \\
+|zw| & = \sqrt{(xu-yv)^2 + (xv+yu)^2} = \sqrt{x^2 u^2 + y^2 v^2 + x^2 v^2 + y^2 u^2} = \sqrt{x^2 + y^2} \sqrt{u^2 + v^2} = |z| |w| \\ 
+z^{-1} & = \frac 1 {x+iy} = \frac {x-iy}{(x+iy)(x-iy)} = \frac{x-iy}{x^2 + y^2} = \frac {\bar z}{|z|^2}\\
+\overline{z^{-1}}&= \overline {\frac{\bar z}{ |z|^2}} = \frac 1{|z|^2} z = \frac{\overline{\bar z}}{|\bar z|^2} = \bar z ^{-1}
+\end{aligned}$$
+
+##4
+<blockquote> Let $z_0$ be the root for $P(z) = a_n z^n + a_{n-1} z^{n-1} + \cdots + a_1 z + a_0,\ \ a_j\in\mathbb R$. Show that $\overline {z_0} $ is also the root</blockquote>
+
+$$\begin{aligned}
+&&0 &=  a_n z_0^n + a_{n-1} z_0^{n-1} + \cdots + a_1 z_0 + a_0 \\
+\Leftrightarrow &&\bar 0 &= \overline{a_n z_0^n} + \overline{a_{n-1} z_0^{n-1}} + \cdots + \overline{a_1 z_0} + \overline{a_0} \\
+\Leftrightarrow && 0 &= a_n\overline{z_0^n} + a_{n-1}\overline{ z_0^{n-1}} + \cdots + a_1\overline{z_0} + {a_0} \text{ because }a_j\in\mathbb R \\
+\Leftrightarrow && 0 &= a_n\overline{z_0}^n + a_{n-1}\overline{ z_0}^{n-1} + \cdots + a_1\overline{z_0} + {a_0} = P(\overline{z_0})
+\end{aligned}$$
+
+##5
+<blockquote> Find all roots for $z^4 + 2 z^3 + 6z^2 +2z + 5 = 0 $</blockquote>
+
+We know that $i$ is one root, and thus $-i$ also. Therefore, the equation has factor of $(z-i)(z+i)$.
+
+$$\begin{aligned}
+0 &= z^4 + 2 z^3 + 6z^2 +2z + 5 \\
+&= (z^2 + i) (z^2 +2z + 5)
+\end{aligned}$$
+
+Thus, the four roots are $i,\ -i,\ -1+2i$ and $-1-2i$.
+
+##6
+<blockquote> Show that $1+z + z^2 + \cdots + z^n=\frac{1-z^{n+1}}{1-z}$, where $n\in\mathbb Z_+,\ z\in\mathbb C,\ z\neq 1$ </blockquote>
+
+$$\begin{aligned}
+&(1-z)(1+z + z^2 + \cdots + z^n)\\
+=& 1+z + z^2 + \cdots + z^n - z - z^2 - z^3 - \cdots - z^{n+1} \\
+=& 1 - z ^{n+1}
+\end{aligned}$$
+
+This is sufficient to prove the equation in question.
+
+##7
+<blockquote> Show that $|z+w|^2 = |z|^2 + |w|^2 + 2 Re(z\bar w)$ and $|z+w|^2 + |z-w|^2= |z|^2 + |w|^2$</blockquote>
+
+$$\begin{aligned}
+|z+w|^2 & = (z+w)\overline{(z+w)} \\
+& = (z+w) (\bar z + \bar w) \\
+& = z\bar z + w\bar w + w \bar z + z \bar w \\
+& = |z|^2 + |w|^2 + 2 \bigg( \frac{z\bar w + \overline{z\bar w}}{2}\bigg) \\
+& = |z|^2 + |w|^2 + 2 Re(z\bar w)
+\end{aligned}$$
+
+The next equation is straigtforward.
+
+##8
+<blockquote> $z_1,z_2\in\mathbb C$, show that $Arg(z_1z_2) = Arg(z_1) + Arg(z_2) + 2\pi k(z_1,z_2)$, where
+
+$k(z_1,z2) = \begin{cases}0, & -\pi \lt Arg(z_1)+ Arg(z_2) \leq \pi \\ 1, & -2\pi \lt Arg(z_1)+ Arg(z_2) \leq -\pi \\ -1 , & \pi \lt Arg(z_1)+ Arg(z_2) \leq 2\pi \end{cases}$
+</blockquote>
+
+Let $\theta_1 = Arg(z_1),\ \theta_2 = Arg(z_2), \theta_0 =Arg(z_1 z_2)$, and further let $z_1 = x_1 + iy_1,\ z_2 = x_2 + iy_2, \ \ x_1,x_2,y_1,y_2\in\mathbb R$
+
+$$\begin{aligned}
+\sin(\theta_1 + \theta_2) & =\sin\theta_1 \cos\theta_2 + \cos\theta_1 \sin\theta_2 &\text{by triagonometry equation}\\
+&= \frac{y_1}{|z_1|}\frac{x_2}{|z_2|} + \frac{x_1}{|z_1|}\frac{y_2}{|z_2|} &\text{ by complex number property}\\
+&=\frac{x_1y_2 + x_2y_1}{|z_1 z_2|} &\text{because }|z_1||z_2|=|z_1 z_2|\\
+&=\frac{Im(z_1 z_2)}{|z_1 z_2|} \\
+&=\sin\theta_0 & \text{by complex number property}
+\end{aligned}$$
+
+This implies $\theta_1 + \theta_2 + 2\pi k = \theta_0, \ k\in \mathbb Z$.
+
+With the defined boundary of $Arg(z_\cdot)$, the above is sufficient to prove the equation in question.
+
+_This document is created with R-markdown_

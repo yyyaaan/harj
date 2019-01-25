@@ -1,0 +1,136 @@
+---
+title: "TILS1510 Harjoitustehtävät 1"
+author: "Yan PAN"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: paged
+    theme: 'readable'
+---
+
+<style>blockquote{font-size: 16px;}</style>
+
+#Exercise 1
+<blockquote>
+Coarse Data from Heitjan & Rubin (1991)
+</blockquote>
+
+Coarse data, to some extent, can be seen as "inaccurately" observed data, for example classifying/grouping a continuous variable into factorized intervals. Mathematically, $y=Y(x,g)$ where $x$ is the true value, $Y$ is a function and $g$ is another random variable.
+
+CAR (coarsened at random) means that the coarsening is consistent, i.e. the observed coarsened value always stay the same for constant true values.
+
+#Exercise 2
+<blockquote>
+Concerning SOTE(Social and Health) Reform questionnaire. So far only 475 valid responses from 3000 sample, and currently seeking to extend another 2000 samples.
+</blockquote>
+
+The key of extending samples is first to avoid any possible bias. Therefore, the previous sampling methodology will be needed, where population size should be available. Most likely, SOTE is a stratified sampling, therefore, the proportion of each group must stay the same, which is required to ensure the validity of post-stratified methodology. In addition, the response rate is better to be the same level as previous (despite not very favorable, it eliminate the bias in sampling)
+
+#Exercise 3
+<blockquote>
+Factors that affect the response probability in health examination surveys.
+</blockquote>
+
+The health status itself can have strong influence (unhealthy ones tend to avoid the questionnaires); Personal backgrounds including age, profession (and employment status), leisure time and political views etc.
+
+#Exercise 4
+<blockquote>
+Consider the following structure
+
+$$\begin{aligned} 
+Y_1&=1+Z_1\\
+Y_2&= 5+ 2 Z_1 + Z_2 \\ 
+U&= a(Y_1 -1)+ b(Y_2 -5)+ Z_3
+\end{aligned}$$
+
+where, $Z_1, Z_2, Z_3 \overset{iid}\sim N(0,1)$. $Y_2$ is observed only if $U\geq 0$. Find the values for $a,b$ in order to satisfy (a) MCAR; (b) MAR; (c) NMAR.
+</blockquote>
+
+$Y_1$ is clearly always observed.
+
+(a) MCAR implies that $U$ should be independent of any $Y_1,Y_2,Y_3$, and thus independent of $Z_1, Z_2$
+
+$U=aZ_1 + b(2Z_1+Z_2) +Z_3 \perp\!\!\!\perp \{Z_1,Z_2\}$
+
+$\Rightarrow\ a=b=0$
+
+(b) MAR requires the missingness of $Y_2$ only dependent on observed values. 
+
+Thus, $U = aZ_1 + b(2Z_1+Z_2) +Z_3  \perp\!\!\!\perp Y_2$.
+
+Suffice that $(a+b)Z_1 + bZ_2 + Z_3 \perp\!\!\!\perp Z_2$.
+
+Therefore, $b=0$ and $a+b\neq =0$ (to ensure not MCAR)
+
+(c) From the previous, the missingness is MNAR once $b\neq 0$ and whatever value $a$ has. 
+
+For the CC-analysis, we first note that $P(U\geq 0) = P( aZ_1 + b(2Z_1+Z_2) +Z_3 \geq 0) \equiv 0.5$ regardless of the value of $a,b$, since $U$ follows a symmetric distribution.
+
+
+```{r d14, eval = TRUE}
+z1 <- rnorm(1000); z2 <- rnorm(1000); z3 <- rnorm(1000);
+y1 <- 1 + z1
+y2 <- 5 + 2 * z1 + z2
+u.mcar <- z3
+u.mar <- y1 - 1 + z3 #suppose a=1
+u.mnar <- y1 -1 + y2 - 5 + z3 #suppose a=1 b=1
+
+my2 <- function(y, u){ #get the CC-analysis of y2 based on u
+  M <- as.numeric(u >= 0)
+  sum(y*M)/sum(M)
+}
+
+df <- data.frame(MCAR = c(mean(y1), my2(y2,u.mcar)),
+                 MAR = c(mean(y1), my2(y2, u.mar)),
+                 MNAR = c(mean(y1), my2(y2, u.mnar)))
+row.names(df) <- c("Y1", "Y2")
+df
+```
+
+#Exercise 5
+<blockquote>
+In linear regression, suppose the missingness of $X,Y$ only depends on $X$. Show that the regression coefficients in CC analysis is unbiased.
+</blockquote>
+
+Reorder the missingness, so that $X_{CC}=X^{obs} (x_1,x_2,\dots, x_r)^T$ are observed, and $X^{mis}=(x_{r+1}, x_{r+2},\dots, x_n)$. By assumptions, $Y_{CC}= Y^{obs}= (y_1,y_2,\dots, y_r)$.
+
+Furthermore, $Y=X\beta +\epsilon\ \Rightarrow \ Y_{CC}= X_{CC}\beta + \epsilon_{CC}$
+
+$$\begin{aligned} E(\widehat{\beta_{CC}})
+&= E[(X_{CC}^TX_{CC})^{-1} X_{CC}^T Y_{CC}]
+\\ &= E[(X_{CC}^T X_{CC})^{-1} X_{CC}^T (X_{CC}\beta + \epsilon_{CC})]
+\\ &= E[(X_{CC}^T X_{CC})^{-1} X_{CC}^T X_{CC}\beta + (X_{CC}^T X_{CC})^{-1} X_{CC}^T \epsilon_{CC}]
+\\ &= \beta
+\end{aligned}$$
+
+This concludes the unbiasedness.
+
+#Exercise 6
+<blockquote>
+Suppose the random variables:
+
+$$\begin{cases} 
+P(M_{i1}=1, M_{i2}=1)=0.9\\
+P(M_{i1}=1, M_{i2}=0)=0.05 \cdot I(Y_2 \lt 5) \\
+P(M_{i1}=0, M_{i2}=1)=0.05 \cdot I(Y_1 \lt 6) \cdot I (Y_2 \lt 5) \\
+P(M_{i1}=0, M_{i2}=0)=0.05 \cdot I(Y_1 \geq 6)I(Y_2\lt 5) + 0.1 \cdot I(Y_2\geq 5) 
+\end{cases}$$
+</blockquote>
+
+> The observed data is $Y_1 = (8,4,10),\ Y_2 = (5,6,2) $ and then $M_1 = M_2 = (1,1,1)$. In such case, there is no missing data. Show that the missingness is realized MCAR.
+
+The probability distribution $g_\psi:=P(M_{i1}, M_{i2})$ as in the question.
+
+When there is no missing data, $\tilde m_1 = \tilde m_2 = (1,1,1)$. 
+
+It is clear that $g_\psi(\tilde m | y)=0.9^n = g_\psi(\tilde m |y^*)$, as the probability is independent of the realized value of $y_{ij}$, instead dependent only on $n:=\#o(\tilde y, \tilde m)$.
+
+> Show that it is not everywhere MCAR.
+
+Everywhere MCAR would require all pattern of $M_1,\ M_2$ to satisfy $g_\psi(M_1,M_2|Y_1,Y_2) = g_\psi(M_1,M_2|Y_1^*,Y_2^*)$.
+
+To illustrate that is not possible, we use $m_1 = (0,1,0), m_2= (0,0,1)$. If we focus only the marginal distribution on the first element in $Y_1,\ Y_2$, $g_\psi(m_{11}=0,m_{12}=0|y_{11},y_{22})=0.05 \cdot I(y_{11} \geq 6)I(y_{12}\lt 5) + 0.1 \cdot I(y_{12}\geq 5)$. This equations implies that $g_\psi$ is dependent on $y_{11}$ and $y_{12}$, and not constant with any arbitrary pair. Since we assume that $y_{11},y_{12}$ are not observed, the missingness cannot be everywhere MCAR

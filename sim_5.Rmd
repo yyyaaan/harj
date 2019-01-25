@@ -1,0 +1,200 @@
+---
+title: "Stochastic Simulation | Problems 5"
+author: " Yan PAN"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: paged
+    theme: 'readable'
+    css: "https://yan.fi/docs/theme/rmd.css"
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+##Exercise 1
+<blockquote>
+$p,q$ are densities, and $q(x)=0\Rightarrow p(x=0)$. Implement self-normalized importance sampling,
+
+$$X_1,\dots,X_p\sim q(\cdot),\ \ W_k^{(n)}=\frac{w_u(X_k)}{\sum w_u(X_j)},\ \ w_u(x)=c_w\frac{p(x)}{q(x)}$$
+
+a&b. Estimate $\text{Var}_p(X)$ and show that it is consistent.
+</blockquote>
+
+$$\begin{aligned} \text{Var}_p(X) &\longleftarrow 
+ \sum \limits_{k=1}^{n} X_k^2 W_k^{(n)} - \bigg( \sum \limits_{k=1}^{n} X_k W_k^{(n)} \bigg)^2
+\\ &= I_{p,q,MH}^{(n)}(f) - \bigg( I_{p,q,MH}^{(n)}(g) \bigg)^2
+\\ &\overset{n\to\infty}\longrightarrow\ \mathbb E_p(X^2) - (\mathbb E_p(X))^2  &\text{the consistency of importance sampling}
+\\ &= \text{Var}_p(X)
+\\
+\\ \text{where, } & f(x):=x^2 \text{ and }g(x):=x 
+\end{aligned}$$
+
+> Estimate quantiles and show the consistency
+
+$$\begin{aligned} x_\beta &\longleftarrow \sum\limits_{k=1}^{n}\boldsymbol 1 (X_k\leq F_q^{-1}(\beta)) W_k^{(n)} & F_q^{-1} \text{ is the quantile of }q
+\\ &= I_{p,q,MH}^{(n)}(h) &h(x):=\boldsymbol 1 (x\leq F_q^{-1}(\beta))
+\end{aligned}$$
+
+##Exercise 2 (not ok)
+<blockquote>
+Consider Metropolis-Hastings algorithm. Show the following
+
+a. $(X_k, Y_{k+1})_{k\geq 1}$ is a Markov chain.
+
+b. It admits $\tilde p(x,y)=p(x)q(x,y)$ as invariant distribution.
+</blockquote>
+
+For Metropolis-Hastings, $Y_{k+1}$ is dependent only on $X_k$, and $X_k$ only on $Y_k, X_{k-1}$ and a (non-relevant) i.i.d $U_k$. Therefore, the vector value $(X_k, Y_{k+1})$ is only conditional on $(X_{k-1}, Y_k)$, implying a proper Markov Chain.
+
+Further, transition probability $P(X_{k},Y_{k+1} | X_{k-1},Y_{k})$ ...
+
+##Exercise 3
+<blockquote>
+Metropolis-Hastings for $p_u([x,y])=\exp \bigg( -\frac 1 2 (x^2 + y^2) \bigg) + \exp \bigg( -\frac 1 2 ((x-7)^2 + y^2) \bigg)$ with proposal $q(x,y)=\tilde q(y-x)$ where $\tilde q \sim N(0, 4I_2)$.
+</blockquote>
+
+Background information/Notes
+
+- the function `myMH.multi` only returns the simulated $X$ as matrix, while accepting initial values, log probability, proposal function, and also the function $f$.
+
+- the initial value is purposefully chosen to be extreme in order to demostrate the burn-in
+
+- in the proposal, the marginal distribution is used to simplify the proposal. This is proper due to the zero-correlation and properties of normal distribution
+
+```{r demo53}
+log_p_u<-function(x, m1=c(0,0), m2=c(7,0), S1=diag(2), S2=diag(2)) { 
+  q1 <- -.5*t(x-m1) %*% S1 %*% (x-m1) 
+  q2 <- -.5*t(x-m2) %*% S2 %*% (x-m2) 
+  q0 <- max(q1, q2) # Avoid underflow of both exp’s below
+  return(q0 + log(exp(q1-q0) + exp(q2-q0))) 
+}
+
+prop.multinorm <- function(x,y){
+  # both 2-dim; since corr = 0, we can use the marginal
+  return(c(x[1]+rnorm(1,0,2), x[2]+rnorm(1,0,2)))
+}
+
+myMH.multi <- function(n, burnIn, x, logpFun, propFun, fFun = function(x) x, debug = FALSE){
+  totalN <- n + burnIn
+  xs <- matrix(NA, length(x), totalN)
+  accept <- 0
+  l_px <- logpFun(x)
+  
+  for (i in 1:totalN) {
+    # y from proposal
+    y <- propFun(x)
+    l_py <- logpFun(y)
+    # acceptance?
+    alpha <- exp(l_py - l_px)
+    if(runif(1) < alpha){
+      accept <- accept + 1 #set the acceptance ratio
+      x <- y
+      l_px <- l_py
+    }
+    xs[,i] <- fFun(x)
+  }
+  
+  if(debug){plot(xs, type = "l");  print(xs)}
+  
+  return(xs[,-(1:burnIn)])
+}
+
+mySim <- myMH.multi(100000, 1000, c(0,9), 
+                    logpFun = log_p_u, propFun = prop.multinorm)
+
+library(coda)
+eff1 <- effectiveSize(mySim[1,])
+eff2 <- effectiveSize(mySim[2,])
+iact1 <- 100000 / eff1
+iact2 <- 100000 / eff2
+
+par(mfrow = c(2,2))
+plot(mySim[1,], type = "l"); mtext(paste("E[f1] =", mean(mySim[1,]), "\nVar[f1] = ", var(mySim[1,])))
+acf(mySim[1,]); text(45, 0.8, paste("IACT", iact1, "\n n.eff", eff1));
+plot(mySim[2,], type = "l"); mtext(paste("E[f2] =", mean(mySim[2,]), "\nVar[f2] = ", var(mySim[2,])))
+acf(mySim[2,]); text(50, 0.8, paste("IACT", iact2, "\n n.eff", eff2));
+
+varE1 <- var(mySim[1,]) / eff1
+varE2 <- var(mySim[2,]) / eff2
+data.frame(ci025 = c(f1 = mean(mySim[1,]) - 1.96 *varE1, f2 = mean(mySim[2,] - 1.96 * varE2)),
+           ci975 = c(mean(mySim[1,]) + 1.96 *varE1, mean(mySim[2,] + 1.96 * varE2)))
+```
+
+##Exercise 4
+<blockquote>
+Consider the uniform distribution $p_a$ on $C_0\cup C_a$ where $C_t:=\{(x,y)\in\mathbb R^2: x \in [t,t+1],\ y \in [t,t+1]\}$
+</blockquote>
+
+It is two connecting squares (if $a\in[0,1]$), and the value of $a$ determines the second (up-right) square's location.
+
+For the sampling, the idea is to sample from the "correct" rectangle. This task is solved mainly on the graph, instead of expressions.
+
+The Gibbs sampler for $p_a$ starting with $x_0\in[0,a+1]$, and repeat with $k=1,2,\dots,n$:
+
+(1) Sample $Y_k \sim U \bigg(t\cdot \boldsymbol 1 (X_{k-1} \gt 1),\ 1 + t\cdot\boldsymbol 1(X_{k-1}\geq t)\bigg)$
+
+(2) Sample $X_k \sim U \bigg(t\cdot \boldsymbol 1 (Y_{k-1} \gt 1),\ 1 + t\cdot\boldsymbol 1(X_{Y-1}\geq t)\bigg)$
+
+The sampler is not irreducible with $a=1$, but indeed irreducible for $a\in(0,1)$
+
+##Exercise 5
+<blockquote>
+Continue from the previous task. Implement the Gibbs sampler for $p_{0.95}$ and calculate $E_{p_{0.95}}[f(X)],\ \ f(x,y)=x+y$
+</blockquote>
+
+```{r demo55b}
+logp_uni <- function(x){
+  # 3 rectangles -> uniform; otherwise, -infty
+  if(x[1] > 0 && x[1] < 0.95 && x[2] > 0 && x[2] < 1)       return(0)
+  if(x[1] > 0.95 && x[1] < 1 && x[2] > 0 && x[2] < 1.95)    return(0)
+  if(x[1] > 1 && x[1] < 1.95 && x[2] > 0.95 && x[2] < 1.95) return(0)
+  return(-Inf)
+}
+
+
+sim5b <- myMH.multi(1e5, 1000, c(0.5,0.5), 
+                    logpFun = logp_uni, 
+                    propFun = function(x) return(runif(2, 0, 1.95)),
+                    fFun = function(x) return(sum(x)))
+mean(sim5b)
+```
+
+> Implement the adaptive scaling Metropolis algorithm for $p_{0.95}$
+
+```{r demo55c}
+theta <-0; x <- c(0,0); n <- 1e5;  accept <- 0
+xs <- matrix(NA, 2, n); thetas <- numeric(n);
+
+l_px <- logp_uni(x)
+
+for (k in 1:n) {
+  y <- x + exp( theta) * runif(2)   #propose y
+  l_py <- logp_uni(y)
+
+  alpha <- min(1, exp(l_py - l_px)) #correct alpha with min
+  
+  if(runif(1) < alpha){
+    accept <- accept + 1 #set the acceptance ratio
+    x <- y
+    l_px <- l_py
+  }
+  
+  theta <- theta + k ^{-2/3} * (alpha - 0.234)
+  xs[,k] <- x; thetas[k] <- theta;
+}
+
+cat('Ex = ', mean(xs[1,]), mean(xs[2,]), '\tEtheta = ', mean(thetas), '\tacceptance = ', accept/n)
+```
+
+The acceptance ration very low? Maybe because the adaptive scaling leading the simulation to the true value very quickly.

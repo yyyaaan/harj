@@ -1,0 +1,181 @@
+---
+title: "Demo 4"
+author: "Yan PAN"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: kable
+    theme: 'readable'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Exercise 1
+
+Formulate score fucntion. Suppose $Y_1,\dots, Y_n$ are independent and identically distributed.
+
+(a) $Y_i\sim N(\mu,\sigma^2)$, $\sigma^2$ is known.
+
+<blockquote>
+$$\begin{aligned} L(\mu;y_1,\dots, y_n,\sigma^2)
+&= \prod\limits_{i=1}^n \frac 1 {\sqrt{2\pi \sigma^2}} e^{-\frac {(y_i-\mu)^2}{2\sigma^2}}
+\\ l(\mu) &= -\frac n 2 \log(2\pi\sigma^2) - \frac 1 {2\sigma^2} \sum\limits_{i=1}^n (y_i-\mu)^2
+\\ S(\mu)&= \frac {\partial l(\mu)}{\partial\mu}
+\\ &= -\frac 1 {\sigma^2} \sum\limits_{i=1}^n (y_i-\mu)
+\end{aligned}$$
+</blockquote>
+
+(b) $Y_i\sim {Poisson}(\lambda)$
+
+<blockquote>
+$$\begin{aligned} L(\lambda;y_1,\dots,y_n)
+&= \prod\limits_{i=1}^n \frac{\lambda^{y_i} e^{-\lambda}}{y_i!}
+\\ l(\lambda)&= -n\lambda - \sum\limits_{i=1}^n \log (y_i!) + \log\lambda \sum\limits_{i=1}^n y_i
+\\ S(\lambda)&= -n + \frac 1 \lambda \sum\limits_{i=1}^n y_i
+\end{aligned}$$
+</blockquote>
+
+(c) $Y_i \sim \text{Bin}(1,\pi)$
+
+<blockquote>
+$$\begin{aligned} L(\pi;y_1,\dots,y_n)
+&= \prod\limits_{i=1}^n \pi^{y_i} (1-\pi)^{1-y_i}
+\\ l(\pi) &=  \log\pi \sum\limits_{i=1}^n y_i - \log(1-\pi) \sum\limits_{i=1}^n (1-y_i)
+\\ S(\pi) &= \frac 1 \pi \sum\limits_{i=1}^n y_i - \frac 1 {1-\pi} \sum\limits_{i=1}^n (1-y_i)
+\end{aligned}$$
+</blockquote>
+
+
+#Exercise 2 R
+
+Plot score function with 20 samples (each with 10 obervations) for $N(4,1),\ {Poisson}(4),\ {Bin}(1, 0.4)$
+
+<blockquote>
+```{r d402}
+
+Sc <- function(y,mu,n) {
+  n * (mean(y) - mu) 
+}
+Sc.p <- function(y, lambda){
+  - length(y) + sum(y) / lambda
+}
+Sc.b <- function(y, pi){
+  sum(y) / pi - (length(y) - sum(y)) / (1-pi)
+}
+
+n <- 10
+par(mfrow= c(1,3) )
+
+y <- rnorm(n, 4, 1); mu <- seq(0,6,0.1)
+plot(mu, Sc(y, mu, n), type = "l", xlab = "mu", ylab = "S(mu)", main = "N(4,1)")
+abline(0,0)
+for (i in 1:19) {
+  y <- rnorm(n, 4, 1)
+  lines(mu, Sc(y, mu, n), type = "l")
+}
+
+y <- rpois(n, 4); lambda <- seq(1, 10, 0.1)
+plot(lambda, Sc.p(y, lambda), type = "l", xlab = "lambda", ylab = "S(lambda)", main = "Poisson(4)")
+abline(0,0)
+for (i in 1:19) {
+  y <- rpois(n, 4)
+  lines(lambda, Sc.p(y, lambda), type = "l")
+}
+
+y <- rbinom(n, 1, 0.4); pi <- seq(0,1,0.01)
+plot(pi, Sc.b(y, pi), type = "l", xlab = "pi", ylab = "S(pi)", main = "Bin(1,0.4)")
+abline(0,0)
+for (i in 1:19) {
+  y <- rbinom(n, 1, 0.4)
+  lines(pi, Sc.b(y, pi), type = "l")
+}
+```
+</blockquote>
+
+#Exercise 3
+
+Continue from 1(a), test $H_0:\mu=\mu_0$ against $H_1: \mu\neq \mu_0$
+
+<blockquote>
+$$\begin{aligned}
+\mathcal I(\mu)&= E(S^2(\mu)) 
+\\ &= - E\bigg(\frac{\partial^2 l(\mu)}{\partial \mu^2}\bigg)
+\\ &= \frac n {\sigma^2}
+\\ \text{cov}(\hat\mu) & = \frac {\sigma^2} n
+\\ \hat\mu &= \frac 1 n \sum\limits_{i=1}^n y_i
+\\ t=\frac{\hat\mu - \mu_0}{\sigma / \sqrt n} &\sim N(0,1)
+\end{aligned}$$
+</blockquote>
+
+#Exercise 4
+
+Continue from 1(b), test $H_0: \lambda = \lambda_0$ against $H_1:\lambda\neq\lambda_0$
+
+<blockquote>
+$$\begin{aligned}
+\hat\lambda &= \frac {\sum y_i } n
+\\ \mathcal I(\lambda) &= - E\bigg(\frac{\partial^2 l(\lambda)}{\partial \lambda^2}\bigg)
+\\ &= E \bigg( \frac 1 {\lambda^2} \sum\limits_{i=1}^n y_i \bigg)
+\\ &= \frac {n^2} {\sum y_i}
+\\ \text{cov}(\hat\lambda) & = \frac  {\sum y_i} {n^2}
+\\ t=\frac{\hat\lambda - \mu_0}{\sqrt{\sum y_i} /  n} &\sim N(0,1)
+\end{aligned}$$
+</blockquote>
+
+#Exercise 5
+
+$y_1,\dots,y_n$ are samples from the exponential family distribution. Let $\Lambda = L(\hat\theta_\max) / L(\hat\theta)$. Forumulate the deviance $D= 2\log \Lambda$
+
+<blockquote>
+
+Use the result of log-likelihood function of exponential family
+
+$$\begin{aligned} D
+&= 2 (l(\hat\theta_\max) - l(\theta))
+\\ &= 2 \sum\limits_{i=1}^n  \bigg( \frac {y_i\hat\theta_{i,\max} - b(\hat\theta_{n,\max})}{a_i(\phi)} - \frac {y_i\hat\theta_{i} - b(\hat\theta_{n})}{a_i(\phi)} \bigg)
+\end{aligned}$$
+</blockquote>
+
+#Exercise 6 R
+
+Logistic regression on ear infections with parents' smoking habit and number of siblings (data `korvatulehdus`)
+
+<blockquote>
+All coefficient is in the sense of odds ratio
+
+```{r d406}
+korvatul <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/korvatul.txt")
+fit <- glm(tulehdus ~ tupak * factor(lapsia), family = binomial, data = korvatul)
+summary(fit)
+```
+</blockquote>
+
+#Exercise 7 R
+
+Continue with the eye infection data, a) explain the effects
+
+<blockquote>
+In a non-smoking family, the odds ratio for ear infection in 2-child family compared with 1-child family is `r exp(coef(fit)[3])`; while in a smoking-family, such odds ratio is `r exp(coef(fit)[3] + coef(fit)[5])`.
+
+Similarily, the odds ratio 3-child compared to 1-child family in non-smoking family is `r exp(coef(fit)[4])` and in smoking family is `r exp(coef(fit)[4] + coef(fit)[6])`.
+</blockquote>
+
+(b) Using deviance to check whether the interaction item is needed.
+
+<blockquote>
+```{r d407}
+fit2 <- glm(tulehdus ~ tupak + factor(lapsia), family = binomial, data = korvatul)
+anova(fit, fit2)
+cat("critical value chisq_2 ", qchisq(0.95, df = 2))
+```
+
+As 5.602 < 5.99, it seems that Model 2 is better, i.e. interaction items are not needed.
+</blockquote>
+
+

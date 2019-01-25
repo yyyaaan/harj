@@ -1,0 +1,246 @@
+---
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: kable
+    theme: 'readable'
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+library(geoR)
+options(geoR.messages = FALSE)
+```
+
+# 2-2 Kriging without and with nugget effect
+
+> without nugget
+
+```{r d22a}
+esim <- data.frame(x = c(0.2, 0.5, 0.4, 0.9),
+                   y = c(0.2, 0.1, 0.5, 0.8),
+                   dat = c(12, 6, 10,2 ))
+y.geo<-as.geodata(matrix(c(esim$x,esim$y,esim$dat),ncol=3))
+simplek <- krige.control(type.krige="sk",beta=5.0, 
+                       cov.model="exponential",cov.pars=c(1,0.2))
+# Ennustus uuteen paikkaan (0.5,0.4):
+tul<-krige.conv(y.geo,locations=c(0.5,0.4),krige=simplek)
+cat("predict & var: ", tul$predict, tul$krige.var)
+
+#using manual calculation
+cfunc <- function(r) exp(-5*r)
+s <- matrix(c(0.2,0.5,0.4,0.9,0.2,0.1,0.5,0.8),ncol=2)
+y <- matrix(c(12,6,10,2),ncol=1)
+u <- y-5.0
+C <- cfunc(as.matrix(dist(s,diag=TRUE)))
+
+s0 <- matrix(c(0.5,0.4),ncol=1)
+s.aug <- matrix(c(s[,1],s0[1,1],s[,2],s0[2,1]),ncol=2)
+cs <- as.matrix(cfunc(as.matrix(dist(s.aug))[5,1:4]))
+lambda0 <- solve(C)%*%cs
+hat.u <- t(lambda0)%*%u
+hat.y <- hat.u+5.0
+k.var <- 1-t(cs)%*%solve(C)%*%cs
+cat("predict & var:", hat.y, k.var)
+```
+
+> with nuggest = 0.8
+
+```{r d22b}
+simpleknugget<-krige.control(type.krige="sk",beta=5.0,nugget=0.8, 
+                             cov.model="exponential",cov.pars=c(1,0.2))
+tulnugget<-krige.conv(y.geo,locations=c(0.5,0.4),krige=simpleknugget)
+cat(tulnugget$predict, tulnugget$krige.var)
+
+#manually
+cfunc <- function(r)  exp(-5*r)
+s<-matrix(c(0.2,0.5,0.4,0.9,0.2,0.1,0.5,0.8),ncol=2)
+y<-matrix(c(12,6,10,2),ncol=1)
+u<-y-5.0
+C<-cfunc(as.matrix(dist(s,diag=TRUE)))
+# lisataan nugget diagonaalille
+yksikko= diag(nrow = 4)
+nugget=0.8
+C=C +nugget*yksikko
+
+s0<-matrix(c(0.5,0.4),ncol=1)
+s.aug<-matrix(c(s[,1],s0[1,1],s[,2],s0[2,1]),ncol=2) # jarjestys vaihdettu s0:ssa
+cs<-as.matrix(cfunc(as.matrix(dist(s.aug))[5,1:4]))
+lambda0<-solve(C)%*%cs
+hat.u<-t(lambda0)%*%u
+hat.y<-hat.u+5.0
+k.var<-1+nugget-t(cs)%*%solve(C)%*%cs # tausq+sigmasq
+cat(hat.y, k.var)
+```
+
+> more general methods
+
+```{r d22c}
+# Tavanomainen kriging valmiilla funktiolla, kun nugget=0.8 mukana:  
+oknugget <- krige.control(type.krige="ok",nugget=0.8, 
+                          cov.model="exponential",cov.pars=c(1,0.2))
+tul<-krige.conv(y.geo,locations=c(0.5,0.4),krige=oknugget)
+cat(tul$predict, tul$krige.var)
+
+# universaali kriging valmiilla funktiolla, kun nugget=0.8 mukana:  
+uknugget<-krige.control(type.krige="ok",nugget=0.8, 
+                        cov.model="exponential",cov.pars=c(1,0.2),
+                        trend.d="1st", trend.l="1st")
+tul<-krige.conv(y.geo,locations=c(0.5,0.4),krige=uknugget)
+cat(tul$predict, tul$krige.var)
+```
+
+# 2-3 Variogram Fitting
+
+On kriging the calcium material data (`ca20`). Check the first and second order trend, using a) `variofit` function and b) `likfit` function, and compare the result
+
+> Variogram Cloud and anisotorpy
+
+```{r d23a}
+par(mfrow = c(1,2))
+plot(variog(ca20, option='cloud'),
+     pch='.',cex=0.5, main = "cloud variogram")
+a <- variog(ca20, option='smooth', band=100)
+lines(a$u,a$v,col=2)
+plot(variog(ca20), main = "ordinary")
+
+# anisotropy
+plot(variog4(ca20)) # or use variog to calculate each direction
+plot(variog4(ca20, trend = '1st'))
+plot(variog4(ca20, trend = "2nd"))
+
+# more detailed semivariance plot
+mySemivario <- function(trend = "cte"){
+  a1<-variog(ca20, option='smooth', direction=0,band=100,trend=trend)
+  a2<-variog(ca20, option='smooth', direction=pi/4,band=100,trend=trend)
+  a3<-variog(ca20, option='smooth', direction=pi/2,band=100,trend=trend)
+  a4<-variog(ca20, option='smooth', direction=3*pi/4,band=100,trend=trend)
+  n.o<-c("0","45","90","135")
+  ymax <- max(c(a1$v, a2$v, a3$v, a4$v), na.rm = TRUE)
+  plot(a1,type='l',xlab='distance',ylab='semivariance',ylim = c(0, ymax),
+       main = "smoothed variograms of residuals")
+  lines(a2$u,a2$v,lty=2)
+  lines(a3$u,a3$v,lty=3,lwd=2)
+  lines(a4$u,a4$v,lty=4)
+  legend(0, ymax, legend = n.o,lty = c(1:4),lwd=c(1,1,2,1))
+}
+
+mySemivario("1st") #eg
+```
+
+> Variofit
+
+```{r d23b}
+# for example 1st trend
+ca20.bin1st <- variog(ca20, option="bin",
+                      estimator.type="classical",
+                      trend='1st', max.dist = 500)
+plot(ca20.bin1st)
+
+# Parametrisen mallin sovitus variofitin kautta
+varioe1st <- variofit(ca20.bin1st, ini.cov.pars =c(80,20), 
+                      cov.model="exponential",
+                       fix.nugget=FALSE,nugget=40)
+varioe1st
+variog1st <- variofit(ca20.bin1st, ini.cov.pars =c(80,20), 
+                      cov.model="gaussian",
+                      fix.nugget=FALSE,nugget=40)
+variog1st
+varios <- variofit(ca20.bin1st, ini.cov.pars =c(80,20), 
+                   cov.model="spherical",
+                   fix.nugget=FALSE,nugget=40)
+varios 
+
+plot(ca20.bin1st)
+lines(variog1st, col ="red")
+lines(varioe1st, col="blue")
+lines(varios, col="green")
+
+# constuct data for prediction
+xlim<-range(ca20$borders[,1]); 
+ylim<-range(ca20$borders[,2])
+xgrid<-seq(xlim[1],xlim[2],l=100)
+ygrid<-seq(ylim[1],ylim[2],l=100)
+pred.grid <- expand.grid(xgrid,ygrid)
+# universal kriging
+krige.par <- krige.control(type.krige='ok', 
+                           cov.pars=varioe1st$cov.pars, 
+                           nugget=varioe1st$nugget,
+                           cov.model="exp",trend.d="1st", trend.l="1st")
+k<-krige.conv(ca20,locations=pred.grid,krige=krige.par)
+
+
+image(k)
+points(ca20, pch=20,cex.max=1,pt.divide='equal',add.to.plot=TRUE, lty=2)
+contour(k,add=T,nlevels=10)
+
+image(k)
+points(ca20, pch=20,cex.max=1,pt.divide='equal',add.to.plot=TRUE, lty=2)
+contour(k,values=sqrt(k$krige.var),add=T,nlevels=10)
+```
+
+> Likelihood fit
+
+```{r d25}
+# Parametrisen mallin sovitus likfitin kautta
+ml1st <- likfit(ca20, ini = c(80,20), 
+                cov.model = "exp",
+                fix.nugget=FALSE, trend="1st")
+ml1st
+plot(ca20.bin1st); lines(ml1st)
+
+# universal kriging
+krige.parml <- krige.control(type.krige='ok', 
+                             cov.pars=ml1st$cov.pars, 
+                             nugget=ml1st$nugget,
+                             cov.model="exponential",
+                             trend.d="1st", trend.l="1st")
+kml <- krige.conv(ca20,locations=pred.grid,krige=krige.parml)
+kml$beta.est
+
+image(kml)
+points(ca20, pch=20,cex.max=1,pt.divide='equal',add.to.plot=TRUE, lty=2)
+contour(k, values=sqrt(k$krige.var), add=T, nlevels=10)
+```
+
+# 2-6 Random Fields Simulation
+
+Conduct conditional simulation of `moreeni.dat` and compare the result with `RFsimulate` function.
+
+```{r d26}
+moreeni <- read.table("https://yan.fi/docs/sda/moreeni.dat",head=TRUE)
+moreenigeo <- as.geodata(matrix(c(moreeni$x,moreeni$y,
+                                  moreeni$pitoisuus),ncol=3))
+
+library(RandomFields)
+xgrid<-seq(min(moreeni$x),max(moreeni$x),l=100)
+ygrid<-seq(min(moreeni$y),max(moreeni$y),l=100)
+x <- runif(100, min=-1, max=1)
+y <- runif(100, min=-1, max=1)
+  #RandomFields Example
+datatest <- RFsimulate(model = RMexp(), x=x, y=y, grid=FALSE)
+  #simulate a field conditional on the above data
+xyseq <- seq(-1.5, 1.5, length= 100)
+cond <- RFsimulate(model = RMexp(), 
+                   x = xyseq, y = xyseq, data=datatest)
+plot(cond, datatest)
+
+# our data
+v2 <- variog(moreenigeo, estimator.type="classical", max.dist=90)
+tul <- variofit(v2, fix.nug=FALSE,
+                nugget=0.1, cov.model="gaussian",
+                ini.cov.pars=c(1.5*10^7,60))
+tul
+
+cond <- RFsimulate(model=RMgauss(var=tul$cov.pars[1], scale=tul$cov.pars[2]), 
+                   x=xgrid, y=ygrid, data=moreeni)
+plot(cond, moreeni)
+```
+
+
+
+

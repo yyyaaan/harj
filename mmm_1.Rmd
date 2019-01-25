@@ -1,0 +1,98 @@
+---
+title: "Demo 1"
+author: "Yan Pan | 6 exercises completed | created with R-markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+# Exercise 1
+Column vectors are NOT linearly independent when $r = 1$ or $r=-0.5$. Otherwise, they are linearly independent.
+```{r}
+library(fBasics)
+q <- 0.9
+matX <- matrix(c(1,q,q,q,1,q,q,q,1), ncol = 3)
+rk(matX)
+det(matX)
+``` 
+# Exercise 2
+$$det \bigg(\begin{bmatrix} 2-\lambda & 1 \\ 1 & 2- \lambda \end{bmatrix} \bigg) = (2-\lambda)^2 -1 :=0$$
+⇒ The eigenvalue $\lambda_1 = 1,\ \lambda_2=  3$
+
+$$\begin{bmatrix} 2 &1 \\ 1&2 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} x_1\\ x_2 \end{bmatrix} \  ⇒ \ \begin{bmatrix} 2x_1 + x_2 \\ x_1 + 2x_2  \end{bmatrix} =\begin{bmatrix} x_1\\ x_2 \end{bmatrix}  \ ⇒\ x_1 = -x_2$$  
+Therefore,  $\lambda_1 = 1,\ \gamma_1 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$;
+
+similarily, $\lambda_2 = 3,\ \gamma_2 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$.
+
+The eigen vectors are not unique.
+
+```{r}
+matS <- matrix(c(2,1,1,2), ncol = 2)
+ev <- eigen(matS)
+ev$values
+ev$vectors
+``` 
+
+# Exercise 3
+(i) We will show $\sigma _{12} \ ⇒\  X_1 ⫫ X_2$
+
+For jointly normal-distributed:
+
+Since $\sigma_{12} = 0$, we may write $\boldsymbol{\Sigma} = \begin{bmatrix} \sigma_1^2 & 0 \\ 0 & \sigma_2^2 \end{bmatrix}$ , and thus
+
+$$ \begin{align}   f(x_1, x_2) &= \frac{1}{2\pi} \frac{1}{\sigma_1\sigma_2}  e ^{-\frac{1}{2} \begin{bmatrix} x_1-\mu_1 &x_2 - \mu_2 \end{bmatrix} \begin{bmatrix} 1/\sigma_1^2 & 0 \\ 0 \sigma &1 / \sigma_2^2 \end{bmatrix}  \begin{bmatrix} x_1-\mu_1 \\x_2 - \mu_2 \end{bmatrix} }   \\ &= \frac{1}{2\pi\sigma_1\sigma_2}  e ^{-\frac{1}{2}  \frac{(x_1 - \mu_1)^2}{\sigma_1^2}  }  e ^{-\frac{1}{2}   \frac{(x_2 - \mu_2)^2}{\sigma_2^2}  } \end{align}$$
+
+$$ \begin{align} f(x_1) &= \displaystyle\int_{ \mathbb R } f(x_1,x_2)dx_2  \\ &=  \frac{1}{\sqrt{2\pi\sigma_1}}  e ^{-\frac{1}{2}  \frac{(x_1 - \mu_1)^2}{\sigma_1^2}  } \underbrace{ \displaystyle\int_{ \mathbb R }  \frac{1}{\sqrt{2\pi\sigma_1\sigma_2}}e ^{-\frac{1}{2}   \frac{(x_2 - \mu_2)^2}{\sigma_2^2}  } dx_2 }_{=1 \text{ since it is 1-dim normal} }  \\ &= \frac{1}{\sqrt{2\pi\sigma_1}}  e ^{-\frac{1}{2}  \frac{(x_1 - \mu_1)^2}{\sigma_1^2}  } \end{align}  $$
+Similariy,$f(x_2) = \frac{1}{\sqrt{2\pi\sigma_2}}  e ^{-\frac{1}{2}  \frac{(x_2 - \mu_2)^2}{\sigma_2^2}  }$
+
+Therefore, we have $f(x_1,x_2) = f(x_1) f(x_2)$, which implies the independence.
+
+(ii) $X_1 ⫫ X_2 \ ⇒\  \sigma_{12}=0$
+$$\begin{align} cov(X_1, X_2) &= E(X_1 - \mu_1) (X_2 - \mu_2) \\ &=  E (X_1 X_2) - \mu_2E(X_1) - \mu_1 E(X_2) + \mu_1 \mu_2  & \text{properties of expectation} \\ &=  EX_1 EX_2  - \mu_2E(X_1) - \mu_1 E(X_2) + \mu_1 \mu_2   & \text{because of independence}  \\ &=  \mu_1\mu_2 - \mu_2\mu_1 - \mu_1\mu_2 + \mu_1\mu_2  & \text{definition of expectation} \\ &=  0\end{align}$$
+
+# Exercise 4
+Let $\boldsymbol{\Sigma} = \begin{bmatrix} \sigma_{11} & \sigma _{12} \\ \sigma _{12}  &\sigma_{22} \end{bmatrix} ,\ d :=| \boldsymbol{ \Sigma} |= \sigma _{11} \sigma _{22}  - \sigma _{12}^{2}$
+
+Thus, we have $\boldsymbol{\Sigma} ^{-1} = \frac{1}{d} \begin{bmatrix} \sigma _{22} & -\sigma _{12} \\ - \sigma _{12} & \sigma _{11}  \end{bmatrix}$
+
+We may write the joint distribution, 
+$$f(x_1, x_2)= \frac{1}{2\pi \sqrt d} e ^{-\frac{1}{2d}  \big(  \sigma _{22} (x_1-\mu_1)^2 - 2 \sigma _{12} (x_1-\mu_1)(x_2 - \mu_2) + \sigma _{11} (x_2 - \mu_2)^2\big)  }$$
+
+and the marginal distribution,
+$$ \begin{align} f(x_2)&= \displaystyle\int_{ \mathbb R } f(x_1, x_2) dx_1 \\ &=  \frac{1}{2\pi\sqrt d} e ^{-\frac{1}{2d} \sigma_{11}(x_2-\mu_2)^2}   \displaystyle\int_{ \mathbb R } e ^{-\frac{1}{2d}  \big(  \sigma _{22} (x_1-\mu_1)^2 - 2 \sigma _{12} (x_1-\mu_1)(x_2 - \mu_2)  \big) }dx_1 \\ &= \frac{1}{2\pi\sqrt d} e ^{-\frac{1}{2d} \sigma_{11}(x_2-\mu_2)^2}  \displaystyle\int_{ \mathbb R } e ^{- \frac{\sigma_{22}}{2d}  \big( x_1 - \mu_1 - \frac{\sigma_{12}}{\sigma_{22}} (x_2-\mu_2) \big)^2 }  e ^{-\frac{1}{2d} \frac{\sigma_{12}^2}{\sigma_{22}} (x_2-\mu_2)^2 }  dx_1 \\ &=  \frac{1}{2\pi\sqrt d} e ^{-\frac{1}{2d} (\sigma_{11} + \frac{\sigma_{12}^2}{\sigma_{22}} ) (x_2-\mu_2)^2}  \underbrace{ \displaystyle\int_{ \mathbb R } e ^{- \frac{\sigma_{22}}{2d}  \big( x_1 - \mu_1 - \frac{\sigma_{12}}{\sigma_{22}} (x_2-\mu_2) \big)^2 } dx_1}_{= \sqrt{2\pi d /\sigma_{22}} \text{ as 1-dim normal} } \\ &=  \frac{1}{\sqrt{2\pi\sigma _{22} }}e ^{-\frac{1}{2d} (\sigma_{11} + \frac{\sigma_{12}^2}{\sigma_{22}} ) (x_2-\mu_2)^2}   \end{align}   $$ 
+
+Therefore, the conditional distribution,
+$$ \begin{align} f(x_1, X_2=x_2)&= \frac{f(x_1,x_2)}{f(x_2)} \\ &=  \frac{1}{\sqrt{2\pi d/ \sigma_{22}}} e ^{-\frac{1}{2d}  \big(  \sigma _{22} (x_1-\mu_1)^2 - 2 \sigma _{12} (x_1-\mu_1)(x_2 - \mu_2) - \frac{ \sigma _{12}^2}{\sigma_{22}} (x_2 - \mu_2)^2\big)  }  \\ &= \frac{1}{\sqrt{2\pi d/ \sigma_{22}}} e ^{-\frac{1}{2d/\sigma_{22}}  \big( x_1-\mu_1 - \frac{\sigma_{12}}{\sigma_{22}}(x_2-\mu_2)  \big)^2 }  \end{align}   $$ 
+
+This is indeed the (1-dimensional) normal distribution $N \bigg(\mu_1 +\frac{\sigma_{12}}{\sigma_{22}}(x_2-\mu_2),\ \sigma _{11} - \frac{\sigma _{12} ^2 }{\sigma_{22}}  \bigg)$ 
+
+# Exercise 6
+$$ \begin{align} E( \boldsymbol{AX+a} )&= \displaystyle\int_{ \boldsymbol{X} \in \mathbb R^p } (\boldsymbol{AX+a} )f( \boldsymbol{X} )  \\ &=  \displaystyle\int_{ \boldsymbol{X} \in \mathbb R^p } \boldsymbol{AX} f ( \boldsymbol{X} ) + \boldsymbol{a} \displaystyle\int_{ \boldsymbol{X} \in \mathbb R^p }f(\boldsymbol{X} ) \\ &=  \boldsymbol{A} \displaystyle\int_{ \boldsymbol{X} \in \mathbb R^p } \boldsymbol{X} f( \boldsymbol{X} ) + \boldsymbol{a} \\ &=  \boldsymbol{A} E(\boldsymbol{X} ) + \boldsymbol{a}   \end{align}   $$
+
+For the above, the integration in $\mathbb{R} ^d$ is used. It is also clear if expand the matrix into linear format and use integration in $\mathbb{R}$.
+
+Let $\boldsymbol{\mu} := E(\boldsymbol{X} )$. Then, 
+$$ \begin{align} cov( \boldsymbol{Ax +a } )&= E[(\boldsymbol{AX+a-A\mu-a} )(\boldsymbol{AX+a-A\mu-a})'] \\ &=  E[(\boldsymbol{AX-\mu} )(\boldsymbol{AX-\mu} )'] \\ &=  E  \bigg( \begin{bmatrix} \sum\limits_{i=1}^{ p}  A _{1i} X_i-\mu_1 \\ \vdots \\ \sum\limits_{i=1}^{ p}  A _{pi} X_p - \mu_p \end{bmatrix} \begin{bmatrix} \sum\limits_{i=1}^{ p}  A _{1i} X_i-\mu_1 &\cdots & \sum\limits_{i=1}^{ p}  A _{pi} X_p - \mu_p \end{bmatrix}  \bigg) \\ &=  E  \bigg( \begin{bmatrix}  \bigg( \sum\limits_{i=1}^{ p}  A _{1i} X_i - \mu_1\bigg )  \bigg( \sum\limits_{i=1}^{ p}  A _{1i} X_i - \mu_1\bigg ) &\cdots  & \bigg( \sum\limits_{i=1}^{ p}  A _{1i} X_i - \mu_1\bigg )  \bigg( \sum\limits_{i=1}^{ p}  A _{pi} X_i - \mu_p\bigg )\\ \vdots & \ddots  &\vdots \\ \bigg( \sum\limits_{i=1}^{ p}  A _{pi} X_i - \mu_p\bigg )  \bigg( \sum\limits_{i=1}^{ p}  A _{1i} X_i - \mu_1\bigg ) & \cdots & \bigg( \sum\limits_{i=1}^{ p}  A _{pi} X_i - \mu_p\bigg )  \bigg( \sum\limits_{i=1}^{ p}  A _{pi} X_i - \mu_p\bigg ) \end{bmatrix}  \bigg) \\ &=  \boldsymbol{A} cov(\boldsymbol{X} ) \boldsymbol{A} '\end{align}   $$  
+
+# Exercise 7
+```{r}
+require(MASS)
+mu <- c(0,0)
+S <- matrix(c(2,1,1,2), ncol = 2)
+invS <- solve(S)
+alln <- c(10, 20, 30, 50, 100, 200, 500)
+
+for( n in alln){
+  sim <- mvrnorm(n, mu, S)
+  xbar <- c(mean(sim[,1]), mean(sim[,2]))
+  md <- NULL
+  for( i in 1:n){
+    md[i] <- t(sim[i,]-xbar) %*% invS %*% ((sim[i,]-xbar))
+  }
+  plot(md, main = paste("Mahalanobis Distance | n = ", n))
+  abline(h=qchisq(0.975, 2), col = "red")
+}
+
+``` 

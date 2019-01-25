@@ -1,0 +1,118 @@
+---
+title: "Stochastic Simulation | Problems 5"
+author: " Yan PAN"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: paged
+    theme: 'readable'
+    css: "https://yan.fi/docs/theme/rmd.css"
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+# Exercise 2
+>  Consider noisy AR(1) model with $\rho = 1,\ \sigma_1^2 = \sigma_x^2 = \sigma_y^2 = 1$, also given $y{1:T}$ and proposal $M_t(x_t|x_{1:t-1}) = N \bigg( x_t; \frac{\rho x_{t-1} + y_t} 2, \frac 1 2 \bigg)$.
+
+The variance is calculated through $Var(X) = \mathbb E(X^2) - (\mathbb E X)^2$
+
+```{r demo62}
+myPF <- function(x0, gen_M, logp_G, n, y){
+  # init
+  TT <- length(y) #ts length must match y
+  xs <- matrix(nrow = n, ncol = TT) # all simulated values
+  A <- xs
+  omega.bar <- xs # also keep omegea.bar
+  
+  # t = 1    n-vectors: x_1 , omega, will be recycled and overwritten
+  x <- gen_M(n, x_pre = rep(0, n), y_cur = y[1])
+  xs[,1] <- x
+  
+  # work on omega
+  l_omega <- logp_G(x_cur = x, x_pre = rep(0,n), y_cur = y[1])
+  omega <- exp(l_omega)
+  omega.star <- sum(omega)
+  omega.bar[,1] <- omega / omega.star
+  # the first part of V, use log due to the extreme small value 
+  log_V1 <- log(omega.star) - log(n)
+  
+  for(t in 2:TT){
+    # get the A
+    a <- sample(1:n, n, prob=omega.bar[,t-1], replace=T)
+    A[, t-1] <- a
+    x.last = x[a] # keep copy of the last x, use for G
+    
+    # simulate the x according to a 
+    x <- gen_M(n, x_pre = x.last, y_cur = y[t])
+    xs[,t] <- x
+    
+    # work on omega and V
+    l_omega <- logp_G(x_cur = x, x_pre = x.last, y_cur = y[t])
+    omega <- exp(l_omega)
+    omega.star <- sum(omega)
+    omega.bar[,t] <- omega / omega.star
+    log_V1 <- log_V1 + log(omega.star) - log(n)
+  }
+  
+  a <- 1:n; 
+  for (t in rev(1:(TT-1))) {
+    a <- A[a,t]; 
+    xs[,t] <- xs[a,t]
+  }
+  
+  # also return omega.bar at time TT
+  return(list(log_V = log_V1+log(omega.bar[,TT]),
+              omega.bar = omega.bar,
+              xs = xs))
+}
+
+
+# m,g are "real", M,G are "propose"; luckily, R distinguish caps.
+# all dnorm are consistent with vectors, this save a lot of efforts!
+logp_G <- function(x_cur, x_pre, y_cur, rho = 1){
+  # make sure it gives the vector n, so make y also
+  if(length(y_cur)!= length(x_cur)) 
+    y_cur <- rep(y_cur, length(x_cur))
+  
+  lm <- dnorm(x_cur, mean = rho * x_pre, sd = 1, log = TRUE)
+  lg <- dnorm(y_cur, mean = x_cur, sd = 1, log = TRUE)
+  lM <- dnorm(x_cur, mean = (rho * x_pre + y_cur) /2, sd = sqrt(0.5), log = TRUE)
+
+  # the common choice
+  return(lm + lg - lM)
+}
+
+gen_M <- function(n, x_pre, y_cur, rho = 1, sigma = 0.5){
+  # no idea how rnorm will response to vector mean, take it safe
+  x_new <- numeric(n)
+  for (i in 1:n) {
+    x_new[i] <- rnorm(1, mean = (rho * x_pre[i] + y_cur) /2, sd = sqrt(sigma))
+  }
+  return(x_new)
+}
+
+y <- c(0, -1, -2, -1, -4, -1, -2, 0, 2, -1, 1, 2, -2, 1, 3)
+
+par(mfrow= c(1,3))
+for(n in c(100,1000,10000)){
+  
+  sim <- myPF(0, gen_M, logp_G, n, y)
+  x15 <- sum(sim$omega.bar[,15] * sim$xs[,15])
+  x15.sq <- sim$omega.bar[,15] * (sim$xs[,15])^2
+  varX15 <- sum(x15.sq) - x15^2
+
+  ts.plot(t(sim$xs), main = paste("n = ", n, "\nX15 =", x15, "\nVar =", varX15), col = "grey")
+  points(1:length(y), y, pch="o", col="red")  
+}
+```

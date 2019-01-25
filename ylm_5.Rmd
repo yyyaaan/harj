@@ -1,0 +1,137 @@
+---
+title: "Demo 5"
+author: "Yan PAN"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: kable
+    theme: 'readable'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Exercise 1
+
+$y_i\sim Bin(n_i,\pi_i)$ and $\log \bigg( \frac{\pi_i}{1-\pi_i} \bigg) = \boldsymbol x_i^T \boldsymbol \beta$. Find the maximal likelihood estimator equations.
+
+<blockquote>
+Since $ \frac {\partial l(\boldsymbol \beta)} {\partial\beta_j} = \frac{\partial l(\boldsymbol \beta)}{\partial \pi_i} \frac{\partial \pi_i}{\partial \beta_j}$, one sufficient (but not neccessily) solution for ML-estimator statisfies that $\frac{\partial l(\boldsymbol \beta)}{\partial \pi_i} =\frac{\partial \pi_i}{\partial \beta_j}=0$
+
+$$\begin{aligned} L(\pi_i | \boldsymbol y)
+&= \prod\limits_{i=1}^k {n_i \choose y_i} \pi_i ^ {y_i} (1-\pi)^{n_i-y_i}
+\\ l(\boldsymbol \beta)&= \text{vakio} + \sum\limits_{i=1}^k \bigg(  y_i \log \pi_i + (n_i-y_i) \log(1-\pi_i) \bigg)
+\\ &= \text{vakio} + \sum\limits_{i=1}^k \bigg( y_i \log \frac{e^{\boldsymbol x_i^T \boldsymbol \beta}}{1+e^{\boldsymbol x_i^T \boldsymbol \beta}} + (n_i-y_i)\log\frac{1}{1+ e^{\boldsymbol x_i^T \boldsymbol \beta}} \bigg)
+\\ &=\text{vakio} + \sum\limits_{i=1}^k \bigg( y_i \boldsymbol x_i^T \boldsymbol \beta - n_i \log(1+e^{\boldsymbol x_i^T \boldsymbol \beta})\bigg)
+\\\frac{\partial l(\boldsymbol \beta)}{\partial \boldsymbol\beta} &= \sum\limits_{i=1}^k \bigg( y_i x_i^T - \frac{n_i e^{\boldsymbol x_i^T \boldsymbol\beta} x_i^T}{1+e^{\boldsymbol x_i^T \boldsymbol \beta}}  \bigg) :=0
+\end{aligned}$$
+
+The above gives the equation for "solving" the ML-estimators
+
+</blockquote>
+
+#Exercise 2
+
+Suppose $y_i \overset{iid}\sim Bin(1,\pi_i)$ Show that $D = 2 \sum\limits_{i=1}^k \bigg[ y_i \log \frac{y_i}{\hat y_i} + (1-y_i) \log \frac{1 - y_i}{1- \hat y_i}  \bigg]$ and $\hat y_i = \hat\pi_i$
+
+<blockquote>
+Result from the previous exercise, $\hat\pi_{i,\text{ML}} = y_i$, and the likelihood also showned above.
+
+$$\begin{aligned} D
+&= 2\bigg( l(\hat\pi_{i,\text{ML}}) - l(\hat\pi_i)\bigg)
+\\ &= 2 \sum\limits_{i=1}^k \bigg( y_i \log y_i + (1-y_i) \log(1-y_i) \bigg) - 2 \sum\limits_{i=1}^k \bigg( y_i \log \hat y_i + (1-\hat y_i) \log(1- \hat y_i) \bigg)
+\\ &=  2 \sum\limits_{i=1}^k \bigg[ y_i \log \frac{y_i}{\hat y_i} + (1-y_i) \log \frac{1 - y_i}{1- \hat y_i}  \bigg]
+\end{aligned}$$
+
+</blockquote>
+
+#Exercise 3
+
+Same model with question 1 but with $y_i \sim Bin(1,\pi_i)$. Write the Fisher-Scoring algorithm
+
+<blockquote>
+From exercise 1, (and $n_i \equiv 1$)
+
+$$\begin{aligned} 
+\\ l(\boldsymbol \beta) &= \text{vakio} + \sum\limits_{i=1}^k \bigg( y_i \boldsymbol x_i^T \boldsymbol \beta - \log(1+e^{\boldsymbol x_i^T \boldsymbol \beta})\bigg)
+\\ S_j(\boldsymbol\beta) = \frac{\partial l(\boldsymbol \beta)}{\partial \beta_j} &= \sum\limits_{i=1}^k \bigg( y_i x_j - \frac{e^{\boldsymbol x_i^T \boldsymbol\beta} x_j}{1+e^{\boldsymbol x_i^T \boldsymbol \beta}}  \bigg)
+\\ [\mathcal I (\boldsymbol \beta)]_{ij}= -  \frac{\partial^2 l(\boldsymbol \beta)}{\partial \beta_j \partial \beta_k} &= \sum\limits_{i=1}^k \frac{x_j x_k e^{\boldsymbol x_i^T \boldsymbol \beta} (1+e^{\boldsymbol x_i^T \boldsymbol \beta}) - x_j e^{\boldsymbol x_i^T \boldsymbol \beta} e^{\boldsymbol x_i^T \boldsymbol \beta} x_k}{(1+ e^{\boldsymbol x_i^T \boldsymbol \beta})^2}
+\\ &= \sum\limits_{i=1}^k \frac{x_jx_k e^{\boldsymbol x_i^T \boldsymbol \beta}}{(1+e^{\boldsymbol x_i^T \boldsymbol \beta})^2}
+\end{aligned}$$
+
+The Fisher-score algorithm follows the matrix form $\boldsymbol\beta_{n+1} = \boldsymbol\beta_n + \mathcal I(\boldsymbol \beta) \boldsymbol S(\boldsymbol \beta)$
+</blockquote>
+
+
+#Exercise 5R
+
+Regarding Northern-Finland premature baby data, construct new variables and explain the potential factors
+
+<blockquote>
+```{r d505}
+lapset <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/lapset.txt")
+  #define new vars
+lapset$lapsia <- 0
+lapset$lapsia[which(lapset$parit == 1)] <- 1
+lapset$lapsia[which(lapset$parit > 1)] <- 2
+lapset$kesk <- ifelse(lapset$syntpaino < 2500, 1, 0)
+head(lapset)
+```
+
+It seems that all variables could potentially be influential factors towards premature baby. For example, overweight could affect the weight of baby. On the other hand, preganancy week should be a predictor due to the fact that it is a direct cause of premature (i.e. the information is fully included in response)
+</blockquote>
+
+#Exercise 6R
+
+Logistic model - odds ratio
+
+<blockquote>
+```{r d506}
+fit1 <- glm(kesk ~ as.factor(tup) * as.factor(lapsia) + as.factor(sukup) ,
+            family = binomial, data = lapset)
+beta <- cbind(est = coef(fit1), confint(fit1))
+or <- exp(beta)
+colnames(or) <- c("odds.ratio", "OR 2.5%", "OR 97.5%")
+or
+
+```
+</blockquote>
+
+#Exercise 7R
+
+Logistic model - probability
+
+<blockquote>
+```{r d507}
+invlogit <- function(x) { exp(x) / (1 + exp(x)) } #ref
+prob <- exp(beta)
+colnames(prob) <- c("Probability", "Pr 2.5%", "Pr 97.5%")
+prob
+```
+
+In more detail, for example the premature probability for a light-smoking second-time mother can be estimator below, (such probability is 35.8%)
+
+```{r d507b}
+logit <- beta[2,] + beta[4,] + beta[7,]
+invlogit(logit)
+```
+</blockquote>
+
+#Exercise 8
+
+Add `rviik` as predictor
+
+<blockquote>
+```{r d508}
+fit2 <- glm(kesk ~ as.factor(tup) * as.factor(lapsia) + as.factor(sukup) + rviik,
+            family = binomial, data = lapset)
+exp(cbind(odds.ratio = coef(fit2), confint(fit2)))
+```
+
+The `rviik` (preganancy week) is the only significantly effective predictor
+</blockquote>

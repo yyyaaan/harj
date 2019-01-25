@@ -1,0 +1,211 @@
+---
+title: "Demo 2"
+author: Yan Pan
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: paged
+    theme: 'readable'
+---
+
+All symbols except for $\pi,\sigma$ stands for matrix.
+
+#Exercise 1
+Suppose the linear model $\boldsymbol{y= X\beta+\epsilon,\ \ \epsilon} \sim N(0, \sigma^2\boldsymbol I_n)$. Derive the maxmial likelihood estimator.
+
+<blockquote>
+
+$$\begin{aligned} L(\beta)
+&= |2\pi\sigma^2 I_n|^{-\frac 1 2} \exp \bigg( -\frac 1 2 (y-X\beta)^T (\sigma^2 I_n)^{-1} (y-X\beta) \bigg) 
+\\ l(\beta) &= -\frac n 2 \log(2\pi\sigma^2) - \frac 1 {2\sigma^2} (y-X\beta)^T(y-X\beta) 
+\\ &=-\frac n 2 \log(2\pi\sigma^2) - \frac 1 {2\sigma^2}\bigg (y^Ty - y^T X\beta - \beta^T X^T y + \beta^T X^T X \beta \bigg)
+\\ \frac{\partial l(\beta)}{\partial\beta}&=  \frac 1 {2\sigma^2}\bigg ((y^TX)^T +  X^T y - 2X^T X\beta \bigg)=:0 
+\\ &\Rightarrow\ 2y^T X -2X^T X\beta = 0
+\\ &\Rightarrow \hat\beta = (X^T X)^{-1} X^T y
+\end{aligned}$$
+</blockquote>
+
+#Exercise 2
+
+Continue from the model in 1, and suppose $\boldsymbol X\ n\times(p+1)$ design-matrix. Let hat-matrix $\boldsymbol{H=X(X^T X)^{-1}X^T}$. Show that $\boldsymbol{\hat y ^T \hat\epsilon=0}$ and $\boldsymbol{\hat\epsilon^T X =0}$
+
+<blockquote>
+
+First, recall that hat-matrxi is symmetric and idempotent, i.e. $H^2 = H,\ H=H^T, H^T H = H$
+
+$$\begin{aligned} \boldsymbol {\hat y ^T\hat\epsilon}
+&= (Hy)^T (I-H)y
+\\ &= y^T H^T (y-Hy)
+\\ &= y^T H^T y - y^T H^T H y
+\\ &= y^T H y - y^T H y
+\\ &= 0
+\\ \boldsymbol{\hat\epsilon^T X} &= ((I-H)y)^T X
+\\ &= y^T(X-HX)
+\\ &= y^T X - y^T HX
+\\ &= y^T X - y^T X \underbrace{(X^T X)^{-1}X^T X}_{= I}
+\\ & = 0
+\end{aligned}$$
+</blockquote>
+
+#Exercise 3
+
+Show that $E(\hat\epsilon ^T \hat\epsilon) = \sigma^2(n-p-1)$
+
+<blockquote>
+$$\begin{aligned}
+E(\hat\epsilon ^T \hat\epsilon)
+&= E \bigg( (I-H)y y^T (I-H)^T \bigg)
+\\ &= (I-H)E(yy^T)(I-H)
+\\ &= (I-H) \text{Var}( y) (I-H)
+\\ &= (I-H) \text{Var}(\epsilon) (I-H) &\text{variance of }y\text{ only occurs in }\epsilon
+\\ &= (I-H)\sigma^2 I(I-H)
+\\ &= \sigma^2 (I-H) &\sigma^2 \text{ is real and} (I-H) \text {idempotent}
+\\ E(\hat\epsilon^T\hat\epsilon) & = \sigma^2E( \text{Trace} (I-H))
+\\ &=\sigma^2 E( \text{Trace}(I_n)-\text{Trace}(H))
+\\ &= \sigma^2 (n - \text{Trace}(X(X^TX)^{-1} X^T))
+\\ &= \sigma^2 (n - \text{Trace}(X^TX(X^TX)^{-1}))
+\\ &= \sigma^2 (n - \text{Trace}(I_{p+1})) & X\text{ design matrix }n\times (p +1) \text {(1st row is 1)}
+\\ & = \sigma^2(n-p-1) 
+\end{aligned}$$
+</blockquote>
+
+
+#Exercise 4
+
+Show that $SST=SSE + SSR$
+
+<blockquote>
+$$\begin{aligned} SST &= \sum\limits_{i=1}^n (y_i-\bar y)^2
+\\ &= \sum\limits_{i=1}^n \bigg( (y_i-\hat y_i) + (\hat y_i - \bar y) \bigg)^2
+\\ &= SSR + SSE + 2 \sum\limits_{i=1}^n \bigg( \underbrace{(y_i-\hat y_i)}_{=\epsilon_i}(\hat y_i - \bar y) \bigg)
+\\ &= SSR + SSE + 2 \sum\limits_{i=1}^n \bigg(  \epsilon_i \hat y_i -\epsilon_i \bar y \bigg)
+\\ & = SSR + SSE + 2 n \bigg( E(\epsilon \hat Y) - E(\epsilon \bar Y) \bigg)
+\\ & = SSR +SSE
+\end{aligned}$$
+
+The final equation holds because the random variables $\epsilon$ and $\hat Y,\ \bar Y$ are independent by model assumption; thus $E(\epsilon \hat Y) = E(\epsilon) E(\hat Y) = 0$.
+</blockquote>
+
+#Exercise 5
+
+Show that $E(\hat\beta)=\beta,\ \ \text{Cov}(\hat\beta)=\sigma^2 (X^T X)^{-1},\ \ \hat\beta\sim N(\beta,\sigma^2(X^TX)^{-1})$
+
+<blockquote>
+$$\begin{aligned} \hat\beta 
+&= (X^T X)^{-1}X^Ty
+\\ &= (X^T X)^{-1} X^T (X\beta + \epsilon)
+\\ &=\beta + (X^T X)^{-1} X^T \epsilon
+\\& \text{it is a linear transform of a random variable }\epsilon\sim N(0,\sigma^2 I)
+\\ \Rightarrow &\hat\beta \sim N(\beta, \sigma^2(X^T X)^{-1})
+\end{aligned}$$
+</blockquote>
+
+#Exercise 6R
+
+PISA survey linear regression.
+
+<blockquote>
+Using matrix calculation $\beta = (X^T X)^{-1}Xy$ and $\hat\sigma^2=\frac{\hat\epsilon ^T\hat\epsilon}{n-p-1}$
+
+```{r d206}
+pisa <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/pisa.txt")
+# ref from question
+mat <- pisa$matem
+sp <- as.numeric(pisa$sukup == "tytto")
+sij <- as.numeric(pisa$koulusij == "maaseutu")
+ita <- as.numeric(pisa$koulualue == "Ita-Suomi")
+lansi <- as.numeric(pisa$koulualue == "Lansi-Suomi")
+pohjoinen <- as.numeric(pisa$koulualue == "Pohjois-Suomi")
+X <- cbind(rep(1,200), mat, sp, sij, ita, lansi, pohjoinen)
+# end ref
+y <- matrix(pisa$mpist, ncol = 1)
+beta <- solve(t(X) %*% X)  %*% t(X) %*% y
+beta
+
+hat.epsilon <- y - X %*% beta
+hat.sigma2 <-  t(hat.epsilon) %*% hat.epsilon / (nrow(X) - ncol(X) - 1)
+sqrt(hat.sigma2)
+```
+</blockquote>
+
+#Exercise 7R
+
+Continue from above, calculate the standard error of $\hat\beta$ and $R^2$
+
+<blockquote>
+Using $\widehat{Cov}(\hat\beta) = \hat\sigma^2 (X^T X)^{-1}$
+
+```{r d207}
+
+cov.beta <- diag(as.numeric(hat.sigma2) , nrow = ncol(X)) %*% solve(t(X) %*% X)
+diag(sqrt(cov.beta))
+
+SSR <- sum((X %*% beta - mean(y))^2)
+SST <- sum((y - mean(y))^2)
+SSR/SST
+
+```
+</blockquote>
+
+#Exercise 8R
+Hypothesis testing for (a) $H_0:\beta_2 = 0$; (b) $H_0:\beta_1= \cdots = \beta_6 =0$; (c) $H_0:\beta_4= \beta_5 = \beta_6 =0$; (d) $H_0:\beta_4 = \beta_6$
+<blockquote>
+Find $K$ for each cases.
+
+(a) $K^T= \begin{pmatrix} 0 & 0& 1 & 0 & 0 &0 &0 &0\end{pmatrix} ,\ \ \ m=(0)$
+
+(b) $K^T= \begin{pmatrix} 0 & 1& 0 & 0 & 0 &0 &0  \\ 0 & 0& 1 & 0 & 0 &0 &0 \\ 0 & 0& 0 & 1 & 0 &0 &0  \\0 & 0& 0 & 0 & 1 &0 &0  \\0 & 0&0 & 0 & 0 &1 &0  \\ 0 & 0& 0 & 0 & 0 &0 &1 \end{pmatrix} ,\ \ \ m=\begin{pmatrix}0\\0\\0\\0\\0\\0 \end{pmatrix}$
+
+(c) $K^T= \begin{pmatrix} 0 & 0&0 &0  &1 &0 &0 \\ 0 & 0&0 &0  &0 &1 &0 \\ 0 & 0&0 &0  &0 &0 &1\end{pmatrix},\ \ \ m=\begin{pmatrix} 0\\0\\0 \end{pmatrix}$
+
+(d) $K^T= \begin{pmatrix} 0 &  0 & 0 & 0 &1 &0 &-1\end{pmatrix},\ \ \ m=\begin{pmatrix} 0 \end{pmatrix}$
+
+
+</blockquote>
+
+<blockquote>
+
+```{r demo608}
+# ref from question
+F_testi <- function(K, X, beta, m, sigma)
+{
+  q <- qr(K)$rank; n <- nrow(X); p <- ncol(X)
+  C <- solve(t(K) %*% solve(t(X) %*% X) %*% K)
+  F <- t(t(K) %*% beta - m) %*% C %*% (t(K) %*% beta - m) / (q * sigma)
+  p_arvo <- 1 - pf(F, q, n - p - 1)
+  list(F = F, p_arvo = p_arvo)
+}
+# end ref
+
+ka <- matrix(c(0,0,1,0,0,0,0), nrow = 7)
+ma <- 0
+F_testi(ka, X, beta, ma, sqrt(hat.sigma2))
+
+kb <- t(diag(nrow = 7)[2:7,])
+mb <- matrix(rep(0,6), nrow = 6)
+F_testi(kb, X, beta, mb, sqrt(hat.sigma2))
+
+kc <- t(diag(nrow = 7)[5:7,])
+mc <- matrix(rep(0,3), nrow = 3)
+F_testi(kc, X, beta, mc, sqrt(hat.sigma2))
+
+kd <- matrix(c(0,0,0,0,1,0,-1), nrow = 7)
+md <- 0
+F_testi(kd, X, beta, md, sqrt(hat.sigma2))
+
+```
+</blockquote>
+
+
+
+
+
+
+
+
+
+

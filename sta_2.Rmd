@@ -1,0 +1,121 @@
+---
+author: "PAN Yan"
+---
+
+## Demonstration 2 Exercise 1
+
+Assume that $f,g:\Omega \to \mathbb R$ are independent Gaussian random variables. Show that $f+g$ is Gaussian using characteristic function.
+
+<blockquote>
+$$\begin{aligned} \mathbb E e^{it(f+g)}
+&= \mathbb E \big( e^{itf} e^{itg}  \big)
+\\ &= \mathbb E \big( e^{itf} \big) \mathbb E \big( e^{itg}  \big) &\text{by independence and finite expectation}
+\\ &= e^{itm_f} e^{-\sigma_f^2 \frac {t^2} 2} e^{itm_g} e^{-\sigma_g^2 \frac {^2} 2}
+\\ &= e^{it(m_f + m_g)} e ^{-(\sigma_f^2 + \sigma_g^2) \frac {t^2} 2} 
+\end{aligned}$$
+
+Therefore, $f+g$ is Gaussian with mean of $m_f+ m_g$ and variance $\sigma_f^2 + \sigma_g^2$
+</blockquote>
+
+## Demonstration 2 Exercise 2
+
+Assume $W^H = (W^H_t)_{t\geq 0}$ a fractional Brownian motion with Hurst index $H\in(0,1)$
+
+Prove: for $0\leq s \lt t \lt \infty,\ \mathbb E(W_t^H - W_s^H) W_s^H \begin{cases} \gt 0 &  \text{when }H\gt 1/2 \\ \lt 0 &\text{when } H< 1/2 \end{cases}$ 
+
+<blockquote>
+
+$$\begin{aligned} \mathbb E(W_t^H - W_s^H) W_s^H 
+&= \mathbb E(W_t^H W_s^H - W_s^H W_s^H ) 
+\\ &= \Gamma(s,t) - \Gamma(s,s)
+\\ &= \frac 1 2(t^{2H} + s ^{2H} - |t-s|^{2H}) - \frac 1 2(s^{2H} + s ^{2H})
+\\ &= \frac 1 2(t^{2H} -s ^{2H} - |t-s|^{2H}) 
+\\ &= \frac 1 2((s+t-s)^{2H} - (s ^{2H} + (t-s)^{2H})) 
+\\ &= \frac 1 2 (t-s)^{2H}\bigg(\bigg(\frac s {t-s} + 1\bigg)^{2H} - \bigg( \bigg( \frac s {t-s} \bigg) ^{2H} + 1\bigg)\bigg) 
+\end{aligned}$$
+
+Consider $f(x) = (x+1)^{2H} - (x^{2H} +1),\ \ x\geq 0$, the result follows naturally.
+
+</blockquote>
+
+
+Prove that fractional Brownian motion is stationary, i.e. $W_t^H - W_s^H \overset  d = W_{t-s}^H$.
+
+<blockquote>
+Clearly, $\mathbb E(W_t^H - W_s^H )= 0 =\mathbb E W_{t-s}^H$. 
+
+$$\begin{aligned} 
+\mathbb E(W_t^H - W_s^H)^2
+&= \mathbb E((W_t^H)^2  -2 W_t^H W_s^H  + (W_t^H)^2)
+\\ &= \Gamma(s, 0) - 2 \Gamma(s,t) + \Gamma(t,0)
+\\ &= |t-s|^{2H}
+\\ & = \mathbb E(W_{s}^{H} W_{t}^{H}) 
+\\\\ \Rightarrow & 
+\begin{cases} &W_t^H - W_s^H \sim &~ N(0, |t-s|^{2H})
+\\& W_{t-s}^H \sim &~ N(0, |t-s|^{2H}) \end{cases}
+\end{aligned}$$
+
+
+
+</blockquote>
+
+Prove: for $A\gt 0$, all finite-dimensional distributions of $(W_{At}^H)_{t\geq 0}$ and $(A^HW_{t}^H)_{t\geq 0}$
+
+<blockquote>
+Clearly, $\mathbb EW_{At}^H = 0 = \mathbb E(A^H W_t^H)$
+
+$$\begin{aligned} 
+\mathbb E(A^H W_t^H A^H W_s^H)
+&= A^{2H} \mathbb E(W_t^H W_s^H)
+\\ &= A^{2h} \Gamma(s,t)
+\\ 
+\mathbb E(W_{At}^H W_{As}^H)
+&= \Gamma(At, As)
+\\ &= \frac 1 2 ((At)^{2H} + (As)^{2H} - |At-As|^{2H})
+\\ &= A^{2h} \Gamma(s,t)
+\end{aligned}$$
+
+Therefore, $\mathbb E(A^H W_t^H A^H W_s^H) = \mathbb E(W_{At}^H W_{As}^H)$, and both with zero-mean, implying they coincide.
+</blockquote>
+
+## Demonstration 2 Exercise 3
+
+Let $X=(X_t)_{t\in[0,1]}$ be a Brownian bridge. What process is $Y_t:= (t+1) X_{\frac t {t+1}}$?
+
+<blockquote>
+$(Y_t)$ is a Gaussian process because $\sum\limits_{i=1}^n a_i Y_{t_i}(\omega) = \sum\limits_{i=1}^n (t+1) X_{\frac t {t+1}}$ is Gaussian.
+
+Suppose $t\geq s$, which implies $\frac t {t+1} \geq \frac s {s+1}$
+
+$$\begin{aligned} \mathbb E(Y_t Y_s) 
+&= \mathbb E \bigg( (t+1) X_{\frac t {t+1}} (s+1) X_{\frac s {s+1}} \bigg)
+\\ &= (t+1)(s+1) \Gamma(\frac t {t+1}, \frac s {s+1}) 
+\\ &= (t+1)(s+1) \frac{s}{s+1} \frac 1 {t+1}
+\\ &= s &\text{when } 0\leq s\leq t \leq 1
+\\ \text{similarily, }\mathbb E(Y_t Y_s) &= t  &\text{when } 0\leq t\leq s \leq 1
+\end{aligned}$$
+
+Therefore, $\mathbb E(Y_t Y_s) = \min\{s,t\}$ and zero-mean (clearly from definition), $(Y_t)_{t\in[0,1]}$ is a brownian motion.
+</blockquote>
+ 
+## Demonstration 2 Exercise 4
+
+Let $(\Omega, \mathcal F, \mathbb P)$ a probability space, $f_i,\ g: \Omega\to \mathbb R$ random variables and $\mathcal G := \sigma(f_i :i \in I)$ (the samllest $\sigma$-algebra that all $f_i$ are measurable)
+
+Assume that $\mathbb P(g\in A, f_{i_1}\in A_1, \dots, f_{i_n}\in A_n) = \mathbb P(g\in A) \mathbb P(f_{i_1}\in A_1, \dots, f_{i_n}\in A_n)$ for all $A,A_1,\dots, A_n\in \mathcal B(\mathbb R)$.
+
+Prove that $\mathbb P(\{g\in A\} \cap B) = \mathbb P (g\in A) \mathbb P(B)$
+
+<blockquote>
+For a fixed $A\in\mathcal B(\mathbb R)$ that $\mathbb P(g\in A)\gt 0$, define: 
+$$\mu(B) := \frac{\mathbb P(B\cap \{g\in A\})}{\mathbb P(g\in A)}$$
+
+So, $\mu$ and $\mathbb P$ are probability measures on $(\Omega, \mathcal G)$.
+
+Let $\Pi:= \big\{ \{f_{i_1 \in A_1}\} \bigcap \cdots \bigcap \{f_{i_m}\in A_m\}:\  i_\cdot \in I, \ A_\cdot \in \mathcal B(\mathbb R)  \big\}$.
+
+Then, $\Pi$ is a $\pi$-system that generates $\mathcal G$, and according to assumptions, for $B\in \Pi:\ \mu(B) = \mathbb P(B)$.
+
+Hence $\mu(B) = \mathbb P(B)$ for all $B\in \sigma(\Pi) = \mathcal G$
+
+</blockquote>

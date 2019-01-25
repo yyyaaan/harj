@@ -1,0 +1,129 @@
+---
+title: "R-exercise 4"
+author: "Yan Pan"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+##Exercise 1
+
+####1a initialization
+```{r}
+library(nlme)
+library(plotly)
+lyijy <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/lyijy.txt")
+names(lyijy) <- c("id", "trt", "c0", "c1", "c4", "c6")
+lyijy.l <- reshape(lyijy, direction = "long", idvar = "id", 
+                   v.names = "concentration",
+                   times = c(0,1,4,6), varying = list(c("c0","c1","c4","c6")))
+``` 
+
+####1b GLS
+```{r}
+fit1b <- gls(concentration ~  time * trt, data = lyijy.l, 
+             correlation = corCompSymm(form = ~1 |id), method = "ML")
+summary(fit1b)$tTable
+``` 
+
+Model can be written as $y_{ij}=20.3 - 4.3 t_j + 5.4 trtP_i + 0.06 trtP_i * t_j$.
+
+####1c between groups
+
+Placebo Group: $y_{ij}=25.7 -4.24 t_j$, and
+
+Treatment Grp: $y_{ij}=20.3 - 4.3t_j$.
+
+The interactive item is NOT significant.
+
+####1d plot
+```{r}
+b <- fit1b$coefficients
+plot2d <- ggplot(aes(x = time, y = concentration, color = trt), data = lyijy.l) +
+  geom_point() + 
+  geom_abline(slope = b[2]+b[4], intercept = b[1]+b[3], color = 3) +
+  geom_abline(slope = b[2], intercept = b[1], color = 2)
+plot2d
+``` 
+
+####1e linear model
+```{r}
+fit1e <- lm(concentration ~ time * trt, data = lyijy.l)
+anova(fit1b, fit1e)
+``` 
+
+Linear Trend Model is better due to smaller AIC and BIC
+
+####1f Quadratic model
+```{r}
+lyijy.l$ctime <- lyijy.l$time - mean(lyijy.l$time)
+lyijy.l$ctime2 <- lyijy.l$ctime ^ 2
+fit1f <- lm(concentration ~  ctime + ctime2 + trt, data = lyijy.l)
+coef(fit1f)
+``` 
+
+Placebo Group: $y_{ij}=21 - 6.9 t_j + 0.6 t_j^2$, and
+
+Treatment Grp: $y_{ij}=15.4 - 6.9t_j + 0.6 t_j^2$.
+
+Treatment results in 5.58 lower concentration.
+
+```{r}
+anova(fit1b, fit1e, fit1f)
+``` 
+This model is better than linear model, but still worse than trend model
+
+####1g outlier removal
+```{r}
+outIndex <- which(lyijy.l$concentration == max(lyijy.l$concentration))
+allIndex <- which(lyijy.l$id == lyijy.l$id[outIndex])
+lyijy.r <- lyijy.l[-allIndex,]
+
+fit1g <- gls(concentration ~  time * trt, data = lyijy.r, 
+             correlation = corCompSymm(form = ~1 |id), method = "ML")
+summary(fit1g)$tTable
+``` 
+
+It seems that it does not change the model considerably.
+
+##Exercise 2
+```{r}
+weights <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/weights.txt")
+names(weights)[1:2] <- c('id', 'trt')
+weights.l <- reshape(weights, direction = "long", idvar = "id", v.names = "weight",
+                     times = c(0,2,4,6,8,10,12), 
+                     varying = list(c('V3','V4','V5','V6','V7','V8','V9')))
+naIndex <- which(is.na(weights.l$weight))
+wl <- weights.l[-naIndex,]
+
+fit.tas <- gls(weight ~  trt + time, data = wl, 
+             correlation = corCompSymm(form = ~ 1 |id))
+fit.ar1 <- gls(weight ~  trt + time, data = wl, 
+               correlation = corAR1(form = ~ 1 |id))
+fit.yle <- gls(weight ~  trt + time, data = wl)
+anova(fit.tas, fit.ar1, fit.yle)
+``` 
+
+The $AR(1)$ structure seems to be the best.
+
+```{r}
+fit.ML <- gls(weight ~  trt + time, data = wl, 
+              correlation = corAR1(form = ~ 1 |id),
+              method = "ML")
+summary(fit.ML)$tTable
+summary(fit.ar1)$tTable
+``` 
+
+ML methods yields smaller standard deviation of estimators. 
+
+##Exercise 3
+```{r}
+library(geepack)
+fit.gee <- geese(weight ~ trt + time, id = id, data = wl,
+                 corstr = "exchangeable")
+summary(fit.gee)
+``` 
+
+This standard error is considerably smaller than REML or ML.

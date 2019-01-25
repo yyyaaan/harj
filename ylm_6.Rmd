@@ -1,0 +1,213 @@
+---
+title: "Demo 6"
+author: "Yan PAN"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: kable
+    theme: 'readable'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Exercise 1
+
+Show that negative binomial is a distribution from exponential family
+
+<blockquote>
+
+$$\begin{aligned} f(y_i;\mu_i,\phi)
+&= \exp \bigg( \log\frac{\Gamma(y_i+\phi)}{\Gamma(\phi)\Gamma(y_i+1)} + y_i \log \frac{\mu_i}{\mu_i + \phi} + \phi \log\frac{\phi} {\mu_i + \phi}\bigg)
+\\ &= \exp \bigg(y_i \underbrace{\log \frac{\mu_i}{\mu_i + \phi}}_{:=\theta_i} + \underbrace{\phi \log \bigg( 1- e^{\frac{\mu_i}{\mu_i + \phi}}}_{:=b(\theta_i)=-\phi\log(1-e^{\theta_i})} \bigg) +  \underbrace{\log\frac{\Gamma(y_i+\phi)}{\Gamma(\phi)\Gamma(y_i+1)}}_{c(y_i,\phi)}\bigg)
+\end{aligned}$$
+
+</blockquote>
+
+#Exercise 2
+
+Fomulate $E(y_i)$ and $\text{Var}(y_i)$ for negative binomial
+
+<blockquote>
+$$\begin{aligned} E(y_i)
+&= b'(\theta_i)
+\\ &= \frac{\phi e^{\theta_i}}{1 - e^{\theta_i}}
+\\ &= \bigg(\phi \frac{\mu_i}{\mu_i + \phi}  \bigg) \bigg/ \bigg( 1- \frac{\mu_i}{\mu_i + \phi} \bigg)
+\\ &=\mu_i 
+\\ \text{Var}(y_i) &= b''(\theta_i) a(\phi)
+\\ & = \frac{d}{d\theta_i} \frac{\phi e^{\theta_i}}{1 - e^{\theta_i}}
+\\ & = \frac{\phi e^{\theta_i}}{(1-e^{\theta_i})^2}
+\\ & = \frac{\mu_i}{\frac {\phi}{\mu_i+\phi}}
+\\ & = \frac{\mu_i (\mu_i +\phi)}{\phi}
+\end{aligned}$$
+</blockquote>
+
+#Exercise 3R
+
+Concerning butterfly data. 
+
+<blockquote>
+```{r d603}
+options(stringsAsFactors = TRUE)
+perhoset <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/perhoset.txt",header=TRUE)
+
+  # no site in model
+fit603 <- glm(Colias ~ time + habitat + building, 
+              family = poisson, 
+              data = perhoset)
+cbind(exp(coef(fit603)), exp(confint(fit603)))
+
+b <- coef(fit603)
+par(mfrow = c(2,2))
+  #marginal plot on time
+plot(Colias ~ time, pch = 18, col = "grey", 
+     data = perhoset[perhoset$habitat == "Hayfield",], 
+     main = "Yearly Change: Hayfield Habitat")
+curve(exp(b[1] + b[2] * x + b[6] * mean(perhoset$building)), 
+      from = 1, to = 5, add = TRUE)
+plot(Colias ~ time, pch = 18, col = "grey",
+     data = perhoset[perhoset$habitat == "Mixed",], 
+     main = "Yearly Change: Mixed Habitat")
+curve(exp(b[1] + b[2] * x  + b[3] + b[6] * mean(perhoset$building)), 
+      from = 1, to = 5, add = TRUE)
+plot(Colias ~ time,  pch = 18, col = "grey",
+     data = perhoset[perhoset$habitat == "Short",], 
+     main = "Yearly Change: Short Habitat")
+curve(exp(b[1] + b[2] * x + b[4] + b[6] * mean(perhoset$building)), 
+      from = 1, to = 5, add = TRUE)
+plot(Colias ~ time,  pch = 18, col = "grey",
+     data = perhoset[perhoset$habitat == "Tall",], 
+     main = "Yearly Change: Tall Habitat")
+curve(exp(b[1] + b[2] * x + b[5] + b[6] * mean(perhoset$building)), 
+      from = 1, to = 5, add = TRUE)
+
+  # marginal plot on building
+plot(Colias ~ building, pch = 18, col = "grey", 
+     data = perhoset[perhoset$habitat == "Hayfield",], 
+     main = "Effect of Building Density: Hayfield Habitat")
+curve(exp(b[1] + b[2] * 3 + b[6] * x), 
+      from = 0, to = 20, add = TRUE)
+plot(Colias ~ building, pch = 18, col = "grey",
+     data = perhoset[perhoset$habitat == "Mixed",], 
+     main = "Effect of Building Density: Mixed Habitat")
+curve(exp(b[1] + b[2] * 3  + b[3] + b[6] * x), 
+      from = 0, to = 20, add = TRUE)
+plot(Colias ~ building,  pch = 18, col = "grey",
+     data = perhoset[perhoset$habitat == "Short",], 
+     main = "Effect of Building Density: Short Habitat")
+curve(exp(b[1] + b[2] * 3 + b[4] + b[6] * x), 
+      from = 0, to = 20, add = TRUE)
+plot(Colias ~ building,  pch = 18, col = "grey",
+     data = perhoset[perhoset$habitat == "Tall",], 
+     main = "Effect of Building Density: Tall Habitat")
+curve(exp(b[1] + b[2] * 3 + b[5] + b[6] * x), 
+      from = 0, to = 20, add = TRUE)
+```
+</blockquote>
+
+#Exercise 4R
+
+Continue from above, formulate the risk ratio.
+
+<blockquote>
+The table above, together with confidence interval was indeed already in risk ratio.
+</blockquote>
+
+#Exercise 5R
+
+Continue from above, use the property tool to test the hypothesis that different type of habitats have the same expected amount
+
+<blockquote>
+Since the types of habitats are categrical (factors), and the "hidden" information is that the first factor (`Hayfield`) equals 0; therefore, the null hypothesis can be simplified to $\beta_3=\beta_4 = \beta_5 = 0$. The F-test will be used by fixing $\boldsymbol K^T = \boldsymbol I_3$ and $\boldsymbol m = (0\ 0\ 0)^T$.
+
+Part of code is referenced from the previous exercises.
+
+```{r d605}
+F_testi <- function(K, X, beta, m, sigma)
+{
+  q <- qr(K)$rank; n <- nrow(X); p <- ncol(X)
+  C <- solve(t(K) %*% solve(t(X) %*% X) %*% K)
+  F <- t(t(K) %*% beta - m) %*% C %*% (t(K) %*% beta - m) / (q * sigma)
+  p_arvo <- 1 - pf(F, q, n - p - 1)
+  list(F = F, p_arvo = p_arvo)
+}
+
+K <- diag(nrow = 3)
+m <- matrix(rep(0,3), nrow = 3)
+X <- data.frame(x1 = as.numeric(perhoset$habitat == "Mixed"),
+                x2 = as.numeric(perhoset$habitat == "Short"),
+                x3 = as.numeric(perhoset$habitat == "Tall"))
+X <- as.matrix(X)
+sigma2 <- t(residuals(fit603)) %*% residuals(fit603) / (nrow(X) - length(b) -1)
+beta <- matrix(b[3:5], nrow = 3)
+
+F_testi(K, X, beta, m, sqrt(sigma2))
+```
+
+Reject null hypothesis, i.e. habitats make difference.
+
+</blockquote>
+
+#Exercise 6R
+
+With the same dataset, try negative-binomial.
+
+<blockquote>
+```{r d606}
+library(MASS)
+fit606 <- glm.nb(Colias ~ time + habitat + building, data = perhoset)
+cbind(exp(coef(fit606)), exp(confint(fit606)))
+```
+
+The result is very similar with Poisson-regression
+</blockquote>
+
+#Exercise 7R
+
+Concerning circulation disease data, using poisson model to analyze the death rate among different genders
+
+<blockquote>
+```{r d607}
+vk <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/verenkierto.txt",header=TRUE)
+
+fit607 <- glm(kuolleet ~ vuosi * sukup + offset(log(vaki)), 
+              family = poisson, data = vk)
+rr <- cbind(exp(coef(fit607)), exp(confint(fit607)))
+prob <- rr / (rr + 1)
+prob[-1,]
+
+b <- coef(fit607)
+vk$lk <- vk$kuolleet / vk$vaki * 100000
+plot(lk ~ vuosi, data = vk[vk$sukup == 1,], col = "red", ylim = c(25,350),
+     main = "circulation disease death rate, with fit")
+points(lk ~vuosi, data = vk[vk$sukup == 0,], col = "blue")
+curve(exp(b[1] + b[2] * x + b[3] + b[4] * x) * 1e5, col = "red",
+      from = 1970, to = 2014, add = TRUE)
+curve(exp(b[1] + b[2] * x ) * 1e5, col = "blue",
+      from = 1970, to = 2014, add = TRUE)
+legend("topright", c("man","woman"), col = c("blue","red"), pch = 1)
+```
+</blockquote>
+
+#Exercise 8R
+
+Continue from above, estimate the death rate for the year 2015-2020 (in genders) together with the confidence interval
+
+<blockquote>
+```{r d608, rows.print = 12, full.width = T}
+new <- data.frame(vuosi = c(2015:2020, 2015:2020),
+                  sukup = c(rep(0,6), rep(1,6)),
+                  vaki = 1e5)
+fitted <- predict(fit607, newdata = new, type = "response", se.fit = TRUE)
+data.frame(vuosi = new$vuosi,
+           sukup = new$sukup,
+           est = fitted$fit,
+           lwr = fitted$fit - 1.96 * fitted$se.fit,
+           upr = fitted$fit + 1.96 * fitted$se.fit)
+```
+</blockquote>

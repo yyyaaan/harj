@@ -1,0 +1,194 @@
+---
+title: "Stochastic Simulation | Problems 2"
+author: " Yan PAN"
+output: 
+  html_document: 
+    df_print: paged 
+    theme: 'readable'
+---
+
+<style>
+h1,h2,h3{
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  padding-top: 20px;
+}
+blockquote{
+  font-size: 16px; !important;
+}
+</style>
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+##Exercise 1
+<blockquote>
+(a) $\alpha\in(0,1),\ Y_1\sim F_1,\ Y_2\sim F_2, \ U\sim \mathcal U(0,1)$ independent. Define $X:=\begin{cases} Y_1,&U\leq \alpha\\ Y_2, & U\gt\alpha \end{cases}$. Determine the cdf.
+</blockquote>
+
+$$\begin{aligned} f_{X,U}(x,u)
+&= f_1(x) \boldsymbol 1 _{(u\leq \alpha)} + f_2(x) \boldsymbol 1_{(u\gt\alpha)}
+\\ f_X(x) &= \int_0^1 f_{X,U}(x,u) du
+\\ &= \alpha f_1(x) + (1-\alpha)f_2(x)
+\\ F_X(x) &= \int_{z\in\mathbb X} f_X(z) dz
+\\ &= \int_{z\in\mathbb X} \bigg( \alpha f_1(z) + (1-\alpha)f_2(z) \bigg)dz
+\\ &= \alpha F_1(x) + (1-\alpha)F_2(x)
+\end{aligned}$$
+
+> (b) Describe an algorithm to simulate from $F(x)=\sum \limits_{i=1}^{n}w_i F_i(x),\ \ \sum_i w_i = 1$.
+
+1. Simulate $Y_1, Y_2, \dots, Y_n$ from the corresponding c.d.f. using a same $u$ from the uniform distribution. This is rather easy, since the inverse exists given the c.d.f
+
+2. set $X=w_1 Y_1 + w_2Y_2 +\cdots w_i Y_i$.
+
+The extended results from (a) implies that $X$ has the required c.d.f
+
+##Exercise 2
+<blockquote>
+Suppose you have a sample $X\sim p$. Find a method to obtain $Y\sim q$, with the density.
+
+$$q(x) = \frac 1 {|a|}p \bigg( \frac{x-b}{a} \bigg),\ \text{ constant } a,b\in\mathbb R, a\neq 0$$
+</blockquote>
+
+The linear transformation $Y = aX+b\sim q$.
+
+##Exercise 3
+<blockquote>
+$p(x)=\begin{cases} \sqrt\frac 2\pi \exp \bigg( - \frac 1 2 x^2 \bigg), & x\geq 0 \\ 0,&\text{otherwise}\end{cases}$
+
+Use rejection sampling to simulate $X\sim p $ with proposal density $N(0,1)$
+</blockquote>
+
+Check the requirement $\frac{p(x)}{q(x)}= \sqrt\frac{2}{\pi} \bigg/ \sqrt\frac 1 {2\pi} = 2 = : M$.
+
+Therefore, apply rejection sampling. Given samples of $(Y_k)_{k\geq 1} \overset{iid}\sim N(0,1)$.
+
+Set $T=1$, and simulated using RNG $U_T$
+
+If $U_T\leq \frac {p(x)}{2\phi(Y_T)}$, then $X=Y_T$; else, set $T = T+1$ and retry the condition.
+
+$\phi(x)$ stands for the density/p.d.f. of $N(0,1)$.
+
+> Transform $Z\sim N(0,1)$ directly to $X\sim p$
+
+$F(x) = \bigg( 2\Phi(x)-1 \bigg)\cdot \boldsymbol 1(x\geq 0)$ as $p$ is the right half of 2 times $N(0,1)$.
+
+Therefore, using inverse distribution method, set $X=\Phi^{-1} \bigg( \frac{Z+1}2 \bigg)$.
+
+In case the normal c.d.f $\Phi$ is inaccessible, simply apply Box-Muller transform.
+
+##Exercise 4
+<blockquote>
+Estimate the rare event probability $\mathbb P(Z\geq 6),\ Z\sim N(0,1)$
+
+(a) by classical Monte Carlo (`rnorm`)
+
+(b) by importance samping with $q(x)=\begin{cases} \sqrt\frac 2\pi \exp \bigg( - \frac 1 2 (x-6)^2 \bigg), & x\geq 6 \\ 0,&\text{otherwise}\end{cases}$
+</blockquote>
+
+(a) $f(x):=\boldsymbol 1(X\geq 6)$
+
+(b) $w(x) = p(x)/q(x)$, where $p$ is the p.d.f. of $N(0,1)$, $q$ as in exercise 3.
+
+$Y_1,Y_2,\dots, Y_n \overset{iid}\sim q$, where the method in exercise 2 used; i.e. $X_1,X_2,\dots, X_n \overset{iid}\sim N(0,1)$ and then set $Y_i:= |X_i| +6$.
+
+$f(y):= \boldsymbol 1(y\geq 6) \equiv 1$.
+
+All calculation leaves to _R_ depsite some function to be analytical.
+
+```{r demo24a, eval=FALSE}
+sim.a <- function(N){
+  x <- rnorm(N)
+  sim <- as.numeric(x >= 6)
+  return( sum(sim)/N )
+}
+
+fun.w <- function(x){
+  if(x < 6) return(0)
+  p <- dnorm(x)
+  q <- sqrt(2/pi) * exp(-0.5 * (x-6)^2)
+  return(p/q)
+}
+
+sim.b <- function(N){
+  x <- rnorm(N)
+  y <- abs(x) + 6
+  sim <- NULL
+  for (i in 1:N) {
+    sim[i] <- fun.w(y[i])
+  }
+  return( sum(sim)/N )
+}
+
+N <- 1000000
+a <- NULL; b<- NULL
+
+for (i in 1:100) {
+  a[i] <- sim.a(N)
+  b[i] <- sim.b(N)
+}
+save(a,b, file = "demo24.RData")
+```
+
+```{r demo24b, results="hold"}
+load("demo24.RData") 
+#to improve efficiency, the 100 tests results are cached
+par(mfrow = c(1,3))
+hist(a, main = "Classical Monte Carlo", xlab = "")
+hist(b, main = "Importance Sampling", xlab="")
+boxplot(a,b, main = "Compare | Boxplot")
+
+cat("The first test result:\n(a) Monte Carlo simulated \tP(Z>=6) =", a[1],
+    "\n(b) Importance sampling \tP(Z>=6) =", b[1])
+```
+
+Histogram is used for result evaluation, it is clear that importance sampling is more "accurate", while classical Monte Carlo seems to give only zero-probability. Both methods have extremely small variance.
+
+##Exercise 5
+> Rare-event simulation general case R-function (only `runif`)
+
+Following the importance sampling notation, and let $U_1, U_2,\dots \overset {iid}\sim \mathcal U(0,1)$
+
+$f(y):= \boldsymbol 1(y \geq x_0),\ \ \ x_0\gt \mu$ constant, which in the process is definitely 1.
+
+$Y_1,\dots,Y_i\sim q$ can be simulated by $U_i$ using $Y=- \frac{\log(1-U)}{r} + x_0 = - \frac{\log U} r + x_0$ by inversve distribution method and exercise 2.
+
+$(\log p)'(x) = \frac{(\mu - x)}{\sigma^2} \\ (\log q)'(y) = -r \\ (\log p)'(x_0) = (\log p)'(x_0) \Rightarrow r= \frac{x_0 -\mu}{ \sigma^2}$
+
+$w(y) = \frac{p(y)}{q(y)}$ will be calculated using _dnorm_ and _dexp_, which are just "abbreviation" for density functions without sampling. (we can easily rewrite to analytical function, but no need)
+
+```{r demo25}
+rareProb <- function(x0, mu, sigma, n) {
+  # calculated r
+  r <- (x0 - mu) / (sigma ^ 2) 
+  
+  # sampling from q(y)
+  u <- runif(n)
+  y <- x0 - (log(u) / r)
+  
+  # it is just density, no sampling
+  w <- dnorm(y, mu, sigma) / dexp(y - x0, r)
+  
+  return(sum(w)/n)
+}
+
+#test with familiar one
+rareProb(4.92, mu = 1, sigma = 2, n = 10000) # 2.5% single-side
+```
+
+##Exercise 6
+<blockquote>
+Consider Baysian Logit $Y_i\sim \text{Ber}(\pi_i),\ \log\frac{\pi}{1-\pi_i}=\alpha + \beta X_i$ with a Gaussian prior:
+
+$$p(\alpha,\beta)\propto \exp \bigg( -\frac 1 2 \bigg( \frac{\alpha^2}2 + \frac{\beta^2}2 \bigg) \bigg) \prod \limits_{i=1}^{N} \pi_i ^{\boldsymbol 1 (y_i=1)} (1-\pi_i) ^{\boldsymbol 1(y_i=0)}$$
+</blockquote>
+
+
+
+
+

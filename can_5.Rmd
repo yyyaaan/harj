@@ -1,0 +1,178 @@
+---
+title: "Complex Analysis Harjoitus 5 | Yan PAN"
+output: 
+  html_document: 
+    df_print: paged 
+    theme: 'readable'
+---
+
+<style>
+h1,h2,h3{
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  padding-top: 20px;
+}
+blockquote{
+  font-size: 16px; !important;
+}
+</style>
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+##Exercise K5.1
+<blockquote>
+$f:\mathbb C\to\mathbb C,\ f(z):=z^2$. Construction two paths $\gamma,\ \eta$ from $z_1 :=1$ to $z_2 := -1$, where at least one path should have $Im(z)\gt 0$ except from the end points. Calculate corresponding integrals $I_\gamma = \int_\gamma f(z)dz,\ I_\eta:= \int_\eta f(z)dz$
+</blockquote>
+
+<div class="col-xs-6">
+$$\begin{aligned} \gamma(t):&= 1-2t  \ \ \ t\in [0,1]
+\\ I_\gamma &= \int_0^1 (1-2t)^2 (1-2t)' dt 
+\\ &=-2\int_0^1 (2t-1)^2
+\\ &= \frac{(1-2t)^3} 3 \bigg|_{t=0}^1
+\\ &= - \frac 2 3
+\\ \bar I_\gamma &= -\frac 2 3
+\end{aligned}$$
+</div>
+
+<div class="col-xs-6">
+$$\begin{aligned}
+ \eta(t):&= e^{i\pi t} \ \ \ t\in [0,1]
+\\ I_\eta &= \int_0^1 e^{i2\pi t}(i\pi e^{i\pi t})dt 
+\\ &= i\pi \int_0^1 e^{i3\pi t}dt
+\\ & = \frac {e^{i3\pi t}} 3 \bigg|_{t=0}^1
+\\ &= - \frac 2 3
+\\ 
+\\ \bar I_\eta & = \int_0^1 \overline{e^{i2\pi t}}(i\pi e^{i\pi t})dt 
+\\ &= i\pi \int_0^1 e^{-i\pi t}dt
+\\ & = -e^{-i\pi t}  \bigg|_{t=0}^1 \\ &=2
+\end{aligned}$$
+</div>
+
+##Exercise 5.2
+<blockquote>
+$\mathbb C ^\times := \mathbb C\setminus\{0\}$. Prove that there does not exist such $f: \mathbb C ^\times \to \mathbb C ^\times$ that $f(zw)=f(z)f(w),\ \ \forall z,w\in \mathbb C ^\times$ nor $(f(z))^2=z \ \ \forall z\in \mathbb C ^\times$</blockquote>
+
+(contradiction) Suppose there exists such $f:\mathbb C ^\times \to \mathbb C ^\times $ staisfying (1) $f(zw)=f(z)f(w)$ and (2) $f((z))^2 = z,\ \ \forall z,w\in \mathbb C ^\times$
+
+
+Then, $z = (f(z))^2 = f(z)f(z)= f(zz) = f(z^2)$, i.e. $f(z^2) = z,\ z\in \mathbb C ^\times$
+
+Select for example $z_1 = i ,\ z_2=-i$, the above result tells that $\begin{cases} f(i^2) = f(-1)=i\\ f((-i)^2)= f(-1) = -i \end{cases}$.
+
+This is a contradiction, since $i\neq -i$ while $f(-1)$ can have at most 1 value in $\mathbb C ^\times$ by definition of fucntion. Therefore, such $f$ does not exist.
+
+> Prove: there does not exist continous function $f:\mathbb C ^\times \to \mathbb C ^\times,\ \ (f(z))^2 = z \ \forall z$.
+
+Let $g(z):= \frac {f(z)f(w)}{f(zw)}$, which is possible since $f$ is defined to be non-zero. Further, suppose that $(f(z))^2 = z,\ \forall z\in \mathbb C ^\times$ to be true.
+
+Then, $(g(z))^2:= \frac{(f(z)f(w))^2}{(f(zw))^2} = \frac{(f(z))^2(f(w))^2}{(f(zw))^2}=\frac {zw}{zw} = 1\in\mathbb R \ \Rightarrow \ g(z)=\pm 1$
+
+Furhter suppose $g(z)= 1$ as it is continuous on a connected space (proof missing ;-( )
+
+Since $f$ continuous and $\mathbb C^\times$ connected, the set $f(\mathbb C^\times)$ must be connected. 
+
+$g(z)=1$ implies $f(zw)=f(z)f(w)$, and as shown in (a), such function does not exist.
+
+##Exercise K5.3
+<blockquote>
+$D\subset \mathbb C$ domain. $f:D\to\mathbb C$ is a $n+1$ times continuous differentialable complex function. Show that the Taylor formual holds in complex plane.
+
+$$f(z)=f(z_0) + \frac 1 {1!} f'(z_0)(z-z_0) + \cdots + \frac 1 {n!} f^{(n)}(z_0)(z-z_0)^n + R_n$$
+</blockquote>
+
+Let function $g(t):=f((1-t)z_0 + tz),\ \ t\in \mathbb R$.
+
+$$\begin{aligned} f(z)-f(z_0)
+&= g(1)-g(0)
+\\ &= \int_0^1 g'(t)dt 
+\\ &= - \int_0^1 g'(t) d \frac {1-t}{1!}
+\\ &=  - \frac{(1-t)}{1!} g'(t) \bigg|_{t=0}^1 + \int_0^1 \frac{(1-t)}{1!} dg'(t)
+\\ &= - \frac{(1-t)}{1!} g'(t)\bigg|_{t=0}^1  - \int_0^1 g''(t) d \frac{(1-t)^2}{2\times 1!}
+\\ &= - \frac{(1-t)}{1!} g'(t) \bigg|_{t=0}^1  - \frac{(1-t)^2}{2!} g''(t) \bigg|_{t=0}^1 + \int_0^1  \frac{(1-t)^2}{2!} d g''(x)
+\\ &= - \frac{(1-t)}{1!} g'(t) \bigg|_{t=0}^1  - \frac{(1-t)^2}{2!} g''(t) \bigg|_{t=0}^1 + \int_0^1  g'''(t) d \frac{(1-t)^3}{3\times 2!}
+\\ &= \cdots
+\\ &= - \frac{(1-t)}{1!} g'(t) \bigg|_{t=0}^1  - \frac{(1-t)^2}{2!} g''(t) \bigg|_{t=0}^1  - \cdots - \frac{(1-t)^n}{n!} g^{(n)}(t) \bigg|_{t=0}^1 + \int_0^1  \frac{(1-t)^n}{n!} d g^{(n)}(t)
+\\ &= - \sum\limits_{j=1}^{n} \frac{(1-t)^j}{j!} f^{(j)} \big( (1-t)z_0 + tz \big) (z-z_0)^j
+ \bigg|_{t=0}^1 + \int_0^1 \frac{(1-t)^n}{n!} g^{(n+1)}dt
+\\ &= \sum\limits_{j=1}^{n} \frac 1 {j!} f^{(j)}(z_0) (z-z_0)^j + \int_0^1 \frac{(1-t)^n}{n!} f^{(n+1)} \big( (1-t)z_0 + tz\big) \big(z-z_0\big)^{n+1}dt
+\\ &= \frac 1 {1!} f'(z_0)(z-z_0) + \cdots + \frac 1 {n!} f^{(n)}(z_0)(z-z_0)^n + R_n
+\end{aligned}$$
+
+This concludes the proof.
+
+
+
+##Exercise 3
+<blockquote>
+$f(z):= \text{Re}(z),\ \begin{cases}  \gamma:[0,2]\to\mathbb C,\ \gamma(t):= \begin{cases} 1+it,& 0\leq t\leq 1 \\ 2-t+i & 0\leq t \leq 2 \end{cases} \\ \eta:[0,1]\to\mathbb C,\ \eta(t):= 1-t + it  \end{cases}$, Sketch the traces and define $\int_\gamma f(z)dz,\ \int_\eta f(z)dz$
+</blockquote>
+<div class="row">
+<div class="col-xs-9">
+$$\begin{aligned} \int_\gamma f(z)dz
+&= \int_\gamma \frac {z+\bar z} 2 d(z)
+\\ &= \frac 1 2 \bigg( \int_0^1 (1+it) i \ dt + \int_0^1 \overline{(1+it)} i\ dt + \int_1^2 (2-t+i)(-1)dt + \int_1^2 \overline{(2-t+i)}(-1)dt\bigg) 
+\\ &= \frac 1 2 \bigg(\int_0^1 (i-t)dt + \int_0^1 (i+t)dt + \int_1^2 (t-2-i)dt + \int_1^2 (t-2+i)dt  \bigg)
+\\ &= \int_0^1 i dt + \int_1^2 (t-2)dt
+\\ &= it \bigg|_0^1 + \bigg(\frac 1 2 t^2 - 2t\bigg)\bigg|_1^2
+\\ &= -\frac 1 2 + i
+\\ 
+\\ \int_\eta f(z)dz &= \int_0^1 (1-t)(i-1) dt
+\\ & = \bigg( \frac{1-i}2 t^2 + (i-1)t \bigg)\bigg|_0^1
+\\ & = -\frac 1 2 + \frac 1 2 i
+\end{aligned}$$
+</div>
+
+<div class="col-xs-3">
+![](h5t3.png)
+</div></div>
+
+##Exercise 4
+<blockquote>
+$f(z):=z,\ \tilde f(z):= \bar z$ find the line intergral (curve defined same as above)
+</blockquote>
+
+$$\begin{aligned} \int_\gamma f(z)dz &= \int_0^1 (1+it)i\ dt + \int_1^2 (2-t+i)(-1)\ dt = \bigg( it - \frac 1 2 t^2 \bigg)\bigg|_0^1 + \bigg(\frac 1 2 t^2 - (2+i)t\bigg)\bigg|_1^2 = -1
+\\ \int_\eta f(z)dz &= \int_0^1 (1-t+it)(i-1) dt = (i-1)\bigg( t+\frac{i-1}2 t^2  \bigg)\bigg|_0^1 = -1
+\\ \int_\gamma \tilde f(z)dz &= \int_0^1 (1-it)i\ dt + \int_1^2 (2-t-i)(-1)\ dt = \bigg( it + \frac 1 2 t^2 \bigg)\bigg|_0^1 + \bigg(\frac 1 2 t^2 + (i-2)t\bigg)\bigg|_1^2 = 2i
+\\ \int_\eta \tilde f(z)dz &= \int_0^1 (1-t-it)(i-1) dt = (i-1)\bigg( t-\frac{i+1}2 t^2  \bigg)\bigg|_0^1 = i
+\end{aligned}$$
+
+##Exercise 5
+<blockquote>
+$f:\mathbb C\setminus\{0\}\to\mathbb C,\ f(z):=1/z;\ \ \gamma:[0,1]\to\mathbb C\setminus\{0\},\ \gamma(t):=1-t+it$
+</blockquote>
+
+$$\begin{aligned} \int_\gamma f(z)dz&= \int_0^1 \frac 1 {1-t+it} (i-1)dt
+\\ &=  \text{Log}(1+(i-1)t)\big|_0^1
+\\ &= \text{Log}(i) - \text{Log}(1)
+\\ &= i\frac \pi 2
+\end{aligned}$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,108 @@
+---
+title: "R-exercise 2"
+author: "Yan Pan | Created with R-markdown, powered by Plotly"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+##1.R pacakge download
+```{r results='hide'}
+library(plotly)
+``` 
+
+##2.Graphs for longitudinal data
+```{r}
+
+lyijy <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/lyijy.txt")
+names(lyijy) <- c('id', "kas", "vk0", "vk1", "vk4", "vk6")
+lyijy.long <- reshape(lyijy,
+                      varying = list(c("vk0", "vk1", "vk4", "vk6")),
+                      v.names = "lyijypitoisuus",
+                      direction = "long")
+g2 <- ggplot(aes(x = time, y = lyijypitoisuus, color = kas, group = id), 
+              data = lyijy.long) 
+g2b <- g2 + geom_point() +  geom_line() + ggtitle("Spagetti Graph")
+ggplotly(g2b)
+
+g2c <- g2b + facet_wrap(~kas) + ggtitle ("Spagetti Graph by Treatment")
+ggplotly(g2c)
+```
+
+By this graph, it is quite obvious that the medicine is effective reducing the lead poisoning on week 1 through 6.
+
+```{r}
+g2d <- ggplot(aes(x = time, y = lyijypitoisuus, color = kas), data = lyijy.long) + 
+  geom_point() + 
+  facet_wrap(~kas) +
+  geom_smooth(method = "loess") +
+  ggtitle("comparison graph with LOESS smoothing")
+
+ggplotly(g2d)
+
+pickid <- sample(1:100, 20)
+lyijy.20 <- lyijy.long[which(lyijy.long$id %in% pickid),]
+g2e <- ggplot(aes(x = time, y = lyijypitoisuus, color = kas), data = lyijy.20) +
+  geom_point() + 
+  facet_wrap(~kas) +
+  geom_smooth(method = "loess") +
+  ggtitle("comparison of 20 random samples")
+
+ggplotly(g2e)
+``` 
+
+
+##Exercise 3
+```{r}
+
+g3 <- ggplot(aes(x = time, y = lyijypitoisuus, color = kas), data = lyijy.long) 
+g3a <- g3 + geom_boxplot() + ggtitle("Boxplot for two treatment groups")
+print("Plotly does not give the same plot as native GGplot, but seems to be better?")
+ggplotly(g3a)
+
+
+groupID <- which(lyijy.long$kas == "A")
+sample.mean <- c (mean(lyijy.long$lyijypitoisuus[groupID]),
+                  mean(lyijy.long$lyijypitoisuus[-groupID]))
+sample.sd <- sqrt (c(var(lyijy.long$lyijypitoisuus[groupID]),
+                     var(lyijy.long$lyijypitoisuus[-groupID])))
+result <- rbind(sample.mean, sample.sd)
+colnames(result) <- c("Medicine", "Placebo")
+upper <- result[1,] + 1.96 * result[2,]
+lower <- result[1,] - 1.96 * result[2,]
+rbind(result, upper, lower)
+``` 
+
+For the visulization.of correlations, GGPAIRS is used. It requires extra library, but very handy to use. Indeed, the correlation can be seen direclty from the graph.
+
+```{r}
+library(GGally)
+g3c <- ggpairs(lyijy[,2:6], aes(color = kas, alpha = 0.4))
+ggplotly(g3c)
+cor(lyijy[,3:6])
+``` 
+
+GGplot supports linear model smoothing, and plots directly to the graph. However, I find it easier to get coefficients and residuals using the "lm" function
+
+```{r}
+g3d <- g3 + geom_point() + geom_smooth(method = "lm")
+ggplotly(g3d)
+# "traditional" methods
+fit <- lm(lyijypitoisuus ~ kas + time, data = lyijy.long)
+lyijy.long$residual <- fit$residuals
+g3e <-ggplot(aes(x = 1:400, y = residual, color = kas), data = lyijy.long) + 
+  geom_point() + ggtitle("residuals from linear model (showing treatment by color)")
+ggplotly(g3e)
+
+``` 
+
+```{r}
+attach(lyijy.long)
+resData <- data.frame(vk0Res = residual[which(time==1)],
+                      vk1Res = residual[which(time==2)],
+                      vk4Res = residual[which(time==3)],
+                      vk6Res = residual[which(time==4)])
+ggplotly(ggpairs(resData) + ggtitle("Residuals Correlations"))
+``` 

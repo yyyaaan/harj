@@ -1,0 +1,96 @@
+---
+title: "R-exercise 6"
+author: "Yan Pan"
+output:
+  html_document:
+    toc: true
+    df_print: paged
+    theme: 'readable'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, tidy = TRUE, comment = "")
+library(plotly)
+
+myprint <- function(printD, dig = 3){
+  data.frame(round(printD, digits = dig)) 
+}
+```
+# Generalized Estimating Equations
+
+## 1. Dichotomous case
+```{R}
+resp <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/resplong.txt", header = T)
+library(geepack)
+resp.gee <- geese(resp ~ trt * time, id = id, data = resp, family = binomial,
+                  corstr = "exch", scale.fix = TRUE)
+betas <- summary(resp.gee)$mean
+ORs <- cbind(exp(betas[1] - 1.96 * betas[2]),
+             exp(betas[1]),
+             exp(betas[1] + 1.96 * betas[2]))
+colnames(ORs) <- c("Odds Ratio LCI", "Odds Ratio Mean", "Odds Ratio UCI")
+myprint(ORs)
+
+invlogit <- function(x) { exp(x) / (1 + exp(x)) }
+b <- resp.gee$beta
+plot1b <- ggplot(aes(x = time, y = resp, color = trt), data = resp) + 
+  geom_point() +  
+  facet_grid( ~ trt) + 
+  scale_colour_manual(values = c("green", "orange")) +
+  stat_function(fun = function(x) invlogit(b[1] + b[3] * x), color = "green") + 
+  stat_function(fun = function(x) invlogit(b[1] + b[2] + b[3] * x + b[4] * x), color = "orange") + 
+  ggtitle("Green curve for placebo, orange for treatment")
+ggplotly(plot1b) # ggplot is not easy to use curve on grids
+
+resp.ext <- geese(resp ~ trt * time  + sid * time + gender * time, 
+                  id = id, data = resp, family = binomial,
+                  corstr = "exch", scale.fix = TRUE)
+# seems SID is significant, but nothing else?
+myprint(summary(resp.ext)$mean)
+```
+
+## 2. Count number/integer case
+```{R}
+astma <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/astmalong.txt", header = TRUE)
+astma$sev <- as.factor(astma$sev)
+
+astma.gee <- geese(lkm ~ sev * time, id = id, data = astma, family = poisson,
+                   corstr = "exch", scale.fix = TRUE) 
+betas <- summary(astma.gee)$mean
+res <- cbind(exp(betas[1] - 1.96 * betas[2]),
+             exp(betas[1]),
+             exp(betas[1] + 1.96 * betas[2]))
+colnames(res) <- c("Risk Ratio LCI", "Risk Ratio mean", "Risk Ratio UCI")
+myprint(res)
+
+b <- astma.gee$beta
+plot2c <- ggplot(astma, aes(x = time, y = lkm, color = sev)) + 
+  geom_point() +  
+  facet_grid( ~ sev) +
+  scale_colour_manual(values = c("green", "orange")) +
+  stat_function(fun = function(x) exp(b[1] + b[3] * x), color = "green") +
+  stat_function(fun = function(x) exp(b[1] + b[2] + b[3] * x + b[4] * x), color = "orange") +
+  ggtitle("Orange curve for servere ones; green for non-servere")
+ggplotly(plot2c)
+```
+
+## 3. Offset item
+
+The model is written as,
+
+$$\log\bigg(E\underbrace{\bigg(\frac{epil_{ij}}{t}\bigg)}_{\text{epil per week}}\bigg) = \beta_0 + \beta_1 trt_{ij} + \beta_2 Ptime_{ij} + \beta_3 trt_{ij} Ptime_{ij}$$
+
+```{R}
+epilong <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/epilong.txt", header = TRUE)
+epilong$Ptime <- ifelse(epilong$time == 0, 0, 1)
+epilong$t <- ifelse(epilong$time == 0, 8, 2)
+
+epil.gee <- geese(epil ~ offset(log(t)) + trt * Ptime, id = id, data = epilong, 
+                  family = poisson, scale.fix = TRUE, corstr = "exch")
+betas <- summary(epil.gee)$mean
+res <- cbind(exp(betas[1] - 1.96 * betas[2]),
+             exp(betas[1]),
+             exp(betas[1] + 1.96 * betas[2]))
+colnames(res) <- c("Risk Ratio LCI", "Risk Ratio mean", "Risk Ratio UCI")
+myprint(res)
+```

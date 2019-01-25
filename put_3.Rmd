@@ -1,0 +1,77 @@
+---
+title: "TILS1510 Harjoitustehtävät 2"
+author: "Yan PAN"
+output:
+  html_document:
+    df_print: kable
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    theme: 'readable'
+---
+
+#Exercise 2
+
+Suppose random variables $Y_1, Y_2, U$,
+
+$$\begin{aligned} Y_1&= 1 + Z_1
+\\ Y_2&= \beta Y_1 + Z_2
+\\ U&=a(Y_1 -1) + b(Y_2 -5)+ Z_3
+\\ & Z_1,Z_2,Z_3\overset{iid} \sim N(0,1)
+\end{aligned}$$
+
+$Y_2$ is only observed when $U\geq 0$, and $Z_1,Z_2,Z_3,U$ are not observed at all.
+
+Define the likelihood function for $\beta$
+
+a) $b=0,\ a\neq 0$
+
+<blockquote>
+
+In this case, the missingness is ignorable since the parameter for missingness $U$ does not dependent on model parameter $\beta$, as $U = a(Y_1-1) + Z_3$
+
+$$\begin{aligned} L_\text{ign}(\beta | Y^\text{obs})
+&\propto f(Y^\text{obs}| \beta)
+\\ &= f(Y_1, Y_2|\beta)
+\\ &= \phi(0,1|Y_2-\beta Y_1) &\phi \text{ is pdf of normal distribution}
+\\ &= \frac 1 {\sqrt{(2\pi)^n}} \exp\bigg({\frac 1 2 (Y_2-\beta Y_1)^T (Y_2-\beta Y_1)}\bigg)
+\end{aligned}$$
+
+</blockquote>
+
+b) $a\neq 0, \ b\neq 0$
+
+<blockquote>
+
+In this case, the missingness is non-ignorable.
+
+$$\begin{aligned} L(\beta,U | Y^\text{obs}, M)
+&\propto f(Y^\text{obs},M| \beta, U)
+\\ &= \displaystyle\int f(Y^\text{obs}, Y^\text{mis}| \beta) f(M|Y^\text{obs}, Y^\text{mis},U)dY^\text{mis}
+\\ &= \displaystyle\int \bigg(f(Y_1, Y_2^\text{obs} | \beta)\  p(U\geq 0) + f(Y_1,Y_2^\text{mis}|\beta)\ p(U<0)\bigg)
+\end{aligned}$$
+
+All the above items can be expanded in terms of normal density.
+
+</blockquote>
+
+#Exercise 3
+
+Concerning two binary variable in contigency table with possible missing values in $Y$. Calculate the maximum likelihood estimator for $\boldsymbol \theta = (\theta_X,\theta_Y, \theta_{XY})$ assuming MAR.
+
+<blockquote>
+$$\begin{aligned} L_\text{Full}
+&\propto f(Y^\text{obs},M|\theta,\psi)
+\\ &= f(M|Y^\text{obs},\psi) f(Y^\text{obs} | \theta) &\text{due to ignorability}
+\\ &= \theta_{}^{}
+\end{aligned}$$
+</blockquote>
+
+
+
+
+
+
+

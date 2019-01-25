@@ -1,0 +1,113 @@
+---
+title: "R-exercise 6"
+author: "Yan Pan"
+output:
+  html_document:
+    toc: true
+    df_print: paged
+    theme: 'readable'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, tidy = TRUE, comment = "")
+library(plotly)
+
+myprint <- function(printD, dig = 3){
+  data.frame(round(printD, digits = dig)) 
+}
+```
+##Exercise 1: Generalized Logistic Model
+```{r eval = TRUE}
+inf <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/infection.txt")
+names(inf) <- c("id", "inf", "trt", "visit")
+
+library(geepack)
+inf.gee <- geese(inf ~ trt * visit - trt, id = id, data = inf, 
+                 family = binomial, corstr = "exch", scale.fix = TRUE)
+betas <- data.frame(summary(inf.gee)$mean)
+betas
+
+odds <- data.frame(GroupA.OddsRatio = exp(inf.gee$beta[2]),
+                   GroupB.oddsRatio = exp(inf.gee$beta[2] + inf.gee$beta[3]))
+odds
+``` 
+
+Although the model yields different values of odds ratios, the P-value of <code>trt*visit</code> item implies statistical non-significance. The treatment does not seem to effective.
+
+```{r eval = TRUE}
+betas$upp <- betas$estimate + 1.96 * betas$san.se
+betas$lwr <- betas$estimate - 1.96 * betas$san.se
+odds["upp",] <- exp(c(betas$upp[2], betas$upp[2]+betas$upp[3]))
+odds["lwr",] <- exp(c(betas$lwr[2], betas$lwr[2]+betas$lwr[3]))
+odds
+``` 
+
+```{r eval = TRUE}
+library(lme4)
+inf.glmm <- glmer(inf ~ trt * visit - trt + (1|id), 
+                  family = binomial, data = inf)
+summary(inf.glmm)
+``` 
+
+In this model, when consider the <code>inf</code> group, the treatment becomes statistically significant. In reality, this model gives more sense, since it consider the important background inforamtion.
+
+##Exercise 2: Poisson Mixed MOdel
+
+```{r eval = TRUE}
+skin <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/skincan.txt", header = TRUE)
+can.glmm <- glmer(cancer ~ year * trt - trt + (1|id), family = poisson, data = skin)
+betas <- summary(can.glmm)$coefficients
+myprint(betas)
+``` 
+
+Based on the P value and the estimates, the treatment is effective.
+
+```{r eval = TRUE}
+betas <- cbind(betas, confint(can.glmm)[2:4,])
+
+betas.new <- data.frame(lwr = betas[,5],
+                        est = betas[,1],
+                        upp = betas[,6])
+betas.new["Placebo",] <- betas.new[2,]
+betas.new["Treatment",] <- betas.new[2,] + betas.new[3,]
+
+odds <- exp(t(betas.new[4:5,]))
+colnames(odds) <- c("Placebo.RiskRatio","Treatment.RiskRatio")
+odds
+
+par(mfrow = c(1,3))
+plot(skin$age, resid(can.glmm))
+plot(skin$exp, resid(can.glmm))
+plot(skin$skin, resid(can.glmm))
+``` 
+
+The residual plot indicates there are potentially correlation between age and the risk ratio.
+
+```{r eval = TRUE}
+can.glmm2 <- glmer(cancer ~ year * trt - trt + age + skin + exp +  (1|id), 
+                  family = poisson, data = skin)
+myprint(summary(can.glmm2)$coefficients)
+``` 
+
+It seems <code>age</code>, <code>skin</code> and <code>exp</code> are all statistically significant.
+
+##Exercise 3: Transitiomallit
+
+```{r eval = TRUE}
+depr <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/tunteet.txt")
+names(depr) <- c("id", "terapiamuoto", "sp", "terapiavko", "tunteet")
+
+# "lazy way" to get the lag
+# move one row below, but change always the first one to 0
+depr$tunteetlag[2:nrow(depr)] <- depr$tunteet
+depr$tunteetlag[1] <- 0
+for (i in 2:nrow(depr)) {
+  if(depr$id[i] != depr$id[i-1]){
+    depr$tunteetlag[i] <- 0
+  }
+}
+
+tunteet.log <- glm(tunteet ~ terapiamuoto + sp + terapiavko + tunteetlag,
+                   family = binomial, data = depr)
+summary(tunteet.log)
+``` 

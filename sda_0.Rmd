@@ -1,0 +1,113 @@
+---
+title: "Demo 1"
+author: Yan Pan
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: paged
+    theme: 'readable'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Exercise 1
+
+$\{Y(s)\}$ is a random field with $\mu(s)\equiv 0$ and covariance $C(h)= e^{-ah},\ a\gt0$. The observate spaces are $s_1=(0,0),\ s_2=(1,0),\ s_3=(2,0)$. Check two estimators for mean:
+
+$$\hat\mu_1 = \frac 1 2 [Y(s_1) + Y(s_3)] \\ \hat\mu_2 =\frac 1 3 [Y(s_1) + Y(s_2)+ Y(s_3)]$$
+
+(a) Give a proper range for $a$ such that $\text{Var}(\hat\mu_1)\lt \text{Var}(\hat\mu_2)$
+
+<blockquote>
+
+$$\begin{aligned} \text{Var} (\hat\mu_1) &= \frac{1}{4}\bigg( \text{Var}(Y(s_1)) +\text {Var}(Y(s_3)) + 2 \text{Cov}(Y(s_1), Y(s_3) \bigg)
+\\ &=  \frac 1 4 \bigg( C(0) + C(0) + 2C(2) \bigg) &\text{because of zero-mean}
+\\ &= \frac 1 2 + \frac 1 2 e^{-2a}
+\\ \text{similarily, } \text{Var}(\hat\mu_2)&= \frac 1 9 \bigg( C(0) + C(0) + C(0) + 2 C(1) + 2 C(1) + 2 C(2) \bigg)
+\\ & = \frac 1 3 + \frac 4 9 e^{-a} + \frac 2 9 e^{-2a}
+\\
+\\ &\text{Var}(\hat\mu_1) \lt \text{Var}(\hat\mu_2)
+\\ \Leftrightarrow\ & \frac 1 2 + \frac 1 2 e^{-2a} \lt \frac 1 3 + \frac 4 9 e^{-a} + \frac 2 9 e^{-2a}
+\\ \Leftrightarrow\ & 5 e^{-2a} - 8 e^{-a} +3\lt 0
+\\ \Leftrightarrow\ & (5e^{-a} -3)(e^{-a}-1) \lt 0
+\\ \Leftrightarrow\ & \frac 3 5 \lt e^{-a} \lt 1
+\\ \Leftrightarrow\ & 0 \lt a \lt -\log \frac 3 5\end{aligned}$$
+
+</blockquote>
+
+
+(b) How to explain to others that estimation with 2 observations are more accurate than 3.
+
+> The introduction of a third observation give accurate 2 effects to the accuracy; one is that naturally provide further information about mean while the other is that it also bring its own, and usually quite large amount of, variances. In our case, since the mean is assumed to 0, the second effect dominates
+
+#Exercise 2
+
+Suppose a spatial process $\{Z(s)\}:\ Z(s)=Y(s)+\delta(s)$, where $\delta(s)$ is measurement error. Further suppose $\{Y(s)\}$ is stationary with $EY(s) \equiv 0$, $C_Y(h)$ is continuous around 0 and $\delta(s) \perp\!\!\!\perp Y(s)$.
+
+(a) Show that $\gamma_Z(h) = \gamma_Y(h) + \tau^2,\ \ \forall h\neq0$
+
+<blockquote>
+It is easy to see that $E(Z(s)) = E(Y(s)) + E(\delta(s)) = 0$ and thus $E(Z(s))^2 = \text{Var}(Z(s))$. Also, $\{Z(s)\}$ is indeed also a stationary process.
+
+$$\begin{aligned} \gamma_Z(h) 
+&= \frac 1 2 E\bigg( Z(s+h) - Z(s)  \bigg)^2 &\forall s,h
+\\ &= \frac 1 2 E \bigg( Y(s+h) - Y(s) +  \delta(s+h) - \delta(s)\bigg)^2
+\\ &= \frac 1 2 E \bigg( Y(s+h)-Y(s) \bigg)^2 + \frac 1 2 E \bigg( \underbrace{\delta(s+h)}_\text{zero-mean}-\delta(s) \bigg)^2 + E  \underbrace{\bigg( ( Y(s+h)-Y(s))(\delta(s+h)-\delta(s))  \bigg)}_\text{independent}
+\\ &= \gamma_Y(h)  +  \frac 1 2 \text{Var} (\delta(s+h))^2 +  \frac 1 2 \text{Var} (\delta(s))^2    - 2 \text{Cov}(\delta(s+h),\delta(s)) +  \bigg( E Y(s+h)-EY(s) \bigg) \bigg( E\delta(s+h)-E \delta(s) \bigg)
+\\ &= \gamma_Y(h) + \tau^2
+\end{aligned}$$
+
+</blockquote>
+
+(b) Show that $C_Z(h)=C_Y(h)\ \ \forall h\neq 0$, and $C_Z(0) = C_Y(0) +\tau^2$
+
+<blockquote>
+
+The above proves that $\{Z(s)\}$ is stationary.
+
+$$\begin{aligned} C_Z(0)
+&= \text{Var}(Z(s)),\ \ \forall s
+\\ &= E(Y(s))^2 + E(\delta(s))^2 + 2 E(Y(s) \delta(s))
+\\ &= \text{Var}(Y(s)) + \text{Var}(\delta(s))  + 2 E(Y(s)) E(\delta(s))
+\\ &= C_Y(0) + \tau^2
+\\ C_Z(h) & = C_Z(0)- \gamma_Z(h)
+\\ & = C_Y(0) + \tau^2 - \gamma_Y(h) - \tau^2
+\\ & = \gamma_Y(h) + C_Y(h) - \gamma_Y(h)
+\\ &= C_Y(h)
+\end{aligned}$$
+
+</blockquote>
+
+#Exercise 2-1
+
+About simple kriging formulas. Suppose $\hat U(s) = \sum\limits_{i=1}^n \lambda_i(s)U(s_i)$
+
+<blockquote>
+Let $\lambda(s):= (\lambda_1(s),\cdots, \lambda_n(s))^T$ and $U:= (U(s_1),\cdots, U(s_n))^T$, and $C$ is the covariance matrix of process $\{U(s)\}$.
+
+Since $EU(s)\equiv 0,\ \ \ E((U(s))^2) \equiv \text{Var}(U(s))$. Idea: this is simply a zero-mean spartial process
+
+$$\begin{aligned} E[(\hat U(s)-U(s))^2]
+&= E[(\hat U(s))^2] + E[(U(s))^2] - 2 \text{cov}(\hat U(s) U(s))
+\\ &= \underbrace{E[(\lambda^T(s) U(s))^2]}_\text{linear combination of var} + E[(U(s))^2] - 2 \underbrace{\text{cov}(\lambda^T(s)U(s) U(s))}_\text{linear transfrom of cov}
+\\ &= \lambda^T(s) C\lambda(s) + C(s,s) - 2 \lambda^T(s) c(s)
+\\ &= \lambda^T(s) C\lambda(s) + \sigma^2 - 2\lambda^T(s)c(s)
+\end{aligned}$$
+
+$$\begin{aligned} \hat\lambda(s) 
+&= \arg\min_{\lambda} \bigg( \lambda^T(s) C\lambda(s) + \sigma^2 - 2\lambda^T(s)c(s) \bigg)
+\\ \Rightarrow 0:&=\frac{\partial E(\hat U(s)- U(s))^2}{\partial\lambda(s)} 
+\\ \Rightarrow 0&= \lambda^T(s)(C+C^T) -2 c^T(s) &\text{matrix differentials}
+\\ \Rightarrow 0&= 2\lambda^T(s)C - 2c^T(s) &\text{covariance matrix symmetric} 
+\\ \Rightarrow \hat\lambda(s) & = (C^T)^{-1}c(s) = C^T c(s)
+\\ \Rightarrow \hat U(s) & = \hat\lambda^T(s) U(s) = c^T(s)C^{-1} U
+\\ \Rightarrow E(\hat U(s)- U(s))^2&= (C^{-1}c(s))^T C C^{-1} c(s) + \sigma^2 -2 (C^{-1}c(s))^T c(s)
+\\ &= \sigma^2 - c^T(s) C^{-1}c(s)
+\end{aligned}$$
+</blockquote>

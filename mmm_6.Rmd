@@ -1,0 +1,127 @@
+---
+title: "Demo 6"
+author: "Yan Pan | all 8 exercises completed | created with R-markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# exercise 1
+
+(a) It is data-exploration, trying to clustering (or distinguishing) by certain characteristics (i.e. dimensions).
+
+(b) The key difference is measuring the dissimilarity. The different measures are suitable to different scenarios, since the measures themselves carries application conditions with real-life meanings.
+
+(c) Procrusters analysis is the methodology to find the similarity after scaling, translating, rotation.
+
+<br>
+
+# exercise 2
+```{r}
+library(mvabund)
+data(spider)
+Y <- spider$abund
+Xenv <- spider$x
+
+matDelta <- matrix(0, nrow = 28, ncol = 28)
+for(i in 1:28){
+  for(j in 1:28){
+    sumsq <- 0
+    for(k in 1:12){
+      sumsq <- sumsq + (Y[i,k] - Y[j,k])^2
+    }
+    matDelta[i,j] <- sqrt(sumsq)
+  }
+}
+
+library(vegan)
+vegDelta <- data.matrix(vegdist(Y, method = "euclidean"))
+matDelta[1:5,1:5] # only compare a small part of the matrix
+vegDelta[1:5,1:5]
+``` 
+
+Naturally, they are the same, as the calculation is exactaly the same
+
+<br>
+
+# exercise 3
+
+```{r}
+matDelta2 <- matDelta^2 
+J <- diag(1,28,28) - (1/28) * matrix(1, 28, 28) 
+B <- J %*% matDelta2 %*% J
+evB <- eigen(-0.5*B)
+Lambda <- diag(evB$values[1:2])
+E <- evB$vectors[,1:2]
+X <- E %*% sqrt(Lambda)
+plot(X)
+``` 
+
+<br>
+
+# exercise 4
+
+```{r}
+prc <- prcomp(Y)
+plot(prc$x)
+``` 
+
+Visually, it seems to be 180-degree rotation of the PCoA.
+
+<br>
+
+# exercise 5
+
+```{r}
+prc <- procrustes(X, prc$x[,1:2])
+prc$ss
+plot(prc, kind = 2)
+``` 
+
+By the type-2 residual graph and the Procrustes sum of squares (-2.91e-11), it means they are exactly the same (calulation rounding only)
+
+<br>
+
+# exercise 6
+
+```{r}
+nmds.eucl <- metaMDS(Y, distance = "euclidean", k = 2, trace = 0)
+nmds.bray <- metaMDS(Y, distance = "bray", k = 2, trace = 0)
+par(mfrow=c(1,2))
+plot(nmds.eucl, type = "t", main = "by Euclidean")
+plot(nmds.bray, type = "t", main = "by Bray-curtis")
+``` 
+
+Two plots (from different methods) seem similar, but there are obvious differeces in some area. 
+
+The four corners may be catories to 4 clusters. For example, the location 2,4,5,6,7,13,14 have simliar spices (Perdnigr, Auloalbi, Pardpull, Arctlute)
+
+```{r}
+par(mfrow=c(1,2))
+biplot(nmds.eucl$points, nmds.bray$species)
+biplot(nmds.bray$points, nmds.bray$species)
+``` 
+
+<br>
+
+# exercise 7
+
+```{r}
+ef.eucl <- envfit(nmds.eucl, Xenv, permutations = 999)
+ef.bray <- envfit(nmds.bray, Xenv, permutations = 999)
+par(mfrow=c(1,2))
+plot(nmds.eucl, main = "by Eculidean")
+plot(ef.eucl, p.max = 0.1)
+plot(nmds.bray, main = "by Bray-curtis")
+plot(ef.bray, p.max = 0.1)
+``` 
+
+<br>
+
+# exercise 8
+
+```{r}
+plot(cca(Y), type = "t")
+``` 

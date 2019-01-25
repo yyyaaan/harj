@@ -1,0 +1,180 @@
+---
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: kable
+    theme: 'readable'
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+library(geoR)
+```
+
+# 1-4 Intro to GeoR
+
+Check the data set `ca20` from `geoR`.
+
+a) plot the data.
+
+```{r d14a}
+data(ca20)
+plot(ca20$coords, cex=0.05*ca20$data,pch=16,col=gray(0.6))
+plot.geodata(ca20)
+```
+
+b) is the data isotropic? Calculate directional semivariogram.
+
+```{r d14b}
+plot(variog4(ca20))
+cat("extra: variance = sill = ", variog(ca20)$var.mark, var(ca20$data))
+```
+
+> "Not very likely isotropic. There exists trend.
+
+
+c) suppose the data being isotropic. Calculate and explain the (empirical) semivariogram.
+
+```{r d14c}
+par(mfrow = c(1,2))
+plot(variog(ca20))
+plot(variog(ca20, max.dist=900))
+varioc <- variog(ca20, max.dist=900) # classical
+varioc$n
+```
+
+d) calculate robust semivariogram estimator and compare it with classic one.
+
+```{r d14d}
+varior <- variog(ca20, estimator.type="modulus", max.dist=900)
+varior$n
+par(mfrow=c(1,2))
+plot(varior, ylim=range(varior$v), main = "robust")
+plot(varioc, ylim=range(varior$v), main = "classic")
+```
+
+e) fit the classic semivarogram using multiple parameters and plot.
+
+```{r d14e}
+sovitegau <- variofit(varioc,
+                      ini.cov.pars=c(150,600),
+                      cov.model="gaussian",
+                      fix.nugget=FALSE, nugget=50)
+sovitegau
+
+sovitegaunn <- variofit(varioc,
+                        ini.cov.pars=c(150,600),
+                        cov.model="gaussian",
+                        fix.nugget=TRUE)
+sovitegaunn
+
+sovitesfa <- variofit(varioc,
+                      ini.cov.pars=c(150,600),
+                      cov.model="spherical",
+                      fix.nugget=FALSE,nugget=50)
+sovitesfa
+
+plot(varioc,ylim=c(0,max(varior$v)), main = "classic")
+lines(sovitegau, col = "blue") 
+lines(sovitegaunn, col = "green")
+lines(sovitesfa, col = "red")
+
+sovitergau <- variofit(varior,
+                       ini.cov.pars=c(150,600),
+                       cov.model="gaussian",
+                       fix.nugget=FALSE,nugget=50)
+sovitergau
+
+sovitersfa <- variofit(varior,
+                       ini.cov.pars=c(150,600),
+                       cov.model="spherical",
+                       fix.nugget=FALSE,nugget=50)
+sovitersfa
+
+plot(varior,ylim=range(varior$v),main = "robust")
+lines(sovitergau, col = "green")
+lines(sovitersfa, col = "red")
+```
+
+> Cross-validation/Ristiinvalidointi
+
+```{r d14ex}
+# jai maku, etta kannattaisi sovittaa trendi!
+xv.sovitegau <- xvalid(ca20, model = sovitegau)
+mean(xv.sovitegau$std.error^2) 
+par(mfcol = c(3,2)); par(mar = c(3,3,0,1)); par(mgp = c(2,1,0))
+plot(xv.sovitegau,ask=FALSE,error=FALSE) 
+
+xv.sovitergau <- xvalid(ca20, model = sovitergau)
+mean(xv.sovitergau$std.error^2) 
+par(mfcol = c(3,2)); par(mar = c(3,3,0,1)); par(mgp = c(2,1,0))
+plot(xv.sovitergau,ask=FALSE,error=FALSE) 
+
+xv.sovitesfa <- xvalid(ca20, model = sovitesfa)
+mean(xv.sovitesfa$std.error^2) 
+par(mfcol = c(3,2)); par(mar = c(3,3,0,1)); par(mgp = c(2,1,0))
+plot(xv.sovitesfa,ask=FALSE,error=FALSE) 
+
+xv.sovitesfa <- xvalid(ca20, model = sovitesfa)
+mean(xv.sovitesfa$std.error^2) 
+par(mfcol = c(3,2)); par(mar = c(3,3,0,1)); par(mgp = c(2,1,0))
+plot(xv.sovitesfa,ask=FALSE,error=FALSE) 
+
+xv.sovitersfa <- xvalid(ca20, model = sovitersfa)
+mean(xv.sovitersfa$std.error^2) 
+par(mfcol = c(3,2)); par(mar = c(3,3,0,1)); par(mgp = c(2,1,0))
+plot(xv.sovitersfa,ask=FALSE,error=FALSE) 
+```
+
+> Klassiset sovittuisivat paremmin ja naista sfaarinen hieman paremmin (WLS pienempi ja mean(xv.sovitesfa$std.error^2) lahempana ykkosta)
+
+f) Implement conventional kriging lattice with 25 $\times$ 25 resolution, and also include the error terms. Compare with the above.
+
+```{r d14f}
+# gaussisella mallilla kun nugget mukana?
+ngridx<-25
+ngridy<-25
+xgrid<-seq(min(ca20$coords[,1]),max(ca20$coords[,1]),l=ngridx)
+ygrid<-seq(min(ca20$coords[,2]),max(ca20$coords[,2]),l=ngridy)
+pred.grid <- expand.grid(xgrid,ygrid)
+
+krige.par <- krige.control(type.krige='ok',
+                           cov.pars = sovitegau$cov.pars,
+                           cov.model = sovitegau$cov.model, 
+                           nugget = sovitegau$nugget)
+k <- krige.conv(ca20,locations=pred.grid,krige=krige.par) 
+
+plot(ca20$coords, cex=0.05*ca20$data,pch=16,col=gray(0.6))
+
+image(k)
+points(ca20, pch=20,cex.max=1,pt.divide='equal',add.to.plot=TRUE, lty=2)
+contour(k,add=T,nlevels=10)
+
+image(k)
+points(ca20, pch=20,cex.max=1,pt.divide='equal',add.to.plot=TRUE, lty=2)
+contour(k,values=sqrt(k$krige.var),add=T,nlevels=10)
+```
+
+```{r d14fx}
+# sfaarisella mallilla kun nugget mukana?
+krige.par <- krige.control(type.krige='ok',
+                           cov.pars = sovitesfa$cov.pars,
+                           cov.model = sovitesfa$cov.model, 
+                           nugget = sovitesfa$nugget)
+k <- krige.conv(ca20,locations=pred.grid,krige=krige.par) 
+
+plot(ca20$coords, cex=0.05*ca20$data,pch=16,col=gray(0.6))
+
+image(k)
+points(ca20, pch=20,cex.max=1,pt.divide='equal',add.to.plot=TRUE, lty=2)
+contour(k,add=T,nlevels=10)
+
+image(k)
+points(ca20, pch=20,cex.max=1,pt.divide='equal',add.to.plot=TRUE, lty=2)
+contour(k,values=sqrt(k$krige.var),add=T,nlevels=10)
+
+```

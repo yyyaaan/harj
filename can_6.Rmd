@@ -1,0 +1,79 @@
+---
+title: "Complex Analysis Harjoitus 6 | Yan PAN"
+output: 
+  html_document: 
+    df_print: paged 
+    theme: 'readable'
+---
+
+<style>
+h1,h2,h3{
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  padding-top: 20px;
+}
+blockquote{
+  font-size: 16px; !important;
+}
+</style>
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+##Exercise K6.1
+<blockquote>
+$z_0=z_4=1+i,\ z_1= -1+i,\ z_2= -1-i,\ z_3 = 1-i$, a series of paths $\gamma_j:[0,1]\to\mathbb C,\ \ \gamma_j(t)= (1-t)z_j + t z_{j+1}$. Further let $\gamma = \gamma_0 \vee \gamma_1\vee\gamma_2 \vee\gamma-3$. Calculate the integral $\int_\gamma \frac {dz} z$
+</blockquote>
+
+Along the paths $\gamma_0,\ \gamma_2,\ \gamma_3$ on the domain $\mathbb C \setminus\{z\in\mathbb R, z\leq 0\}$, complex function $f(z):=\frac 1 z$ has the antiderivative (primitive) of $F(z):= \text{Log}(z)$, which is the logrithm main branch. Thus,
+
+$$\begin{aligned} \int_{\gamma_0} \frac{dz}z + \int_{\gamma_2} \frac{dz}z + \int_{\gamma_3} \frac{dz}z
+&= \text{Log}(z_1) - \text{Log}(z_0) + \text{Log}(z_3) - \text{Log}(z_2) + \text{Log}(z_0) - \text{Log}(z_3)
+\\ &= \text{Log}(z_1) - \text{Log}(z_2)
+\\ &= i\text{Arg}(-1+i) - i \text{Arg}(-1-i)
+\\ &= i \frac{3\pi} 2
+\\ &= i \frac{\pi} 2
+\end{aligned}$$
+
+For $\gamma_1$, use the definition of line integral,
+
+$$\begin{aligned} \int_{\gamma_1}\frac{dz}z &= \int_0^1 \frac{-2i} {-1+i-2it} dt
+\\ &= \int_0^1 \frac{2i} {1-i+2it} dt
+\\ &= \bigg/_0^1 \text{Log}(1-i+2it) &\text{there is no negative-real}
+\\ &= \text{Log}(1+i) - \text{Log}(1-i)
+\end{aligned}$$
+
+Finally, the connect paths
+
+$$\begin{aligned} \int_\gamma \frac {dz} z &= \int_{\gamma_0} \frac{dz}z + \int_{\gamma_2} \frac{dz}z + \int_{\gamma_3} \frac{dz}z + \int_{\gamma_1}\frac{dz}z
+\\ &= i \frac{3\pi} 2 + i \frac{\pi} 2  = 2\pi i
+\end{aligned}$$
+
+##Exercise K6.2
+<blockquote>
+With the same path as the previous, calculate $\int_\gamma \frac{|dz|}z$
+</blockquote>
+
+$$\begin{aligned} \int_\gamma \frac {|dz|} z &= \int_{\gamma_0} \frac{|dz|}z + \int_{\gamma_1}\frac{|dz|}z + \int_{\gamma_2} \frac{|dz|}z + \int_{\gamma_3} \frac{|dz|}z
+\\ &= \int_0^1 \frac{|-2|}{ 1 + i - 2t} dt + \int_0^1 \frac{|-2i|} {-1+i-2it} dt + \int_0^1 \frac{|2|} {-1-i+2t} dt + \int_0^1 \frac{|2i|} {1-i+2it} dt
+\\ & \overset * = - \bigg/_0^1 \text{Log}(1+i-2t) - \frac 1 i \bigg/_0^1 \text{Log}(1-i+2it) + \bigg/_0^1 \text{Log}(1+i-2t) + \frac 1 i \bigg/_0^1 \text{Log}(1-i+2it) 
+\\ & = 0
+\end{aligned}$$
+
+* the main branch logarithm is proper since the negative real value was changed to positive by mutiply the constant -1.
+
+##Exercise K6.3
+<blockquote>
+$0\gt a \in \mathbb R,\ \ \gamma:[0,2\pi]\to\mathbb C,\ \gamma(t):=a+e^{it}$, calculate $\int_\gamma \frac{e^z}{1+z^2}dz$.
+</blockquote>
+
+$A:=\mathbb C\setminus\{i,-i\}$ is a domain (alue), on which function $g(z):=e^z$ and $h(z):= 1+ z^2$ are analytic. Since $h(z)\neq0,\ \forall z\in A$, complex function $f(z):=\frac {e^z}{1+z^2}$ is analytic.
+
+Further, $\gamma$ is clearly a closed path on $A$ as $\gamma(0)=a+e^{2\pi i}= a+ 1 = a + e^0 = \gamma(2\pi)$ and $i\not\in A, \ -i\not\in A$.
+
+Therefore, $\int_\gamma \frac{e^z}{1+z^2}dz = 0$.

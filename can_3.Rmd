@@ -1,0 +1,205 @@
+---
+title: "Complex Analysis Harjoitus 3 | Yan PAN"
+output: 
+  html_document: 
+    df_print: paged 
+    theme: 'readable'
+---
+
+<style>
+h1,h2,h3{
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  padding-top: 20px;
+}
+blockquote{
+  font-size: 16px; !important;
+}
+</style>
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+##Exercise K3.1
+<blockquote>
+Let $z\in\mathbb C,\ |z|=1,\ z\neq 1$. Show that $(z^n)_{n=1}^\infty$ diverges.
+</blockquote>
+
+Show first $|z-1|\neq 0$ by contradiction.
+
+Assume that $|z-1|=0$, and then
+
+$$\begin{aligned} 
+& \sqrt{ ( \text{Re}(z) -1)^2 + \text{Im}(z)^2} = 0
+\\ \Rightarrow & \text{ 2 real numbers } \begin{cases} ( \text{Re}(z) -1)^2 =0\\ \text{Im}(z)^2 = 0\end{cases}
+\\  \Rightarrow &\ \begin{cases}  \text{Re}(z) =1 \\ \text{Im}(z) = 0\end{cases}
+\\  \Rightarrow &\ z=1
+\end{aligned}$$
+
+This conflict with the requirements of $z\neq 1$. Therefore $|z-1|\neq 0$.
+
+$$\begin{aligned} \forall n\in\mathbb N:\  |z^{n+1}-z^n| 
+&= |z^n(z-1)|
+\\ &=|z^n||z-1|
+\\ &=|z|^n|z-1|
+\\ &=|z-1| 
+\\ &= c\neq 0 
+\end{aligned}$$
+
+$c\in\mathbb R$ constant given $z$
+
+On the other hand, a neccessary condition for $(z^n)_{n=1}^\infty$ being convergent is $|z^{n+1} - z^n| \overset{n\to\infty}\longrightarrow 0$. Thus, it must be divergent. 
+
+##Exercise K3.2
+<blockquote>
+Prove that if $A\subset\mathbb C$ connected and $f:A\to\mathbb C$ continuous, $f(A)$ is connected.
+</blockquote>
+
+Let two open (and "disjoint") sets $U,V \subset \mathbb C$, and suppose $f(A)$ is not connected. Then such $U,V$ exist that statisfiying: 
+
+$\begin{cases} U\cap f(A) \neq \emptyset,\\V\cap f(A)\neq \emptyset,\\ U\cap V =\emptyset,\\f(A)\subset U\cup V \end{cases}$.
+
+Further, denote $U'=f^{-1}(U),\ V'=f^{-1}(V)$.
+
+(1) $U'\neq\emptyset,\ V'\neq\emptyset$ is clear from the settings above.
+
+(2) Since $U\cap V=\emptyset$, it follows that $U' \cap V' =\emptyset$. This can be show by contradiction: assuming $\exists z\in\mathbb C:\ z\in U'\cap V'\ \Rightarrow f(z)\in U,\ f(z)\in V$, which void $V\cap V = \emptyset$.
+
+(3) $A\subset U'\cup V'$. Prove: let $z\in A$; then $f(z)\in U\cup V$ as $f(A)\subset U\cup V$, and finally $z\in U'\cup V'$.
+
+The conditions 1-3 together imply that set $A$ is not connected, which is a contradiction. Therefore, it can be concluded that the continuous mapping of connected set is connected.
+
+##Exercise K3.3
+<blockquote>
+Write the remainder terms of exponential function $R_e(x)$, cosine function $R_c(x)$ and sinine funcion $R_s(x)$, and then by such helps, show that complex function's $|R(z)|\leq M\, |z|^2$
+</blockquote>
+
+$$\begin{aligned} n\in\mathbb N, c\in(a,x):\\
+\\ \text{(def) } \ R_n(x)
+&= \frac{f^{(n+1)}(c)}{(n+1)!} (x-a)^{n+1}
+\\ \text{Choos }n=1,\ a=0
+\\ R_e(x) &= \frac{e^c x^2} 2
+\\ R_c(x) &= -\frac{x^2 \cos c } 2
+\\ R_s(x) &= -\frac{x^2 \sin c } 2
+\end{aligned}$$
+
+With the help of given $f(z)$ using remainders,
+
+$$\begin{aligned} R(z)
+&= \bigg(1+x + R_e(x)\bigg) \bigg(1+R_c(y) + i(y+R_s(y))\bigg) - x-iy -1
+\\ &= \bigg( 1+ x+\frac{e^c x^2} 2 \bigg) \bigg( 1- \frac{y^2 \cos c } 2  +i ( y -\frac{y^2 \sin c } 2)\bigg) -x -1 -iy
+\\ &:-(
+\end{aligned}$$
+
+> Using above to show that $f(z)=e^z$ is differentiable on all points $z_0\in\mathbb C$ and $f'(z_0) = e^{z_0}$
+
+
+
+##Exercise 1
+<blockquote>
+Find a) $e^{i^i}$; b) $i^{ \text{Log}(i)}$
+</blockquote>
+
+$$\begin{aligned} e^{i^i}
+&= \exp(\exp(i \text{Log}(i)))
+\\ &= \exp(\exp( \frac {ii\pi} {2} )) 
+\\ &= \exp(\exp( \frac {-\pi} {2} )) \in\mathbb R
+\\ &\approx 1.23 
+\\
+\\ i^{ \text{Log}(i)} & = i^{\ln|i| + i \text{Arg}(i)}
+\\ &=i^{\frac {\pi i}2}
+\\ &= (i^i)^\frac\pi 2
+\\ &= (e^{-\frac \pi 2})^\frac\pi 2 &\text{mid-result of (a)}
+\\ &\approx 0.084 \in\mathbb R
+\end{aligned}$$
+
+
+##Exercise 2
+<blockquote>
+Find a) $(1+i)^i$; b) $i^{1+i}$
+</blockquote>
+
+$$\begin{aligned} (1+i)^i
+&= e^{i \text{Log}(1+i)}
+\\ &= e^{i(\ln\sqrt 2 + \frac\pi 4 i)}
+\\ &= e^{- \frac \pi 4 + i \ln\sqrt 2}
+\\ &= e^{-\frac \pi 4} ( \cos(\ln\sqrt 2) + i\sin(\ln\sqrt2))
+\\
+\\ i^{1+i} & = e^{(1+i) \text{Log}(i)}
+\\ &= e^{(1+i)\frac \pi 2 i}
+\\ &= e^{-\frac\pi 2 + \frac\pi 2 i}
+\\ &= e^{-\frac\pi 2}(\cos\frac \pi 2 + i \sin\frac\pi 2)
+\\ &= ie^{-\frac\pi 2}
+\end{aligned}$$
+
+##Exercise 3
+<blockquote>
+Let $c:= (i e^{i\pi/2})^i,\ \ z_n:=\sum \limits_{k=0}^{n}c^k$. Is $(z_n)_{n=1}^\infty$ convergent?
+</blockquote>
+
+$$\begin{aligned} c
+&= (i (\cos\frac\pi 2 + i\sin\frac\pi 2))^i
+\\ &= (-1)^i
+\\ &= e^{i \text{Log}(-1)}
+\\ &= e^{i (\pi i)}
+\\ &= e^{-\pi} \in (0,1)\subseteq \mathbb R
+\\
+\\z_n &= \frac{1-c^{n+1}}{1-c}\in\mathbb R
+\\
+\\ \lim\limits_{n\to\infty} z_n &= \frac 1 {1-c} \in\mathbb R \subseteq \mathbb C
+\end{aligned}$$
+
+Therefore, the series is indeed convergent.
+
+##Exercise 4
+<blockquote>
+On which condition, $(e^z)^\lambda = e^{z\lambda},\ \forall z\in \mathbb C$?
+</blockquote>
+
+Let $z= x+iy,\ x,y\in\mathbb R,\ y\in (-pi,\pi]$
+
+If use the condition "Exponetial defined as complex exponential principle branch (päähaara)"
+
+$$\begin{aligned} (e^z)^\lambda
+&= e^{\lambda \text{Log}(e^z)} & \text{only holds for principle branch}
+\\ &= e^{\lambda (\ln|e^z| +i \text{Arg}(e^z))}
+\\ &=e^{\lambda x + \lambda i \text{Arg}(e^x(\cos y + i \sin y))}
+\\ &=e^{\lambda x + i\lambda \text{Arg}(\cos y+ i\sin y)}
+\\ &=e^{\lambda x + i\lambda y}
+\\ &= e^{z \lambda } 
+\end{aligned}$$
+
+
+##Exercise 5
+<blockquote>
+Give a bijective $f:Q\to R$, where $Q=\{x+iy | 0\lt x\lt 1, 0\lt y\lt 1\}$ and $R=\{z| 1\lt |z|\lt2\}\setminus \mathbb R^-$
+</blockquote>
+
+$f(z:=x+iy) = (x+1)\bigg( \cos(2\pi y-\pi))+i\sin (2\pi y- \pi)\bigg)$
+
+##Exercise 6
+<blockquote>
+Define $\lim\limits_{n\to\infty} \frac{z^n -1}{z^n +1},\ \ |z|\neq 1$
+</blockquote>
+
+Consider the complex number as a vector $(r,\theta)\in\mathbb R^2,\ \ r=|z|\geq 0,\ \theta = \text{Arg}(z)$
+
+$$\begin{aligned} \lim\limits_{n\to\infty} \frac{z^n -1}{z^n +1}
+&= 1 - 2 \lim\limits_{n\to\infty} \frac 1 {z^n+1}
+\\ &= 1 - 2 \lim\limits_{n\to\infty} \frac 1 {r^n(\cos(n\theta) + i \sin(n\theta))+1} 
+\\ &\text{(let }x= r^n\in\mathbb R, \ y=n\theta\in\mathbb R)
+\\ &= \begin{cases} 
+1 - 2 \lim\limits_{x\to0,\ y\to\infty} \frac 1 {x(\cos y + i\sin y) + 1}, &  r = |z|\lt 1 \\
+1 - 2 \lim\limits_{x\to\infty\ , y\to\infty}\frac 1 {x(\cos y + i\sin y) + 1}, &  r = |z|\gt 1 
+\end{cases}
+\\ &= \begin{cases} -1, &  r = |z|\lt 1 \\
+1, &  r = |z|\gt 1 
+\end{cases}
+\end{aligned}$$
+
+

@@ -1,0 +1,263 @@
+---
+title: "Stochastic Simulation | Problems 1"
+author: " Yan PAN"
+output: 
+  html_document: 
+    df_print: paged 
+    theme: 'readable'
+---
+
+<style>
+h1,h2,h3{
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  padding-top: 20px;
+}
+blockquote{
+  font-size: 16px; !important;
+}
+</style>
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+##Exercise 1
+<blockquote>
+Consider the rain drops example: Assume $(H_n)_{n≥1} \overset{i.i.d.}\sim \text{Bernoulli}(π/4)$, and suppose that we estimate the value of $\pi$ by computing Monte Carlo estimates $I^{(n)}_p(f),\ f(h):=4h$
+
+(a) Compute $Var_p(f(X))$.
+</blockquote>
+
+$Var_p(f(X)) = Var_p (4X) = 16 Var_p(X) = 16 \frac \pi 4(1-\frac \pi 4) \approx 2.697$
+
+<blockquote>
+Determine how big n must be chosen in order to attain an error less than 0.1 with probability at least 95%. Do this both with asymptotic error and the bound from Chebychev's inequality
+</blockquote>
+
+$$\begin{aligned} \text{Asymptotic}
+\\ &0.1\sqrt n \sim N(0,2.697)
+\\ \Rightarrow & \ \frac 1 {10 \sqrt{2.697}} \sqrt n > \Phi(0.975)
+\\ \Rightarrow & \ n_1 \geq 1036
+\\ \text{Chebychev}
+\\ &\mathbb P \bigg(0.05 \geq k \sqrt { \frac{2.697} n} \bigg) \leq \frac 1 {k^2}
+\\ \Rightarrow &\ 0.05 \geq \sqrt\frac 1 {0.95} \sqrt { \frac{2.697} n} 
+\\ \Rightarrow &\ n_2 \geq 1136
+\end{aligned}$$
+
+<blockquote>
+How does $n$ change above if the error must be less than 0.01 (keeping the same probability ≥ 95%).
+</blockquote>
+
+The above procedure suggests that $n$ should be 100 times greater in both asymptotic and Chebychev's methods.
+
+<blockquote>
+How does $n$ change if the error must be less than 0.1 but the probability is ≥ 99%
+</blockquote>
+
+In asymtotic error, the required $n$ should be $1.73n_1$, which is  $\Phi^{-1}(0.995)^2 / \Phi^{-1}(0.975)^2$.
+
+By Chebyschev's inequality, the required $n$ should be only $1.042 n_2$, which is $0.99/0.95$
+
+This leads to the fact that the minimal $n$ grows much greater by means of asymptotic error result, compared with Chebychev's inequality
+
+<blockquote>
+What about if you use the Hoeffding inequality?
+</blockquote>
+
+Using $\mathbb P \bigg( \frac{H(n)} n \geq \frac \pi 4 +\epsilon \bigg) \leq e ^{-2\epsilon^2 n}$.
+
+Then, for the case of error 0.1 and probability 95%,
+
+$0.025 \geq e^{-2 \cdot 0.05^2 n}\ \Rightarrow \ n\geq 738$
+
+##Exercise 2
+<blockquote>
+Consider the rain drops exampl as in Problem 1.
+
+(a) Write a function which simulates $n$ independent Bernoulli ($π/4$) random variables and calculates an asymptotic confidence interval for the average.
+</blockquote>
+
+
+```{r demo12a}
+est_pi <- function(n = 100, pr = 0.95){
+
+  x <- rbinom(n, 1, pi/4)
+  m <- mean(x)
+  tail <- 1 - (1 - pr)/2
+  d <- sd(x) * qnorm(tail)
+  
+  return(list(est = m, tol = d))
+}
+```
+
+<blockquote>
+(b) Use your function to calculate the estimator and 95% confidence interval with 100
+samples.
+</blockquote>
+
+```{r demo12b}
+sim100 <- est_pi(100, 0.95)
+ci100 <- c(sim100$est - sim100$tol, sim100$est + sim100$tol, pi / 4)
+names(ci100) <- c("2.5%", "97.5%", "True pi/4")
+ci100
+```
+
+<blockquote>
+(c) Calculate 1000 estimators and related confidence intervals, and check how often the
+true value was within your confidence interval.
+</blockquote>
+```{r demo12c}
+isInCI <- NULL
+for (i in 1:1000) {
+  sim <- est_pi()
+  isInCI[i] <- ((sim$est - sim$tol) < (pi/4)) && ((pi/4) < (sim$est + sim$tol))
+}
+sum(isInCI)
+```
+
+In our simulation, true value is always within the confidence intervals.
+
+##Exercise 3
+<blockquote>
+Show that if $U_1, U2 \sim \mathcal U(0,1)$, then Verctor $(R,T),\ R= \sqrt{-2\log U_1},\ T= 2\pi U_2$ has a density
+
+$$p_{R,T}(r,t) = \begin{cases} \frac 1 {2\pi} r e ^{-r^2/2}, &0\leq t \leq 2\pi,\ 0\leq r\leq \infty \\ 0, & \text{otherwise}\end{cases}$$
+</blockquote>
+
+$$\begin{aligned}
+\mathbb P(R\leq r) &= \mathbb P(\sqrt{-2\log U_1} \leq r)
+\\ &= \mathbb P(U_1 \gt e ^{-r^2/2})
+\\ &= (1- e^{-r^2/2}) \boldsymbol 1 _{e^{-r^2/2}\in (0,1)}
+\\ \text{then, } p_R(r) &= re^{-r^2/2}\ \boldsymbol 1 _{r\in(0,\infty)}
+\\ \\ \mathbb P(T<t) &= \mathbb P(2\pi U_2 < t)
+\\ &= \mathbb P(U_2 < \frac t {2\pi})
+\\ &= \frac t {2\pi} \ \boldsymbol 1 _{\frac t {2\pi}\in (0,1)}
+\\ \text{then, } p_T(t) &= \frac 1 {2\pi} \boldsymbol 1_{t\in(0,2\pi)} 
+\\ \\ p_{R,T}(r,t) &= p_R(r) p_T(t) &\text{due to independence, as }U_1 \perp\!\!\!\perp U_2
+\\ & = \frac 1 {2\pi} r e ^{-r^2/2} \boldsymbol 1 _{\{r,t:0\leq t \leq 2\pi\, 0\leq r\leq\infty\}}
+\end{aligned}$$
+
+##Exercise 4
+<blockquote>
+Let $p$ be the Cauchy p.d.f., i.e. $p(x)= \frac 1 {\pi(1+x^2)},\ x\in \mathbb R$
+
+(a) Find an algorithm that generates $X\sim p$ using $U\sim\mathcal U(0,1)$
+</blockquote>
+
+For Cauchy p.d.f, the corresponding c.d.f.
+
+$F(x) = \frac 1 \pi \arctan(x) + \frac 1 2,\ x\in\mathbb R$
+
+Then $F^{-1}(u) = \tan(\pi u),\ u\sim\mathcal U(0,1))$, where $u-\frac 1 2$ is replaced by $u$.
+
+```{r demo14a}
+mySim <- function(n){
+  u <- runif(n, 0, 1)
+  x <- tan(pi * u)
+  return(x)
+}
+```
+
+<blockquote>
+(b) Implement your method and check that you got it right by inspecting the histogram
+of 10000 simulated values.
+</blockquote>
+
+```{r demo14b}
+x <- mySim(10000)
+hist(x, freq=FALSE, xlim=c(-4, 4),
+     breaks=c(min(x),seq(-4, 4, length=20), max(x)))
+t = seq(-4, 4, length=500)
+lines(t, 1/(pi*(1+t^2)), col="red")
+```
+
+##Exercise 5
+<blockquote>
+Suppose $p:\mathbb R \to (0,\infty)$ is a continuous p.d.f., and $F(x)=\int_{-\infty}^x p(y)dy$ the corresponding c.d.f.. Let $U\sim \mathcal U(0,1)$.
+
+(a) Find the distribution of $Y_b:= F^{-1}(F(b)U)$
+</blockquote>
+
+$$\begin{aligned} \mathbb P\bigg(F(b)U \leq z \bigg)
+&=\mathbb P\bigg(U \leq \frac z {F(b)}\bigg)
+\\&= \frac z {F(b)} \boldsymbol 1 _{\{z \leq F(b)\}} + \boldsymbol 1 _{\{z\gt F(b)\}}
+\\ \text{Therefore,}
+\\ F^{-1}(F(b)U) &\sim \mathcal U(0, \frac 1 {F(b)})
+\end{aligned}$$
+
+<blockquote>
+(b) Find the distribution of $Y_{a,b}:= F^{-1}(F(a)(1-U) + F(b)U)$
+</blockquote>
+
+$$\begin{aligned} \mathbb P\bigg(F(a)(1-U) + F(b)U \leq z \bigg)
+&=\mathbb P\bigg(U \leq \frac {z-F(a)} {F(b)-F(a)}\bigg)
+\\ \text{Therefore,}
+\\ F^{-1}(F(a)(1-U) + F(b)U) &\sim \mathcal U(F(a), F(b))
+\end{aligned}$$
+
+<blockquote>
+(c) Find the distribution of $Y_a:= F^{-1}(F(a) + (1-F(a))U)$
+</blockquote>
+
+$$\begin{aligned} \mathbb P\bigg(F(a) + (1-F(a))U \leq z \bigg)
+&=\mathbb P\bigg(U \leq \frac {z-F(a)} {1-F(a)}\bigg)
+\\ \text{Therefore,}
+\\ F^{-1}(F(a) + (1-F(a))U) &\sim \mathcal U(F(a), 1),\ F(a)\neq 1
+\end{aligned}$$
+
+##Exercise 6
+<blockquote>
+The early PRNGs were mostly linear congruential generators, that is, based on a recursion
+of the form
+
+$$Z_n=(aZ_{n-1}+c) \text{ mod } M,$$
+
+with some parameters $a,c,M\in\mathbb N$ with $a, c < M$ and a seed $Z_0 < M$. Then, $U_n := Zn/M $ were “random uniform $\mathcal U(0, 1)$.”
+
+Implement the above PRNG with $M = 2^31, a = 2^16 + 3, c = 0$ and any $Z_0 \in [0, M)$
+you want.
+
+(a) Plot 100 samples produced by your generator and inspect visually whether the produced samples seem i.i.d. $\mathcal U(0, 1)$.
+</blockquote>
+
+```{r demo16a}
+myPRNG <- function(M = 2^31, a = 2^16 + 3, c = 0, seed, n){
+  z <- NULL
+  u <- NULL
+  
+  z[1] <- seed
+  for(i in 1:n){
+    z[i+1] <- (a * z[i] + c) %% M
+    u[i] <- z[i+1] / M #fixing the subscript
+  }
+  
+  return(u)  
+}
+
+
+u <- myPRNG(seed = 999, n = 100)
+par(mfrow = c(1,2))
+plot(u, main = "Point Plot of u")
+hist(u)
+```
+
+The visual inspection implies a not satisfactory result, however, it does seems to quite uniform if consider the sampling size is only 100.
+
+<blockquote>
+(b) Produce 3000 uniform samples from a unit cube with your generator and plot them and inspect the randomness as above.
+</blockquote>
+
+```{r demo16b, eval=FALSE}
+library(rgl)
+n <- 9000
+u <- myPRNG(seed = 99, n = n)
+plot3d(x=u[seq(1,n,3)], y=u[seq(2,n,3)], z=u[seq(3,n,3)])
+# the plot is not possible to embed in the doucment
+```
+
+It does not fill all the cube. When rotated, the "random samples" seems to be distributed on several planes, instead of uniformly filling up the cube.

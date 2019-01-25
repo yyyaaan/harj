@@ -1,0 +1,113 @@
+---
+title: "Demo 1"
+author: Yan Pan
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: paged
+    theme: 'readable'
+---
+
+Notation: $\log$ is the real-valued natural logrithm.
+
+#Exercise 1
+Show that $Y\sim Poisson(\lambda)$ belongs to exponential family
+
+<blockquote>
+$$P(Y=y) = \frac{\lambda^y e^{-\lambda}}{y!} = \exp \bigg( y\log\lambda  -\lambda - \log(y!)\bigg)$$
+
+$$\begin{cases} \theta:=  \log\lambda \\ a(\phi) := 1 \\ b(\theta):=e^\theta \\ c(y,\phi):= \log(y!) \end{cases}$$
+</blockquote>
+
+
+#Exercise 2
+Suppose $Y\sim Bin(k,\pi)$. Show that $Z=Y/k$ belongs to exponential family.
+
+<blockquote>
+$Z\sim Bin(1,\pi)$, i.e. a binomial distribution
+
+$$\begin{aligned} P(Z=z) &=  \pi^{z}(1-\pi)^{1-z}
+\\ &= \exp \bigg( z\log \pi + \log(1-\pi) - z \log(1-\pi) \bigg)
+\\ &= \exp \bigg( z \log\frac{\pi}{1-\pi} + \log(1-\pi) \bigg)
+\\ &\Rightarrow \begin{cases} \theta := \log \frac \pi {1-\pi} \\ a(\phi) :=1 \\ b(\theta):=- \log \big( 1 - \frac{e^\theta}{1+ e^\theta}  \big)= \log(1+e^\theta) \\ c(y,\phi):=0 \end{cases}
+\end{aligned}$$
+</blockquote>
+
+#Exercise 3
+Calculate the mean and variance of Poisson and Bernoulli distribution
+
+<blockquote>
+Using the result from 1 and 2, and $E(Y)=b'(\theta), \ \text{Var}(Y) = b''(\theta) a(\phi)$
+
+Poisson: $E(Y)=e^\theta = \lambda,\ \ \text{Var}(Y)= e^\theta =\lambda$.
+
+Bernoulli: $E(Y)= \frac {e^\theta}{1+e^\theta} = \pi,\ \ \text{Var}(Y)= \frac{e^\theta(1+ e^\theta) - e^\theta e^\theta}{(1+e^\theta)^2} = \pi(1-\pi)$
+</blockquote>
+
+#Exercise 4
+Likelihood-equation for Possion using (canonical) link function
+
+<blockquote>
+
+By the link function,
+
+$$\lambda_i = e^{x_i^T \beta} \text{ and } g'(\mu_i) = \frac 1 {\lambda_i} = e^{-x_i^T \beta}$$
+
+$$\begin{aligned} \sum\limits_{i=1}^n \frac{(y_i-\mu_i)x_{ij}}{ a_i(\phi)\text{Var}(y_i) g'(\mu_i)} &= 0
+\\ \sum\limits_{i=1}^n \frac{(y_i - e^{x_i^T \beta})x_{ij}}{e^{x_i^T \beta} e^{-x_i^T \beta}} &= 0
+\\ \sum\limits_{i=1}^n (y_i - e^{x_i^T \beta})x_{ij} &= 0
+\end{aligned}$$
+</blockquote>
+
+#Exercise 5
+Likelihood-equation for Binomial using (canonical) link function
+
+<blockquote>
+By the link function,
+
+$$\mu_i = \text{logit}^{-1}({x_i^T \beta}) = \frac{e^{x_i^T \beta}}{1+ e^{x_i^T \beta}}\\ 
+g'(\mu_i)= \frac{1-\mu_i}{\mu_i} \frac{1-\mu_i +\mu_i}{(1-\mu_i)^2}=  \frac 1 {\mu_i(1-\mu_i)}= \frac 1 { \text{Var}(Y_i)}$$
+
+
+$$\begin{aligned} \sum\limits_{i=1}^n \frac{(y_i-\mu_i)x_{ij}}{ a_i(\phi)\text{Var}(y_i) g'(\mu_i)} &= 0
+\\ \sum\limits_{i=1}^n \bigg(y_i- \frac{e^{x_i^T \beta}}{1+ e^{x_i^T \beta}}\bigg) x_{ij}  &= 0
+\end{aligned}$$
+</blockquote>
+
+#Exercise 6
+Show that the Gamma-distribution is in the exponential family
+
+<blockquote>
+$$\begin{aligned} f(y,\mu,\phi)
+&= \frac 1 {\Gamma(\phi)} \bigg( \frac\phi\mu \bigg)^\phi y ^{\phi-1} e^{-\phi y/\mu}
+\\ &= \exp \bigg( -\log(\Gamma(\phi)) + \phi \log\phi - \phi\log\mu + (\phi -1)\log y - \phi y/\mu \bigg)
+\\ &= \exp \bigg( -\phi ( \frac 1 \mu y + \log\mu) + \phi\log\phi - \log(\Gamma(\phi)) +(\phi-1)\log y \bigg)
+\\ &\Rightarrow \begin{cases} \theta:= \frac 1 \mu
+\\ a(\phi):= -\frac 1 \phi
+\\ b(\theta) :=\log\theta
+\\ c(y,\phi):= \phi\log\phi - \log(\Gamma(\phi)) +(\phi-1)\log y
+\end{cases}
+\end{aligned}$$
+</blockquote>
+
+#Exercise 7
+
+Calculate the mean and variance for the Gamma-distribution above
+
+<blockquote>
+$$\begin{aligned} 
+E(Y)  &= b'(\theta) =\frac 1 \theta = \mu
+\\ \text{Var}(Y) &= b''(\theta)a(\phi) = \frac 1 {\theta^2} \frac 1 \phi = \frac{\mu^2}\phi
+\end{aligned}$$
+</blockquote>
+
+
+
+
+
+
+

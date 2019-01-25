@@ -1,0 +1,125 @@
+name: "HT"
+navbar:
+  title: "Harjoitukset"
+  left:
+    - text: "Stochastic Analysis"
+      menu:
+        - text: "harj.1"
+          href: sta_1.Rmd
+        - text: "harj.2"
+          href: sta_2.Rmd
+    - text: "Ryhmittelymenetelmiä"
+      menu:
+        - text: "harj.1"
+          href: rlr_1.Rmd
+        - text: "harj.2"
+          href: rlr_2.Rmd
+    - text: "Other Courses"
+      href: about.html
+      menu:
+        - text: "OTA"
+          menu:
+            - text: "harj.1"
+              href: ota_1.Rmd
+            - text: "harj.2"
+              href: ota_2.Rmd
+            - text: "harj.5"
+              href: ota_5.Rmd
+        - text: "YLM"
+          menu:
+            - text: "harj.1"
+              href: ylm_1.Rmd
+            - text: "harj.2"
+              href: ylm_2.Rmd
+            - text: "harj.3"
+              href: ylm_3.Rmd
+            - text: "harj.4"
+              href: ylm_4.Rmd
+            - text: "harj.5"
+              href: ylm_5.Rmd
+            - text: "harj.6"
+              href: ylm_6.Rmd
+        - text: "CAN"
+          menu:
+            - text: "harj.1"
+              href: can_1.Rmd
+            - text: "harj.2"
+              href: can_2.Rmd
+            - text: "harj.3"
+              href: can_3.Rmd
+            - text: "harj.4"
+              href: can_4.Rmd
+            - text: "harj.5"
+              href: can_5.Rmd
+            - text: "harj.6"
+              href: can_6.Rmd
+        - text: "MMM"
+          menu:
+            - text: "harj.1"
+              href: mmm_1.Rmd
+            - text: "harj.2"
+              href: mmm_2.Rmd
+            - text: "harj.3"
+              href: mmm_3.Rmd
+            - text: "harj.4"
+              href: mmm_4.Rmd
+            - text: "harj.5"
+              href: mmm_5.Rmd
+            - text: "harj.6"
+              href: mmm_6.Rmd
+        - text: "LDA"
+          menu:
+            - text: "harj.2"
+              href: lda_3.Rmd
+            - text: "harj.4"
+              href: lda_4.Rmd
+            - text: "harj.5"
+              href: lda_5.Rmd
+            - text: "harj.6"
+              href: lda_6.Rmd
+            - text: "harj.7"
+              href: lda_7.Rmd
+        - text: "SIM"
+          menu:
+            - text: "harj.1"
+              href: sim_1.Rmd
+            - text: "harj.2"
+              href: sim_2.Rmd
+            - text: "harj.3"
+              href: sim_3.Rmd
+            - text: "harj.4"
+              href: sim_4.Rmd
+            - text: "harj.5"
+              href: sim_5.Rmd
+            - text: "harj.6"
+              href: sim_6.Rmd
+        - text: "SDA"
+          menu:
+            - text: "R1"
+              href: sda_1.Rmd
+            - text: "R2"
+              href: sda_2.Rmd
+            - text: "R3"
+              href: sda_3.Rmd
+            - text: "Theory"
+              href: sda_0.Rmd
+        - text: "PUT"
+          menu:
+            - text: "harj.1"
+              href: put_1.Rmd
+            - text: "harj.2"
+              href: put_2.Rmd
+            - text: "harj.5"
+              href: put_5.Rmd
+
+  right:
+    - icon: fa-leanpub fa-lg
+      href: /web
+    - icon: fa-home fa-lg
+      href: https://boring.fi
+output:
+  html_document:
+    theme: readable
+    highlight: default
+    df_print: paged
+    css: z.style.css

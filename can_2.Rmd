@@ -1,0 +1,189 @@
+---
+title: "Complex Analysis Harjoitus 2 | Yan PAN"
+output: 
+  html_document: 
+    df_print: paged 
+    theme: 'readable'
+---
+
+<style>
+h1,h2,h3{
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  padding-top: 20px;
+}
+blockquote{
+  font-size: 16px; !important;
+}
+</style>
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      comment = "") 
+myprint <- function(printD, dig = 4)
+  data.frame(round(printD, digits = dig)) 
+```
+
+##K2.1 
+<blockquote>
+Simplied the complex numbers
+</blockquote>
+
+$$\begin{aligned} \frac{(1-\sqrt 3 i)^3}{(\sqrt 3 + i)^2}
+&= \frac{(1-\sqrt 3 i)(1-\sqrt 3 i)(1-\sqrt 3 i)}{(\sqrt 3 + i)(\sqrt 3 + i)}
+\\ &= \frac{(1- \sqrt 3 i)(-2-2\sqrt 3 i)}{2+2\sqrt 3 i}
+\\ &= (-1 + \sqrt 3 i)\underbrace{(2+2\sqrt 3 i)(2-2\sqrt 3 i)^{-1}}_{= (\cdots)^{1-1} = (\cdots)^0 = 1}
+\\ &=-1 + \sqrt 3 i
+\\
+\\ (1-\sqrt 3 i)^3 (\sqrt 3 +i)^5
+&= \bigg((1-\sqrt 3 i)(\sqrt 3 +i)\bigg)^3 (\sqrt 3 +i) ^2
+\\ &= (2\sqrt 3  - 2 i)^3 (\sqrt 3 +i)^2
+\\ &= 8\bigg((\sqrt 3 -i)(\sqrt 3 +i )\bigg)^2 (\sqrt 3 -i)
+\\ &= 128\sqrt 3 - 128 i
+\end{aligned}$$
+
+##K2.2
+<blockquote>
+Give a certain restricted set of $x\in\mathbb R$, and then prove $\log(\cos x + i\sin x) = ix$ is true on that set.
+</blockquote>
+
+$$\begin{aligned} &\ \log (\cos x + i\sin x) = ix
+\\ \Leftrightarrow &\ \exists k\in\mathbb Z:\ ix = \ln|\cos x + i\sin x| + i(\text{Arg}(\cos x + i\sin x) + 2k\pi)
+\\ \Leftrightarrow &\ \exists k\in\mathbb Z:\ ix =  i(\text{Arg}(\cos x + i\sin x) + 2k\pi)
+\\ \Leftrightarrow &\ \exists k\in\mathbb Z: x= \text{Arg}(\cos x + i\sin x) + 2k\pi
+\\ &\text{This is always true for all }x\in \mathbb R
+\end{aligned}$$
+
+
+##K2.3
+<blockquote>
+Given an example that $\text{Log}(z_1 z_2) = \text{Log}(z_1)+\text{Log}(z_2)$ does not hold for all $z_1,z_2\in\mathbb C\setminus \{0\}$. Then, correct it with one extra term in the equation.
+</blockquote>
+
+$$\begin{aligned}
+\text{Log}(-i) &= \ln|-i| +i \text{Arg}(-i) = -\frac{i\pi} 2
+\\ \text{Log}(-1) &= \ln|-1| +i \text{Arg}(-1) = i\pi
+\\ \text{Log}(i) &= \ln|i| +i \text{Arg}(i) = \frac{i\pi} 2
+\\ \text{Therefore, }\text{Log}(-1) + \text{Log}(i) &= \frac {3i} 2 \neq -\frac{i\pi}2 = \text{Log}(-i)
+\\
+\\ \text{Prove the "new" version:}
+\\ \text{Log}(z_1 z_2) &= \ln|z_1 z_2| + i \text{Arg}(z_1z_2)  \text{ (definition)}
+\\ &= \ln\underbrace{(|z_1||z_2|)}_{\in\mathbb R}+ i \underbrace{\text{Arg}(z_1z_2)}_{\text{H1T8}}  \ \text{ (property of }\mathbb C)
+\\ &= \ln|z_1|+\ln|z_2|+ i \bigg( \text{Arg}(z_1) + \text{Arg}(z_2) + 2\pi i k(z_1,z_2)\bigg)
+\\ & = \ln|z_1| + i\text{Arg}(z_1) + \ln|z_2| + i\text{Arg}(z_2) - 2\pi k(z_1, z_2)
+\\ &= \text{Log}(z_1 ) + \text{Log}( z_2) - 2\pi k(z_1, z_2)
+\\
+\\ \text{where, } k(z_1,z_2) &= \begin{cases}0, & -\pi \lt \text{Arg}(z_1)+ \text{Arg}(z_2) \leq \pi \\ 1, & -2\pi \lt \text{Arg}(z_1)+ \text{Arg}(z_2) \leq -\pi \\ -1 , & \pi \lt \text{Arg}(z_1)+ \text{Arg}(z_2) \leq 2\pi \end{cases}
+\end{aligned}$$
+
+##Exercise 1
+<blockquote>
+For $\theta\in (0,2\pi),\ n\in \mathbb Z_+$, prove that
+
+$$1+\cos(\theta) + \cos(2\theta) + \cdots + \cos(n\theta) = 1 + \frac{\sin(n\theta/2)}{\sin(\theta/2)}\cos((n+1)\theta/2)\\
+\sin(\theta) + \sin(2\theta) + \cdots + \sin(n\theta) =  \frac{\sin(n\theta/2)}{\sin(\theta/2)}\sin((n+1)\theta/2)$$
+</blockquote>
+
+$$\begin{aligned}
+&\cos(\theta) + \cos(2\theta) + \cdots + \cos(n\theta)
+\\=& \text{Re}(e^{i\theta}+e^{2i\theta}+\cdots +  e^{ni\theta})
+\\=& \text{Re}(e^{i\theta}( 1+e^{i\theta} + e^{i2\theta}+\cdots +  e^{i(n-1)\theta}))
+\\=& \text{Re}\bigg( e^{i\theta} \frac{1-e^{in\theta}}{1- e^{i\theta}}\bigg)
+\\=& \text{Re}\bigg(e^{i\theta} \frac{ e^{in\theta/2} (e^{-in\theta/2}-e^{in\theta/2}) }{ e^{i\theta/2} (e^{-i\theta/2}- e^{i\theta/2})  }\bigg)
+\\=& \text{Re} \bigg( e^{i(n+1)\theta/2 } \frac{ \sin(n\theta/2) }{ \sin(\theta/2)} \bigg)
+\\=& \text{Re} \bigg( \bigg( \cos((n+1)\theta/2 ) + i\sin((n+1)\theta/2 )\bigg) \frac{ \sin(n\theta/2) }{ \sin(\theta/2)} \bigg)
+\\=& \frac{ \sin(n\theta/2) }{ \sin(\theta/2)} \cos((n+1)\theta/2 )
+\\
+\\ &\text{similary,}
+\\ &\sin(\theta) + \sin(2\theta) + \cdots + \sin(n\theta)
+\\=&\text{Im}(\cdots)
+\\=& \text{Im} \bigg( \bigg( \cos((n+1)\theta/2 ) + i\sin((n+1)\theta/2 )\bigg) \frac{ \sin(n\theta/2) }{ \sin(\theta/2)} \bigg)
+\\=& \frac{ \sin(n\theta/2) }{ \sin(\theta/2)} \sin((n+1)\theta/2 )
+\end{aligned}$$
+
+##Exercise 2
+<blockquote>
+Solve $e^w = 1+ i \sqrt 3$.
+</blockquote>
+
+Let $w=x+iy,\ x,y\in\mathbb R$.
+
+$$\begin{aligned}
+e^w &= 1 + i\sqrt 3
+\\ e^x (\cos y + i \sin y) &= 2(\cos\frac \pi 3 + i\sin\frac \pi 3)
+\\ \Rightarrow\  &\begin{cases} e^x &= 2 \\ y&=\frac\pi 3 + 2k\pi,\ k\in\mathbb Z \end{cases}
+\\ \Rightarrow\ &w=\ln 2 + i \bigg(\frac{\pi} 3 + 2k\pi\bigg),\ k\in\mathbb Z
+\end{aligned}$$
+
+##Exercise 3
+<blockquote>
+Show that $\overline{\exp(z)} = \exp(\bar z),\ \forall z\in\mathbb C$
+</blockquote>
+
+Let $w=x+iy,\ x,y\in\mathbb R$.
+
+$$\begin{aligned} \exp(\bar z) &= \exp (x- iy)
+\\ &= e^x(\cos y + i\sin(-y))
+\\ &= e^x(\cos y - i\sin y)
+\\ &= \overline{e^x(\cos y + i\sin y)}
+\\ &= \overline{\exp(z)}
+\end{aligned}$$
+
+##Exercise 4
+<blockquote>
+Show that $\overline{\text{Log}(z)} = \text{Log}(\bar z),\ \forall z \in \mathbb C\setminus\{z\in\mathbb R | z\leq 0\}$
+</blockquote>
+
+$$\begin{aligned} \overline{\text{Log}(z)}
+&= \overline{\ln |z| + i\text{Arg}(z)} &\text{by definition}
+\\ &= \ln |z| - i\text{Arg}(z)
+\\ &= \ln |\bar z| + i\text{Arg}(\bar z) &-\pi\lt\text{Arg}(z)\lt \pi \text{ ***}
+\\ &= \text{Log}(\bar z)
+\\ ***
+\\ -\pi\lt\text{Arg}(z)\lt \pi &\Rightarrow \text{Arg}(z) = - \text{Arg}(\bar z)
+\\ \text{but, } \text{Arg}(z) = \pi &\Rightarrow \text{Arg}(z) = \text{Arg}(\bar z) = \pi
+\end{aligned}$$
+
+This is to say, the above prove does not apply to $z\in\mathbb R, \ z\lt 0$
+
+##Exercise 5
+<blockquote>
+For $z_1,z_2\in\mathbb C\setminus\{0\},\ \lambda\in\mathbb C$, show that $(z_1 z_2)^\lambda = z_1^\lambda z_2^\lambda e^{2\pi i \lambda k(z1,z2)}$, where $k(z_1,z_2)$ is the "proper" argument of $\text{Arg}(z_1) + \text{Arg}(z_2)$
+</blockquote>
+
+$$\begin{aligned} (z_1 z_2)^\lambda
+& = e^{\lambda \text{Log}(z_1 z_2)} &\text{definition of Power}
+\\ &= e^{\lambda(\ln|z_1 z_2| +i\text{Arg}(z_1z_2))} &\text{definition of Log}
+\\ &= e^{\lambda(\ln|z_1| + \ln|z_2|) + i\text{Arg}(z_1z_2))} &\ln(|z_1||z_2|)\in\mathbb R
+\\ &= e^{\lambda(\ln|z_1| + \ln|z_2|) + i\text{Arg}(z_1) + i\text{Arg}(z_1) + 2\pi i k(z_1,z_2))} &\text{H1T8}
+\\ &= e^{\lambda(\ln|z_1|)+i\text{Arg}(z_1))} e^{\lambda(\ln|z_2|)+i\text{Arg}(z_2))} e^{2\pi i \lambda k(z_1,z_2)}
+\\ &= e^{\lambda \text{Log}(z_1)} e^{\lambda \text{Log}(z_2)} e^{2\pi i \lambda k(z_1,z_2)}
+\\ &= z_1^\lambda z_2^\lambda e^{2\pi i \lambda k(z1,z2)}
+\end{aligned}$$
+
+##Exercise 6
+<blockquote>
+Where is wrong in the following prove:
+
+$i=\sqrt{-1} = \sqrt{\frac 1 {-1}} = \frac{\sqrt 1}{\sqrt{-1}} = \frac 1 {\sqrt{-1}} = \frac 1 i \ \Rightarrow \ i^2 =1$
+</blockquote>
+
+According to exercise 5
+
+$\sqrt{\frac 1 {-1}} = (1 \cdot (-1))^{\frac 1 2} = 1 ^ {\frac 1 2} (-1)^{\frac 1 2} e^{0} \neq \frac{\sqrt 1}{\sqrt{-1}}$
+
+It is critical to note that square root is not defined for complex number.
+
+##Exercise 7
+<blockquote>
+Give a formula for $\cos(n\theta)$ using $\sin\theta$ and $\cos \theta$
+</blockquote>
+
+$$\begin{aligned} \cos(n\theta) 
+&= \frac 1 2 \bigg(e^{in\theta} + e^{-in\theta}\bigg)
+\\ &=\frac 1 2 \bigg((\cos\theta + i\sin\theta)^n + (\cos(-\theta) + i\sin(-\theta))^n\bigg)
+\\ &=\frac 1 2 \bigg((\cos\theta + i\sin\theta)^n + (\cos\theta - i\sin\theta)^n\bigg)
+\\ &= \frac 1 2 \bigg( \sum\limits_{k=0}^n {n\choose k} (\cos\theta)^k(i\sin\theta)^{n-k} + \sum\limits_{k=0}^n {n\choose k} (\cos\theta)^k(-i\sin\theta)^{n-k} \bigg)
+\\ &= \sum\limits_{j=0}^{\lfloor n/2 \rfloor} {n \choose 2r} (\cos\theta)^{2r} (\sin\theta)^{n-2r} 
+\end{aligned}$$

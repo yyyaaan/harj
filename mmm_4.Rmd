@@ -1,0 +1,173 @@
+---
+title: "Demo 4"
+author: "Yan Pan | 6 exercises completed | created with R-markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+For simple typesetting, some matrix symbol are not in bold
+
+# exercise 1
+
+$\begin{align} cov(\boldsymbol{X} )&=  E(X-\mu)(X-\mu)'  \\ &=  EXX' & \text{since } X \text{ is standard} \\ &=  E(Af+e)(Af+e)' \\ &=  cov(Af+e) \\ &=  cov(Af) + cov(e) & \text{becasue of incorrelation} \\ &=  Acov(f) A' + cov(e) & \text{affine transformation} \\ &= \boldsymbol{ A\Phi A'}  + \boldsymbol\Psi  \end{align}$ 
+
+<br>
+
+# exercise 2
+
+$\begin{align} cov(\boldsymbol{X,f} )&= E(X-\mu_X)(f-\mu_f)' \\ &= E[Xf'] \\ &=  E[(Af+e)f'] \\ &= E[Aff' + ef'] \\ &=  AE[ff'] + E[ef'] & \text{linearity of expectation} \\ &=  A cov(f) + E(e) E(f') & \text{because } cov(e,f)=0 \\ &=  \boldsymbol{A\Phi}  \end{align}$ 
+
+<br>
+
+# exercise 3
+Use the online material mmm2, tulos 2.4:
+
+$\mu _{f|X} = \mu_f+ \Sigma _{12}  \Sigma _{22}^{-1} (X-\mu_x)$, this is, in our case,
+
+$\begin{align} E(\boldsymbol{f|X} )&= E(f) + cov(f,X) cov(X) ^{-1} (X-E(X)) \\ &=  cov(f,X) cov(X) ^{-1} X & \text{by model, } E(f) = E(X) =0  \\ &=  \boldsymbol{A \Phi} cov(\boldsymbol{X} )^{-1}  \boldsymbol{X}  & \text{the result form exercise 2} \\ &=  \boldsymbol{\Phi}  \boldsymbol{A} ' cov(\boldsymbol{X} )^{-1}  \boldsymbol{X} & \text{becasue } A\Phi=cov(X,f) = (A\Phi)' \end{align}$
+
+<br>
+
+# exercise 5
+
+```{r}
+#5a
+toimcsv=read.csv2("toim.csv")
+toimcsvpart=toimcsv[,c("p217","p218","p219","p220","p221",
+                       "p222","p223","p224","p225","p226")]
+mydata=toimcsvpart
+
+#5b
+cor(mydata) #p224 has rather small correlations
+
+#5c
+mydata <- mydata[,-8]
+library(nFactors)
+ev <- eigen(cor(mydata))
+ev$values
+print("3 eigenvalues greater than 1; Kaiser criterion, 3 factors")
+
+ap <- parallel(subject=nrow(mydata),var=ncol(mydata),
+               rep=100,cent=.05)
+nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+nS$Components # this also gives Kasiser criterion
+print("Cattell's criterion, 2 facotrs")
+
+#5d
+fit2 <- factanal(mydata, factors = 2, rotation = "none")
+fit3 <- factanal(mydata, factors = 3, rotation = "none")
+fit4 <- factanal(mydata, factors = 4, rotation = "none")
+fit3
+print(paste("The p-values from chi-square, of 2,3 and 4 factors are",
+            fit2$PVAL, fit3$PVAL, fit4$PVAL))
+print("At least reject 2 factors are sufficient")
+
+#5e
+loadings <- fit3$loadings[1:9,]
+comm <- NULL
+for(i in 1:9){
+  comm[i] =loadings[i,1]^2 + loadings[i,2]^2 + loadings[i,3]^2
+}
+comm
+``` 
+
+e. Communalities state how much variance the model explains
+
+f. We can understand loadings just like the regression coefficient, but the factor may be abstract; especially, when not rotated, the factors may not make sense in real life. e.g p222 can be understand as a combined result of 0.504*factor1, 0.419*factor2, -0.73*factor3"
+
+<br>
+
+# exercise 6
+
+```{r}
+#6a
+fitvari3 <- factanal(mydata, factors=3, rotation="varimax",
+                     scores="regression")
+#6b 6c
+loadings <- fitvari3$loadings[1:9,]
+comm <- NULL
+for(i in 1:9){
+  comm[i] =loadings[i,1]^2 + loadings[i,2]^2 + loadings[i,3]^2
+}
+comm
+loadings
+``` 
+
+"Similar with 5f, but this time the factors are independent, and can usually find evidence in real life"
+
+```{r}
+#6d
+sysScores <- fitvari3$scores
+head(sysScores)
+
+invcov <- solve(cov(mydata))
+myScores <-  data.matrix(mydata) %*% invcov %*% data.matrix(loadings)
+head(myScores) #THIS is non-standardized
+print("Obviously, when using the non-standardized, it achieve different result")
+
+barx=colMeans(mydata)
+sdx=sqrt(diag(cov(mydata)))
+scaledx=sweep(mydata, 2, barx, "-")
+standx=sweep(scaledx, 2, sdx, "/")
+R1=solve(cov(standx))
+myScores <- data.matrix(standx) %*% R1 %*% data.matrix(loadings)
+head(myScores)
+print("Now it gets the same result as in the R function")
+
+#6e
+result <- rbind(colMeans(sysScores),
+                c(var(sysScores [,1]), var(sysScores [,2]), var(sysScores [,3])))
+row.names(result) <- c("mean", "variance")
+result
+cor(sysScores)
+``` 
+
+<br>
+
+# exercise 7
+
+In Promax-rotated, the factors are not independent, but still similar idea with question 5.
+
+
+```{r}
+fitpromax <- factanal(mydata, factors=3, rotation = "promax", scores="regression")
+
+#7c
+sysScores <- fitpromax$scores
+result <- rbind(colMeans(sysScores),
+                c(var(sysScores [,1]), var(sysScores [,2]), var(sysScores [,3])))
+row.names(result) <- c("mean", "variance")
+result
+cor(sysScores)
+
+#7d
+#the following are copied from exercise sheet with minor changes
+library(psych)
+library(GPArotation)
+fitpro3fa<- fa(r = cor(mydata), nfactors= 3,
+               rotate = "promax", fm = "ml", scores="regression")
+names(fitpro3fa) # objects
+fitpro3fa$communalities # compare these to tasks 5 & 6
+fitpro3fa$r.scores # correlation matrix of scores
+fitpro3fa$Phi # Phi=correlation matrix of factors
+fitpro3fa$loadings # A=loadings
+fitpro3fa$Structure # Phi*A
+# standardization of x variables
+barx=colMeans(mydata)
+sdx=sqrt(diag(cov(mydata)))
+scaledx=sweep(mydata, 2, barx, "-")
+standx=sweep(scaledx, 2, sdx, "/")
+R1=solve(cov(standx))
+# scores with regression method
+z=t(fitpro3fa$Structure)%*%R1%*%t(standx)
+head(t(z))
+# statistics of scores
+colMeans(t(z))
+cor(t(z))
+diag(cov(t(z)))
+``` 
+
+

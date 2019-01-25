@@ -1,0 +1,179 @@
+---
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    df_print: kable
+    theme: 'readable'
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+library(geoR)
+options(geoR.messages = FALSE)
+```
+
+# 3-1 Standard Errors by Simulation
+
+Tasaiselle satunnaisotannalle keskiarvoestimaattorin virhevarianssi on $\frac 1n \bigg( \sigma^2 - E C(U,V) \bigg)$, missä $\sigma^2 = C(0)$ (prosessin varianssi) ja $U$ sekä $V$ on valittu satunnaisesti ja riippumattomasti alueesta $S$. Kovarianssifunktioksi on mallinnettu $C(r) = e^{−20 r}, \ r\gt 0$ Alue $S$ on yksikköneliö $[0, 1] \times [0, 1]$. Laske virhevarianssi käyttäen simulointia.
+
+```{r d31}
+simple.mc<-function(a,m){
+  pdist<-sqrt((runif(m)-runif(m))^2+(runif(m)-runif(m))^2)
+  ecov<-exp(-a*pdist)
+}
+
+ecov<-simple.mc(10,1000)
+mean(ecov)
+ecov<-simple.mc(20,1000)
+mean(ecov)
+sd(ecov)/sqrt(length(ecov))
+```
+
+# 3-2 Application of Variogram
+
+Paperia on läpivalaistu 100 pisteessä, jotka on valittu tasaisella satunnaisotannalla $10 \times 10\ mm^2$ kokoisesta neliönmuotoisesta alueesta. Aineisto on `pap5tasotos.dat`. Paperinäytteen tiheysvaihtelu ja otanta-asetelma näkyvät oheisessa kuvassa. Aineistossa $xy$-koordinaattien resoluutio on $0.1 mm$, mikä on myös koordinaattien yksikkö. Tutkittavana muuttujana kussakin havaintopisteessä on beta-radiogrammilla mitattu neliömassa,joka kuvaa paperiaineksen konsentraatiota ko. pisteessä. Tehtävät: 
+
+(a) Laske suuntaisvariogrammit ja päättele niiden perusteella neliömassan isotrooppisuutta. 
+
+```{r d32a}
+pap5tasotosdata <- read.table("https://yan.fi/docs/sda/pap5tasotos.dat")
+pap5tasotosgeodata <-as.geodata(matrix(c(pap5tasotosdata$x,
+                                         pap5tasotosdata$y,
+                                         pap5tasotosdata$dat),ncol=3))
+
+plot(variog4(pap5tasotosgeodata, max.dis=50))
+```
+
+(b) Laske isotrooppinen variogrammi ja tulkitse sitä. 
+
+```{r d32b}
+plot(variog(pap5tasotosgeodata))
+variog(pap5tasotosgeodata)$var.mark
+```
+
+(c) Estimoi keskimääräinen neliömassa ja estimaattorin keskivirhe.
+
+```{r d32c}
+cat(mean(pap5tasotosdata$dat),
+    var(pap5tasotosdata$dat)/length(pap5tasotosdata$dat),
+    sqrt(var(pap5tasotosdata$dat)/length(pap5tasotosdata$dat)))
+```
+
+# 3-3 Systematic Sampling
+
+Tehdään samasta aineistosta systemaattinen otanta, jossa käytetään $10 \times 10$ -neliöhilaa. Aineisto on `pap5syst.dat`. Estimoi keskimääräinen neliömassa ja vertaa edellisen tehtävän tulokseen.
+
+```{r d33}
+pap5systdata<-read.table("https://yan.fi/docs/sda/pap5syst.dat")
+pap5systgeodata <-as.geodata(matrix(c(pap5systdata$x,
+                                      pap5systdata$y,
+                                      pap5systdata$dat),ncol=3))
+
+# piirretaan mielenkiinnon vuoksi semivariogrammi systemaattiselle otannalle.
+plot(variog(pap5systgeodata))
+
+# varianssin laskeminen kayttaen neliryhmamenetelmalla:
+neli<-function(sysdata)
+  {
+    attach(sysdata)
+    tvar<-vector(length=25)
+    ryhma<-matrix(c(1,2,11,12,3,4,13,14,5,6,15,16,7,8,17,18,9,10,19,20,
+                    21,22,31,32,23,24,33,34,25,26,35,36,27,28,37,38,29,30,39,40,
+                    41,42,51,52,43,44,53,54,45,46,55,56,47,48,57,58,49,50,59,60,
+                    61,62,71,72,63,64,73,74,65,66,75,76,67,68,77,78,69,70,79,80,
+                    81,82,91,92,83,84,93,94,85,86,95,96,87,88,97,98,89,90,99,100),
+                  ncol=4, byrow=T)
+    for(k in 1:25){
+      tvar[k]=1/4*(dat[ryhma[k,1]]-dat[ryhma[k,2]]-dat[ryhma[k,3]]+dat[ryhma[k,4]])^2
+    }
+    detach(sysdata)
+    mean(tvar)/100
+}
+sqrt(neli(pap5systdata))
+
+```
+
+# 4-1 Moran Test
+
+Tutustu R:n `eire` aineistoon, Moranin I tunnuslukuun avulla. Tutki  mitä funktio `moran.test` tekee ja tulkitse testin tulos.
+
+> Moran Test
+
+```{r d41a}
+library(spdep); library(spData); library(maptools)
+data(eire)
+# eire-aineisto avataankin useana objektina 
+eire.nb # pitaisi olla reunanaapurit
+mtest <- moran.test(eire.df$A,listw=nb2listw(eire.nb))
+mtest
+#Standard deviate: (I-E[I])/sqrt(varianssi)
+sd <- (mtest$estimate[1]-mtest$estimate[2])/sqrt(mtest$estimate[3])
+1-pnorm(sd)
+```
+
+> Moran Monte Carlo Test
+
+```{r d41b}
+# Bivand et al.
+# p. 281: "A Monte Carlo test, a permutation bootstrap test, where the 
+# observed values are randomlyassigned to the tracts"
+# p.278: "test tuned to the setting are sometimes needed" 
+
+moran.mc(eire.df$A,listw=nb2listw(eire.nb),nsim=999)
+moran.mc(eire.df$A,listw=nb2listw(eire.nb, style = "B"),nsim=999)
+```
+
+# 4-2 Japanese Pines Dataset
+
+Tutustu R:n `japanesepines` aineistoon.
+
+a) Piirrä $K$-funktiot eri reunakorjauksilla (none, border, isotropic, translate). Selvitä R:n helpin ja/tai kirjallisuuden avulla, miten nämä eroavat toisistaan. Saatko selville, mitä reunakorjausta envelopefunktio
+käyttää oletuksena?
+
+> K function estimation edge border translate isotropic
+
+```{r d42a}
+library(spatstat); library(maptools); library(lattice)
+
+data(japanesepines)
+spjpines <- as(japanesepines, "SpatialPoints")
+spjpines1 <- elide(spjpines, scale=TRUE, unitsq=TRUE)
+# K(r):n estimointi ja piirto eri reunakorjauksilla:
+K <- Kest(as(spjpines1, "ppp"), 
+          correction=c("none","border","isotropic","translate"))
+plot(K)
+
+K <- Kest(as(spjpines1, "ppp"), correction=c("best"))
+plot(K)
+
+K <- Kest(as(spjpines1, "ppp"), correction=c("all"))
+plot(K, col = c(1:6,10), lwd = 2)
+
+# Virheputki, ei kysytty
+Kenvjap <- envelope(japanesepines, fun = Kest, nrank = 2, nsim = 99) 
+plot(Kenvjap, . ~ r, ylab = "K(r)", main = "K(r) function for Japanesepines")
+
+```
+
+b) Selvitä, miten estimoit $L(r)$-funktion ja miten lasket sille virheputken (envelope). Piirrä kuvaaja.
+
+```{r d42b}
+Kenvjap <- envelope(japanesepines, fun = Kest, nrank = 2, nsim = 99) 
+plot(Kenvjap, sqrt(./pi) ~ r, ylab = "L(r)", 
+     main = "L function for Japanesepines")
+# TAI 
+Lenvjap <- envelope(japanesepines, fun = Lest, nrank = 2, nsim = 99) 
+plot(Lenvjap, . ~ r, ylab = "L(r)")
+
+```
+
+c) Selvitä, miten estimoit $L(r)$- r-funktion ja miten lasket sille virheputken. Piirrä kuvaaja.
+
+```{r d43c}
+plot(Lenvjap, . - r ~ r, ylab = "L(r)-r", 
+     main = "L(r)-r function for Japanesepines")
+```

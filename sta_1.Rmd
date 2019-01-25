@@ -1,0 +1,124 @@
+---
+title: ""
+author: "PAN Yan"
+output:
+  html_document:
+    df_print: paged
+    theme: readable
+---
+
+<style>
+h1,h2,h3{
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  padding-top: 20px;
+}
+blockquote{
+  font-size: 16px; !important;
+}
+</style>
+
+
+Important tasks are 4 and 5.
+
+
+## Demonstration 1 Exercise 1
+
+Give an example of $f=(f_1, f_2):\Omega\to \mathbb R^2$, such that $f_1$ and $f_2$ are Gaussian, but vector is not.
+
+<blockquote>
+$$\begin{aligned}
+\text{Denote } \varphi \text{ to be the Gaussian density.}
+\\ 
+f(\omega_1, \omega_2): &= \begin{cases} 2\varphi(\omega_1, \omega_2) & \text{if }\omega_1\omega_2 >= 0 \\ 0 & \text{otherwise} \end{cases}
+\\ 
+\text{ which is not a Gaussian, but}
+\\ 
+f_1(\omega_1) & = \int_{\omega_2 \in \mathbb R} f(\omega_1, \omega_2)
+\\
+&= \int_{\omega_2 >0} f(\omega_1, \omega_2) + \int_{\omega_2< 0} f(\omega_1, \omega_2) 
+\\
+&=  \frac 1 2 \phi(\omega_1) \mathbf{1}_{\omega_1 > 0} + \frac 1 2 \phi(\omega_1) \mathbf{1}_{\omega_1 < 0}
+\\
+&= \phi(\omega_1) \text{ is Gaussian, and same for }f_2
+\end{aligned}$$
+</blockquote>
+
+## Demonstration 1 Exercise 2
+
+Prove that $\int_{\mathbb R} (x-m)^2 e^{- \frac{(x-m)^2}{2\sigma^2}} \frac{dx}{\sqrt{2\sigma^2 \pi}}= \sigma^2$
+
+<blockquote>
+$$\begin{aligned} 
+\text{Let }\varphi:\mathbb R \to \mathbb R,\ \ \varphi(x) = \frac{x-m}{\sqrt{\sigma^2}} &\text{, clearly a continuous mapping}
+\\
+\text{therefore, subsitute }\frac{x-m}{\sqrt{\sigma^2}} \text{ with }y
+\\ 
+\int_{\mathbb R} (x-m)^2 e^{- \frac{(x-m)^2}{2\sigma^2}} \frac{dx}{\sqrt{2\sigma^2 \pi}} &= \int_{\mathbb R} \sigma^2 y^2 e^{-\frac{y^2}{2}} \frac{\sqrt{\sigma^2} dy}{\sqrt{\sigma^2} \sqrt{2\pi}}
+\\
+&= \sigma^2 \int_{\mathbb R} y^2 e^{-\frac{y^2}{2}} \frac{dy}{ \sqrt{2\pi}}
+\\
+&= \sigma^2
+\end{aligned}$$
+</blockquote>
+
+## Demonstration 1 Exercise 3
+
+Let $X = (X_t)_{t≥0}$ be a Gaussian process on $(\Omega, \mathcal F, \mathbb P)$. Define the new process $Y = (Y_t)_{t≥0}$ by $Y_0 \equiv 0$ and $Y_t := X_{\frac 1 t}$ for $t > 0$. Is the process $Y$ a Gaussian process?
+
+<blockquote>
+Suppose $(Y_t)_{t\geq 0}$ is NOT a Gaussian process. Then, there must exists such $0\lt t_1 \lt t_2 \lt \cdots \lt t_n$ that the vector $(Y_{t_1}, Y_{t_2}, \dots, Y_{t_n} )$ is not Gaussian. Therefore, we can find a vector $a = ( a_1, a_2 ,\dots, a_n) \in \mathbb R^n$ such that $\sum\limits_{i=1}^n a_iY_{t_i}(\omega)$ is not Gaussian.
+
+Select $t'_1 = \frac 1 {t_n}, \dots, t'_n = \frac 1 {t_1}$. As vector $(Y_{t_1}, Y_{t_2}, \dots, Y_{t_n}) \equiv (X_{t_n'}, X_{t_{n-1}'}, \dots, X_{t_1'})$, the random variable $\sum\limits_{i=1}^n a_i X_{\frac 1{t_i}}(\omega)$ is not Gaussian. This implies that $(X_t)_{t\geq 0}$ is not a Gaussian process, which is a contradiction.
+
+Consequently, $(Y_t)_{t\gt 0}$ is a Gaussian process. It can be easily extend to $t\geq 0$ since $Y_0\equiv 0$ ensures the random variable $<Y_{t}(\omega),\ a>$ not affected.
+</blockquote>
+
+
+## Demonstration 1 Exercise 4
+ 
+Construct a stochastic process $X = (X_t)_{t\in[0,1]}$ such that each $X_t: \Omega \to \mathbb R$ is Gaussian, but the process is not a Gaussian process. 
+
+<blockquote>
+It is sufficient to "pick" one pair of random variable2e $X_a$ and $X_b,\ 0\leq a\lt b \leq 1$ that follows the distribution specified in exercise 1, which is
+
+$$X = \begin{cases} 
+(Y_t)_{t\in [0,1/2]} & \text{ a Guassian process} \\
+(Z_t)_{t\in (1/2, 0]} &Z  = f(\omega_1,\omega_2)  \text{ as in ex.1}
+\end{cases}$$
+
+</blockquote>
+
+## Demonstration 1 Exercise 5
+
+Assume that $X = (X_t)_{t\in[0,1]}$ is a continuous stochastic process on $(\Omega, \mathcal F, \mathbb P)$. Prove that the process is measurable.
+
+<blockquote>
+Let $X_t^n(\omega):= X_{T\frac {k-1} {2^n}}(\omega),\ \ t=\big[T\frac {k-1} {2^n}, T\frac {k} {2^n}\big)$. 
+
+Check the measurability of $X^n$, for $B\in \mathcal B(\mathbb R)$,
+
+$$\begin{aligned} (X^n)^{-1}(B)
+=&\ \  (\ \{T\} \times X_T^{-1}(B)\ ) &\in \mathcal B([0,T]) \otimes \mathcal F
+\\ &\bigcup \bigg(\ \bigg[T\frac {2^n-1} {2^n}, T\frac {2^n} {2^n}\bigg) \times X_{T \frac{2^n-1}{2^n}}^{-1}(B)\ \bigg)  &\in \mathcal B([0,T]) \otimes \mathcal F
+\\ &\bigcup \dots 
+\\ &\bigcup \bigg(\ \bigg[T\frac {2^k-1} {2^n}, T\frac {2^k} {2^n}\bigg) \times X_{T \frac{2^k-1}{2^n}}^{-1}(B)\ \bigg)  &\in \mathcal B([0,T]) \otimes \mathcal F
+\\ &\bigcup \dots
+\\ &\bigcup \bigg(\ \bigg[0, T\frac {1} {2^n}\bigg) \times X_{T \frac{1}{2^n}}^{-1}(B)\ \bigg)  &\in \mathcal B([0,T]) \otimes \mathcal F
+\end{aligned}$$
+
+So, $(X^n)^{-1}(B)$ is measurable.
+
+Further, given by continuity, $X_s(\omega) = \lim_{n\to\infty} F_n(s,\omega)$ holds.
+
+Therefore, continuous stochastic process is measurable.
+</blockquote>
+
+## Demonstration 1 Exercise 6
+
+Is there a stochastic process $X = (X_t)_{t\geq 0}$ on $(\Omega, \mathcal F, \mathbb P)$ such that $\mathbb E X_t^2 \lt \infty,\ \mathbb EX_t=0$ and it covariance $\Gamma(s,t) = \mathbb E X_sX_t = (s+t)st$
+
+<blockquote>
+$\mathbb E X_t^2 = \mathbb E X_tX_t = (t+t)tt = 2 t^3$
+
+not done
+</blockquote>
