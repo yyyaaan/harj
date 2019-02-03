@@ -1,0 +1,201 @@
+---
+author: "PAN Yan"
+---
+
+```{r setup, echo=F, result = 'hide'}
+require(magrittr)
+require(cluster)
+require(fpc)
+require(clue)
+```
+
+# 1. Understand R-functions
+<blockquote>
+Get familiar with functions `agnes` `plot.agnes` and `summary.agnes`
+</blockquote>
+`agnes` computes agglomeration hierarchical clustering of the data-set.
+
+```{r rlr201a}
+require(cluster)
+# quoted from help page
+data(votes.repub) # sample data
+agn1 <- agnes(votes.repub, 
+              metric = "manhattan",  # can be "euculidean"
+              stand = TRUE)          # standardize before?
+
+plot(agn1, which.plots = 2) # this will call plot.agnes
+
+summary(agn1) # this will call summary.agnes
+
+```
+
+
+
+# 2. Understand R-functions
+
+<blockquote>
+Get familiar with functions `dist` `diana`, `plot.diana` and `cluster.stats`.
+</blockquote>
+
+`diana` computes a divisive hierarchical clustering of the data-set returning an object of class diana.
+
+The result and plot is in the same form as `agnes`
+
+
+```{r rlr202a}
+# dist(votes.repub, method = "euclidean", p = 2) # other variables are not important 
+# we can pass the result of dist instead of data to diana
+d  <- dist(votes.repub, method = "manhattan")
+dv <- diana(d, stand = TRUE)
+plot(dv, which.plots = 2)
+cluster <- dv$order
+require(fpc)
+cluster.stats(d, cutree(dv,2)) %>% unlist()
+```
+
+
+
+# 3. Divisive methods and dendrograms
+
+<blockquote>
+Using the matrix $X$ given in lecture notes and choose proper dendrogram for distance matrix.
+</blockquote>
+```{r rlr203a}
+x <- matrix(c(1,1,2,1,5,4,6,5,6.5,6), byrow=T, ncol=2)
+dist(x, method = "manhattan") %>%
+  diana() %>%
+  plot(which.plots = 2)
+# same as agnes(x, metric = "manhattan")
+
+```
+
+
+# 4. Altruism data set clustering by hierarchical methodology
+
+<blockquote>
+Using different linkage function to perform clustering with manhattan distance.
+</blockquote>
+
+```{r rlr204a}
+
+altruismi <- readRDS("altruismi_corrected.rds")
+# perform clustering | results are in a list
+clusters <- lapply(c("average", "single", "complete", "ward"),
+                  function(m) agnes(altruismi, metric="manhattan", method=m, keep.diss = T))
+clusters[[5]] <-diana(altruismi, metric = "manhattan", keep.diss = T)
+names(clusters) <- c("average", "single", "complete", "ward", "diana")
+
+# plots
+par(mfrow=c(2,3))
+lapply(clusters, plot, which.plots = 2, main = "")
+```
+
+Based on the graph, it seems that the agglomerative nesting by complete linkage and ward, together with divisive methods are relatviely more proper.
+
+```{r rlr204b}
+require(clue)
+lapply(clusters, function(cl) cl_dissimilarity(cl, cl$diss,  "cophenetic"))
+```
+
+Therefore, agglomerative nesting with Ward method is the best in the sense of Cophenetic correlation.
+
+
+# 5. Random test of Ward method
+
+Based on random position hypothesis with DISCRETE uniform distribution.
+
+</blockquote>
+```{r rlr205a}
+simAltruismi <- function(originalData = altruismi){
+  simData <- originalData
+  N <- nrow(originalData)
+  for(col_i in 1:ncol(originalData)){
+    simData[ ,col_i] <- sample(originalData[, col_i], N, replace = T)
+  }
+  simData
+}
+
+testWard <- function(m = 100){
+  cpcc <- numeric(m)
+  for (i in 1:m) {
+    simData <- simAltruismi()
+    result  <- agnes(simData, metric="manhattan", method="ward", keep.diss = T)
+    cpcc[i] <- cl_dissimilarity(result, result$diss, "cophenetic")
+  }
+  cpcc
+}
+
+hist(testWard())
+```
+
+
+# 7. Choice of $k$
+<blockquote>
+Select the most suitable $k$ in case of Ward method.
+</blockquote>
+
+```{r rlr207a}
+agnes_ward <- clusters[[4]] # from previous exercises
+# note list starts from 2 to 8
+cl_ward_gamma <- lapply(2:8, function(k) 
+  cluster.stats(agnes_ward$diss, cutree(agnes_ward, k))$pearsongamma)
+cl_ward_gamma %>% unlist
+```
+So, choose $k=3$
+
+<blockquote>
+Select the most suitable $k$ in case of K-medoids method.
+</blockquote>
+```{r rlr207b}
+diss <- dist(altruismi, method = "manhattan")
+cl_pam_gamma <- lapply(2:8, function(k)
+  cluster.stats(diss, pam(altruismi, k)$clustering)$pearsongamma)
+cl_pam_gamma %>% unlist
+```
+
+In this case, $k = 6$ is the best.
+
+<blockquote>
+Which one of the above is better?
+</blockquote>
+
+Ward-method seems to be nicer due to smaller normalized Huber Gamma (Pearson Gamma).
+
+
+# 8. Choice of the method, if fix the group number to be 3
+
+Use Huber Gamma to measure
+
+```{r rlr208a}
+# hierarchical results from exercise 4
+
+
+gammas <- lapply(clusters, function(cl)
+  cluster.stats(diss, cutree(cl, 3))$pearsongamma)
+gammas[[6]] <- cl_pam_gamma[4] # from the previous
+names(gammas) <- c("average", "single", "complete", "ward", "diana", "pam")
+
+gammas
+```
+
+The best is still Ward method
+
+
+# 9. Gene data set
+
+<blockquote>
+Using hierarchical methods and Euclidean distance.
+</blockquote>
+```{r rlr209as}
+load("nci.rdata")
+nci_df <- data.frame(t(nci))
+# Euclidean is the default value for metric
+clusters <- lapply(c("average", "single", "complete", "ward"),
+                  function(m) agnes(nci_df, method=m, keep.diss = T))
+clusters[[5]] <-diana(altruismi, keep.diss = T)
+names(clusters) <- c("average", "single", "complete", "ward", "diana")
+
+par(mfrow = c(2,3))
+lapply(clusters, plot, which.plots = 2, main = "")
+
+```

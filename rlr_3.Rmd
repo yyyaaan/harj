@@ -1,0 +1,200 @@
+---
+author: "PAN Yan"
+---
+
+```{r setup, echo=F, result = 'hide'}
+require(magrittr)
+require(cluster)
+require(fpc)
+require(clue)
+```
+
+Working with Bugs-data (Pohjaeläinaineisto). There are a few modifications from training R code.
+
+# 1. Reading data
+
+```{r rlr301a}
+bugs<-read.table("bugs.dat",header=TRUE)
+bugs %>% str
+```
+
+# 2. Filter data
+
+```{r rlr302a}
+index1<-which( bugs$Species=="Baetisrhodani")
+index2<-which( bugs$Species=="Hydropsychepellucidulla")
+osadata<-bugs[c(index1,index2),]
+osadata$Species<-factor(osadata$Species, labels=c("Baetis","Hydro"))
+osadata<-osadata[, c(1,2,8)]
+names(osadata)
+```
+
+# 3. Training and Testing Datasets
+
+```{r rlr303a}
+# randomly divided into two subsets
+M<-ncol(osadata)
+N<-nrow(osadata)
+set.seed(123)
+train.rows<-sample(1:N, 0.5*N)
+osa.train<-osadata[train.rows,]
+osa.test<-osadata[-train.rows,]
+```
+
+# 4. Check Data
+
+```{r rlr304a}
+  # a lot of modifications from Harj3
+baetis<-osa.train[osa.train$Species=="Baetis",]
+summary(baetis)
+hydro<-osa.train[osa.train$Species=="Hydro",]
+summary(hydro)
+
+require(ggplot2); require(reshape2)
+osa.train %>% 
+  melt("Species") %>% # long format for easy plotting
+  ggplot() + geom_boxplot(aes(y = value, color = Species)) + 
+  facet_wrap(~variable, scales = "free_y")
+
+```
+
+# 5. Classification of Test Data
+
+```{r rlr305x}
+  # prepare data structure
+osa.test$SpeciesInt <- as.numeric(osa.test$Species)
+osa.test$SpeciesLk <- rep(0, nrow(osa.test))
+  # key value from training
+training1 <- osa.train[osa.test$SpeciesInt == 1, 2:3]
+training2 <- osa.train[osa.test$SpeciesInt == 2, 2:3]
+m1 <- colMeans(training1)
+m2 <- colMeans(training2)
+cov1 <- cov(training1)
+cov2 <- cov(training2)
+```
+
+(a) Euclidean Distance
+
+```{r rlr305a}
+osa.test.euclidean <- osa.test
+for(i in 1:nrow(osa.test.euclidean)){
+  d1 <- dist(rbind(osa.test.euclidean[i, 2:3], m1), method = "euclidean")
+  d2 <- dist(rbind(osa.test.euclidean[i, 2:3], m2), method = "euclidean")
+  if(d1 <= d2) osa.test.euclidean$SpeciesLk[i] <- 1
+  else osa.test.euclidean$SpeciesLk[i] <- 2
+}
+table(osa.test.euclidean$SpeciesInt, osa.test.euclidean$SpeciesLk)
+```
+
+(b) Mahalanobis Distance
+
+```{r rlr305b}
+osa.test.mahalanobis  <- osa.test
+for(i in 1:nrow(osa.test.mahalanobis )){
+  d1 <- mahalanobis(osa.test.mahalanobis [i, 2:3], m1, cov1)
+  d2 <- mahalanobis(osa.test.mahalanobis [i, 2:3], m2, cov2)
+  if(d1 <= d2) osa.test.mahalanobis $SpeciesLk[i] <- 1
+  else osa.test.mahalanobis$SpeciesLk[i] <- 2
+}
+table(osa.test.mahalanobis$SpeciesInt, osa.test.mahalanobis$SpeciesLk)
+```
+
+(c) 2-dimensional Normal Density with Same Prior
+
+```{r rlr305c}
+require(mvtnorm)
+
+osa.test.mvnorm  <- osa.test
+for(i in 1:nrow(osa.test.mvnorm )){
+  p1 <- dmvnorm(osa.test.mvnorm [i, 2:3], m1, cov1)
+  p2 <- dmvnorm(osa.test.mvnorm [i, 2:3], m2, cov2)
+    # greater p implies classification
+  if(p1 <= p2) osa.test.mvnorm $SpeciesLk[i] <- 2
+  else osa.test.mvnorm$SpeciesLk[i] <- 1
+}
+table(osa.test.mvnorm$SpeciesInt, osa.test.mvnorm$SpeciesLk)
+```
+
+(d) 2-dimensional Normal Density with Training Probability as Prior
+
+```{r rlr305d}
+prior1 <- sum(osa.train$Species == "Baetis")/nrow(osa.train)
+prior2 <- sum(osa.train$Species == "Hydro")/nrow(osa.train)
+
+  # use posterior directly, instead of derived conditions
+osa.test.mvnormprior <- osa.test
+for(i in 1:nrow(osa.test.mvnormprior)){
+  p1 <- dmvnorm(osa.test.mvnormprior[i, 2:3], m1, cov1)
+  p2 <- dmvnorm(osa.test.mvnormprior[i, 2:3], m2, cov2)
+  post1 <- prior1 * p1 / (prior1 * p1 + prior2 * p2)
+  post2 <- prior2 * p2 / (prior1 * p1 + prior2 * p2)
+
+    # greater p implies classification
+  if(post1 <= post2) osa.test.mvnormprior$SpeciesLk[i] <- 2
+  else osa.test.mvnormprior$SpeciesLk[i] <- 1
+}
+table(osa.test.mvnormprior$SpeciesInt, osa.test.mvnormprior$SpeciesLk)
+
+```
+
+(e) 2-dimensional Normal Density by Naive Bayesian
+
+```{r rlr305e}
+osa.test.naivebayes <- osa.test
+cov1.diag <- matrix(c(cov1[1,1], 0, 0, cov1[2,2]), ncol = 2)
+cov2.diag <- matrix(c(cov2[1,1], 0, 0, cov2[2,2]), ncol = 2)
+
+for(i in 1:nrow(osa.test.naivebayes)){
+  p1 <- dmvnorm(osa.test.naivebayes[1, 2:3], m1, cov1.diag)
+  p2 <- dmvnorm(osa.test.naivebayes[i, 2:3], m2, cov2.diag)
+  post1 <- prior1 * p1 / (prior1 * p1 + prior2 * p2)
+  post2 <- prior2 * p2 / (prior1 * p1 + prior2 * p2)
+
+    # greater p implies classification
+  if(post1 <= post2) osa.test.naivebayes$SpeciesLk[i] <- 2
+  else osa.test.naivebayes$SpeciesLk[i] <- 1
+}
+table(osa.test.naivebayes$SpeciesInt, osa.test.naivebayes$SpeciesLk)
+
+```
+
+# 6. LDA function
+
+```{r rlr306a}
+require(MASS)
+  # seems to be corresponding to Euclidean
+LDA<-lda(Species ~.,data=osa.train, prior=c(0.50,0.50))
+LDA.pred<-predict(LDA,newdata=osa.test)
+table(osa.test$Species,LDA.pred$class)
+```
+
+# 7. QDA function
+
+```{r rlr307a}
+QDA<-qda(Species ~.,data=osa.train, prior=c(0.50,0.50))
+QDA.pred<-predict(QDA,newdata=osa.test)
+table(osa.test$Species, QDA.pred$class)
+```
+
+# 8. Consider Loss Function using QDA result
+
+```{r rlr308a}
+post1.qda <- QDA.pred$posterior[,1]
+post2.qda <- QDA.pred$posterior[,2]
+loss1on2 <- 1
+loss2on1 <- 2
+
+osa.test.qdaloss <- osa.test
+
+for(i in 1:nrow(osa.test.qdaloss)){
+  risk1 <- loss1on2 * post2.qda[i]
+  risk2 <- loss2on1 * post1.qda[i]
+
+    # greater p implies classification
+  if(risk1 <= risk2) osa.test.qdaloss$SpeciesLk[i] <- 1
+  else osa.test.qdaloss$SpeciesLk[i] <- 2
+}
+table(osa.test.qdaloss$SpeciesInt, osa.test.qdaloss$SpeciesLk)
+
+
+```

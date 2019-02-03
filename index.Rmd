@@ -14,3 +14,4 @@ $$\begin{aligned}
  \frac{d \boldsymbol {x}^T \boldsymbol A}{d \boldsymbol x} &= \boldsymbol A^T\\
  \frac{d \boldsymbol {x}^T \boldsymbol {Ax}}{d \boldsymbol x} &= \boldsymbol x^T ( \boldsymbol A + \boldsymbol A^T )
 \end{aligned}$$
+

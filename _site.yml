@@ -8,12 +8,20 @@ navbar:
           href: sta_1.Rmd
         - text: "harj.2"
           href: sta_2.Rmd
+        - text: "harj.3"
+          href: sta_3.Rmd
+        - text: "harj.4"
+          href: sta_4.Rmd
     - text: "Ryhmittelymenetelmiä"
       menu:
         - text: "harj.1"
           href: rlr_1.Rmd
         - text: "harj.2"
           href: rlr_2.Rmd
+        - text: "harj.3"
+          href: rlr_3.Rmd
+        - text: "harj.4"
+          href: rlr_4.Rmd
     - text: "Other Courses"
       href: about.html
       menu:
