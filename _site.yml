@@ -1,5 +1,4 @@
 name: "HT"
-output_dir: "_xxx_site"
 navbar:
   title: "Harjoitukset"
   left:
