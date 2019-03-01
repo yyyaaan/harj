@@ -1,20 +1,8 @@
----
-title: "Demo 1"
-author: Yan Pan
-output:
-  html_document:
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: paged
-    theme: 'readable'
----
+# Yleistetty Lineaarinen Malli (Demo 1)
 
 Notation: $\log$ is the real-valued natural logrithm.
 
-#Exercise 1
+## Exercise 1
 Show that $Y\sim Poisson(\lambda)$ belongs to exponential family
 
 <blockquote>
@@ -24,7 +12,7 @@ $$\begin{cases} \theta:=  \log\lambda \\ a(\phi) := 1 \\ b(\theta):=e^\theta \\ 
 </blockquote>
 
 
-#Exercise 2
+## Exercise 2
 Suppose $Y\sim Bin(k,\pi)$. Show that $Z=Y/k$ belongs to exponential family.
 
 <blockquote>
@@ -37,7 +25,7 @@ $$\begin{aligned} P(Z=z) &=  \pi^{z}(1-\pi)^{1-z}
 \end{aligned}$$
 </blockquote>
 
-#Exercise 3
+## Exercise 3
 Calculate the mean and variance of Poisson and Bernoulli distribution
 
 <blockquote>
@@ -48,7 +36,7 @@ Poisson: $E(Y)=e^\theta = \lambda,\ \ \text{Var}(Y)= e^\theta =\lambda$.
 Bernoulli: $E(Y)= \frac {e^\theta}{1+e^\theta} = \pi,\ \ \text{Var}(Y)= \frac{e^\theta(1+ e^\theta) - e^\theta e^\theta}{(1+e^\theta)^2} = \pi(1-\pi)$
 </blockquote>
 
-#Exercise 4
+## Exercise 4
 Likelihood-equation for Possion using (canonical) link function
 
 <blockquote>
@@ -63,7 +51,7 @@ $$\begin{aligned} \sum\limits_{i=1}^n \frac{(y_i-\mu_i)x_{ij}}{ a_i(\phi)\text{V
 \end{aligned}$$
 </blockquote>
 
-#Exercise 5
+## Exercise 5
 Likelihood-equation for Binomial using (canonical) link function
 
 <blockquote>
@@ -78,7 +66,7 @@ $$\begin{aligned} \sum\limits_{i=1}^n \frac{(y_i-\mu_i)x_{ij}}{ a_i(\phi)\text{V
 \end{aligned}$$
 </blockquote>
 
-#Exercise 6
+## Exercise 6
 Show that the Gamma-distribution is in the exponential family
 
 <blockquote>
@@ -94,7 +82,7 @@ $$\begin{aligned} f(y,\mu,\phi)
 \end{aligned}$$
 </blockquote>
 
-#Exercise 7
+## Exercise 7
 
 Calculate the mean and variance for the Gamma-distribution above
 

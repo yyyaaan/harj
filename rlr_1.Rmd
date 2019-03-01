@@ -1,23 +1,10 @@
----
-title: ""
-author: "PAN Yan"
-output:
-  html_document:
-    df_print: paged
-    theme: readable
----
+# Ryhmittely-, luokittelu- ja regressiomenetelmiä (Demo 1)
 
-<style>
-h1,h2,h3{
-  font-family: Georgia,"Times New Roman",Times,serif !important;
-  padding-top: 20px;
-}
-blockquote{
-  font-size: 16px; !important;
-}
-</style>
+```{r echo=F}
+load("rlr_0.RData")
+```
 
-```{r echo=F, results='hide'}
+```{r setup, echo=T, results='hide'}
 require(magrittr)
 require(cluster)
 require(fpc)
@@ -71,7 +58,7 @@ b) read data <code>altruism.dat</code> and correct B18E data.
 
 ```{r rlr101a}
 options(stringsAsFactors = T)
-aineisto <- read.table("altruismi.dat")
+aineisto <- altruismi
 str(aineisto)
 aineisto$B18E[aineisto$B18E == 133.9] <- 13.9
 ```
@@ -176,8 +163,6 @@ save(nci, label, file = "nci.rdata")
 ```
 
 ```{r rlr107b}
-  # load cached data (improve r-markdown performance)
-load("nci.rdata")
   # transpose
 nci_df <- data.frame(t(nci))
   # k-means

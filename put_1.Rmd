@@ -1,20 +1,6 @@
----
-title: "TILS1510 Harjoitustehtävät 1"
-author: "Yan PAN"
-output:
-  html_document:
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: paged
-    theme: 'readable'
----
+# Puuttuvat Tiedot (Demo 1)
 
-<style>blockquote{font-size: 16px;}</style>
-
-#Exercise 1
+## Exercise 1
 <blockquote>
 Coarse Data from Heitjan & Rubin (1991)
 </blockquote>
@@ -23,21 +9,21 @@ Coarse data, to some extent, can be seen as "inaccurately" observed data, for ex
 
 CAR (coarsened at random) means that the coarsening is consistent, i.e. the observed coarsened value always stay the same for constant true values.
 
-#Exercise 2
+## Exercise 2
 <blockquote>
 Concerning SOTE(Social and Health) Reform questionnaire. So far only 475 valid responses from 3000 sample, and currently seeking to extend another 2000 samples.
 </blockquote>
 
 The key of extending samples is first to avoid any possible bias. Therefore, the previous sampling methodology will be needed, where population size should be available. Most likely, SOTE is a stratified sampling, therefore, the proportion of each group must stay the same, which is required to ensure the validity of post-stratified methodology. In addition, the response rate is better to be the same level as previous (despite not very favorable, it eliminate the bias in sampling)
 
-#Exercise 3
+## Exercise 3
 <blockquote>
 Factors that affect the response probability in health examination surveys.
 </blockquote>
 
 The health status itself can have strong influence (unhealthy ones tend to avoid the questionnaires); Personal backgrounds including age, profession (and employment status), leisure time and political views etc.
 
-#Exercise 4
+## Exercise 4
 <blockquote>
 Consider the following structure
 
@@ -91,7 +77,7 @@ row.names(df) <- c("Y1", "Y2")
 df
 ```
 
-#Exercise 5
+## Exercise 5
 <blockquote>
 In linear regression, suppose the missingness of $X,Y$ only depends on $X$. Show that the regression coefficients in CC analysis is unbiased.
 </blockquote>
@@ -109,7 +95,7 @@ $$\begin{aligned} E(\widehat{\beta_{CC}})
 
 This concludes the unbiasedness.
 
-#Exercise 6
+## Exercise 6
 <blockquote>
 Suppose the random variables:
 

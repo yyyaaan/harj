@@ -1,21 +1,11 @@
----
-output:
-  html_document:
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: kable
-    theme: 'readable'
----
-
+# Spatiaalinen Analyysi (Demo 1)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 library(geoR)
 ```
 
-# 1-4 Intro to GeoR
+## 1-4 Intro to GeoR
 
 Check the data set `ca20` from `geoR`.
 

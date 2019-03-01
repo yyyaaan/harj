@@ -1,0 +1,16 @@
+# Stockastic Analysis (Demo 4)
+
+
+## Demonstration 4 Exercise 1
+
+Let $(\Omega, \mathcal F, \mathbb P)$ be a probability space and $\mathcal M := \{A\in \mathcal F: \mathbb P(A)=0\}$. Why $\mathcal M$ not a $\sigma$-algebra? Describe the smallest one that contains all elements from $\mathcal M$.
+
+<blockquote>
+Obviously, $A^c = \Omega \setminus A \notin \mathcal M$, and thus it cannot be a $sigma$-algebra.
+
+The smallest one is $\{A\in\mathcal F: \mathbb P(A)=0\}\bigcup \{A\in\mathcal F: \mathbb P(A)=1\}$
+</blockquote>
+
+## Demonstration 4 Exercise 2
+
+

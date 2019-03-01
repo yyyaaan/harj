@@ -1,17 +1,4 @@
----
-title: "Stochastic Simulation | Problems 5"
-author: " Yan PAN"
-output:
-  html_document:
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: paged
-    theme: 'readable'
-    css: "https://yan.fi/docs/theme/rmd.css"
----
+# Stochastic Simulation | Problems 5
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(echo = TRUE, 

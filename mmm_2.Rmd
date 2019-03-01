@@ -1,14 +1,11 @@
----
-title: "Demo 2"
-author: "Yan Pan | 6 exercises completed | created with R-markdown"
-output: html_document
----
+# TILS644 Monimuuttujamenetelmät (Demo 2)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+load("mmm_0.RData")
 ```
 
-#exercise 1
+## exercise 1
 ###(a) 
 
 $$\begin{align} E(\boldsymbol{Z}) &= E( \boldsymbol{P} ^{T} )  \big( E \boldsymbol{X} - E \boldsymbol{\mu}  \big) \\ &=  E( \boldsymbol{P} ^{T} ) ( \boldsymbol{\mu} - \boldsymbol{\mu} ) \\ &=  \boldsymbol{0}  \\ cov( \boldsymbol{Z} ) &= E  \big( \boldsymbol{P} ^{T}( \boldsymbol{X} -\boldsymbol{\mu} ) \big)  \big( \boldsymbol{P} ^{T}( \boldsymbol{X} -\boldsymbol{\mu} ) \big)^T  \\ &=  E  \bigg(  \boldsymbol{P} ^T (\boldsymbol{X-\mu} ) (\boldsymbol{X-\mu} )^T \boldsymbol{P}  \bigg) \\ &=  \boldsymbol{P} ^T E[(\boldsymbol{X-\mu} ) (\boldsymbol{X-\mu} )^T]  \boldsymbol{P}  \\ &=  \boldsymbol{P} ^T ( \boldsymbol{P\Lambda P}^T ) \boldsymbol{P} \\ &=  \boldsymbol{\Lambda}     \end{align} $$  
@@ -17,7 +14,7 @@ $$\begin{align} E(\boldsymbol{Z}) &= E( \boldsymbol{P} ^{T} )  \big( E \boldsymb
 By the properties of matrix, $tr(\boldsymbol{P\Lambda P}^T ) = tr(\boldsymbol{\Lambda P P} ^T) = tr(\Lambda)$, since $\boldsymbol{P}$ is orthogonal. This proves $tr(\boldsymbol{\Sigma} ) = tr( \boldsymbol{\Lambda} )$.
 Further, $tr( \boldsymbol{\Sigma} ) = \sum\limits_{i=1}^{ p}  \lambda_i$  is by property of eigenvalues.
 
-#exercise 2
+## exercise 2
 Calculate the eigenvalues:
  
 $\bigg|  \begin{bmatrix} 5-\lambda & 2 \\ 2 & 2- \lambda \end{bmatrix}  \bigg| = \lambda^2 - 7 \lambda + 6 :=0 \ ⇒\  \lambda_1 = 6,\ \lambda_2=1$ and,
@@ -27,7 +24,7 @@ the corresponding eigenvectors $\Gamma= \begin{bmatrix} \frac{2}{\sqrt 5} & -\fr
 Therefore the first principal component is $z_1 = \frac{2}{\sqrt 5} x_1 + \frac{1}{\sqrt 5} x_2$, and its variance is $var(Z_1)=\lambda_1=6$  .
 
 
-#exercise 4
+## exercise 4
 ###(a)
 ```{r}
 library(mclust)
@@ -52,7 +49,7 @@ Based on the fact that the variances equal eigenvalues
 barplot(eigen(cov)$values, main = "Variances")
 ``` 
 
-#exercise 5
+## exercise 5
 ```{r}
 pka <- prcomp(X)
 head(pka$x, n=15)
@@ -60,7 +57,7 @@ pairs(pka$x)
 screeplot(pka)
 ``` 
 
-#exercise 6
+## exercise 6
 ```{r}
 X.new <- X
 X.new[,4:6] <- X.new[,4:6] / 100
@@ -70,7 +67,7 @@ firstPK <- vars[1] / sum(vars)
 print( paste("The first principal component score explains", firstPK))
 ``` 
 
-#exercise 7
+## exercise 7
 ```{r}
 library(MASS)
 

@@ -1,22 +1,11 @@
----
-title: "Demo 6"
-author: "Yan PAN"
-output:
-  html_document:
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: kable
-    theme: 'readable'
----
+# Yleistetty Lineaarinen Malli (Demo 6)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+load("ylm_0.RData")
 ```
 
-#Exercise 1
+## Exercise 1
 
 Show that negative binomial is a distribution from exponential family
 
@@ -29,7 +18,7 @@ $$\begin{aligned} f(y_i;\mu_i,\phi)
 
 </blockquote>
 
-#Exercise 2
+## Exercise 2
 
 Fomulate $E(y_i)$ and $\text{Var}(y_i)$ for negative binomial
 
@@ -47,14 +36,13 @@ $$\begin{aligned} E(y_i)
 \end{aligned}$$
 </blockquote>
 
-#Exercise 3R
+## Exercise 3R
 
 Concerning butterfly data. 
 
 <blockquote>
 ```{r d603}
 options(stringsAsFactors = TRUE)
-perhoset <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/perhoset.txt",header=TRUE)
 
   # no site in model
 fit603 <- glm(Colias ~ time + habitat + building, 
@@ -110,7 +98,7 @@ curve(exp(b[1] + b[2] * 3 + b[5] + b[6] * x),
 ```
 </blockquote>
 
-#Exercise 4R
+## Exercise 4R
 
 Continue from above, formulate the risk ratio.
 
@@ -118,7 +106,7 @@ Continue from above, formulate the risk ratio.
 The table above, together with confidence interval was indeed already in risk ratio.
 </blockquote>
 
-#Exercise 5R
+## Exercise 5R
 
 Continue from above, use the property tool to test the hypothesis that different type of habitats have the same expected amount
 
@@ -153,7 +141,7 @@ Reject null hypothesis, i.e. habitats make difference.
 
 </blockquote>
 
-#Exercise 6R
+## Exercise 6R
 
 With the same dataset, try negative-binomial.
 
@@ -167,13 +155,12 @@ cbind(exp(coef(fit606)), exp(confint(fit606)))
 The result is very similar with Poisson-regression
 </blockquote>
 
-#Exercise 7R
+## Exercise 7R
 
 Concerning circulation disease data, using poisson model to analyze the death rate among different genders
 
 <blockquote>
 ```{r d607}
-vk <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/verenkierto.txt",header=TRUE)
 
 fit607 <- glm(kuolleet ~ vuosi * sukup + offset(log(vaki)), 
               family = poisson, data = vk)
@@ -194,7 +181,7 @@ legend("topright", c("man","woman"), col = c("blue","red"), pch = 1)
 ```
 </blockquote>
 
-#Exercise 8R
+## Exercise 8R
 
 Continue from above, estimate the death rate for the year 2015-2020 (in genders) together with the confidence interval
 

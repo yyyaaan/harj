@@ -1,22 +1,15 @@
----
-output:
-  html_document:
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: kable
-    theme: 'readable'
----
-
+# Spatiaalinen Analyysi (Demo 3-4)
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = FALSE)
+load("sda_0.RData")
 library(geoR)
 options(geoR.messages = FALSE)
 ```
 
-# 3-1 Standard Errors by Simulation
+Code for demonstration only. Some libraries are no longer available.
+
+## 3-1 Standard Errors by Simulation
 
 Tasaiselle satunnaisotannalle keskiarvoestimaattorin virhevarianssi on $\frac 1n \bigg( \sigma^2 - E C(U,V) \bigg)$, missä $\sigma^2 = C(0)$ (prosessin varianssi) ja $U$ sekä $V$ on valittu satunnaisesti ja riippumattomasti alueesta $S$. Kovarianssifunktioksi on mallinnettu $C(r) = e^{−20 r}, \ r\gt 0$ Alue $S$ on yksikköneliö $[0, 1] \times [0, 1]$. Laske virhevarianssi käyttäen simulointia.
 
@@ -33,14 +26,13 @@ mean(ecov)
 sd(ecov)/sqrt(length(ecov))
 ```
 
-# 3-2 Application of Variogram
+## 3-2 Application of Variogram
 
 Paperia on läpivalaistu 100 pisteessä, jotka on valittu tasaisella satunnaisotannalla $10 \times 10\ mm^2$ kokoisesta neliönmuotoisesta alueesta. Aineisto on `pap5tasotos.dat`. Paperinäytteen tiheysvaihtelu ja otanta-asetelma näkyvät oheisessa kuvassa. Aineistossa $xy$-koordinaattien resoluutio on $0.1 mm$, mikä on myös koordinaattien yksikkö. Tutkittavana muuttujana kussakin havaintopisteessä on beta-radiogrammilla mitattu neliömassa,joka kuvaa paperiaineksen konsentraatiota ko. pisteessä. Tehtävät: 
 
 (a) Laske suuntaisvariogrammit ja päättele niiden perusteella neliömassan isotrooppisuutta. 
 
 ```{r d32a}
-pap5tasotosdata <- read.table("https://yan.fi/docs/sda/pap5tasotos.dat")
 pap5tasotosgeodata <-as.geodata(matrix(c(pap5tasotosdata$x,
                                          pap5tasotosdata$y,
                                          pap5tasotosdata$dat),ncol=3))
@@ -63,12 +55,11 @@ cat(mean(pap5tasotosdata$dat),
     sqrt(var(pap5tasotosdata$dat)/length(pap5tasotosdata$dat)))
 ```
 
-# 3-3 Systematic Sampling
+## 3-3 Systematic Sampling
 
 Tehdään samasta aineistosta systemaattinen otanta, jossa käytetään $10 \times 10$ -neliöhilaa. Aineisto on `pap5syst.dat`. Estimoi keskimääräinen neliömassa ja vertaa edellisen tehtävän tulokseen.
 
 ```{r d33}
-pap5systdata<-read.table("https://yan.fi/docs/sda/pap5syst.dat")
 pap5systgeodata <-as.geodata(matrix(c(pap5systdata$x,
                                       pap5systdata$y,
                                       pap5systdata$dat),ncol=3))
@@ -97,7 +88,7 @@ sqrt(neli(pap5systdata))
 
 ```
 
-# 4-1 Moran Test
+## 4-1 Moran Test
 
 Tutustu R:n `eire` aineistoon, Moranin I tunnuslukuun avulla. Tutki  mitä funktio `moran.test` tekee ja tulkitse testin tulos.
 
@@ -127,7 +118,7 @@ moran.mc(eire.df$A,listw=nb2listw(eire.nb),nsim=999)
 moran.mc(eire.df$A,listw=nb2listw(eire.nb, style = "B"),nsim=999)
 ```
 
-# 4-2 Japanese Pines Dataset
+## 4-2 Japanese Pines Dataset
 
 Tutustu R:n `japanesepines` aineistoon.
 

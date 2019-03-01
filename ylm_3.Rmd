@@ -1,22 +1,11 @@
----
-title: "Demo 3"
-author: "Yan PAN"
-output:
-  html_document:
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: kable
-    theme: 'readable'
----
+# Yleistetty Lineaarinen Malli (Demo 3)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+load("ylm_0.RData")
 ```
 
-#Exercise 1
+## Exercise 1
 
 Consider the generalized linear regression model $y=X\beta +\epsilon, \ \epsilon\sim N(0,\sigma^2V)$. Derive the ML-estimators.
 
@@ -36,7 +25,7 @@ $$\begin{aligned} L(\beta,\sigma^2)
 \end{aligned}$$
 </blockquote>
 
-#Exercise 2
+## Exercise 2
 
 Show that $E(\hat\beta)=\beta$ and $\text{Cov}(\hat\beta) = \sigma^2(X^T V^{-1}X)^{-1}$
 
@@ -64,7 +53,7 @@ $$\begin{aligned} E(\hat\beta)
 
 </blockquote>
 
-#Exercise 3
+## Exercise 3
 
 Show that the profile likelihood $l(\theta) = \text{vakio} - \frac n 2 \log \hat\sigma_\theta^2 - \frac 1 2 \log|V_\theta|$
 
@@ -72,7 +61,7 @@ Show that the profile likelihood $l(\theta) = \text{vakio} - \frac n 2 \log \hat
 Exercise 1 has shown the $l(\beta,\sigma^2)$. Put the result into the expression, and we can get the result.
 </blockquote>
 
-#Exercise 4R
+## Exercise 4R
 
 PISA-data regression with sample code.
 
@@ -83,7 +72,6 @@ a. $t$-distribution defined confidence interval
 Use R-funcion
 
 ```{r d304x}
-pisa <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/pisa.txt", header = T)
 mat <- pisa$matem
 sp <- as.numeric(pisa$sukup == "tytto")
 sij <- as.numeric(pisa$koulusij == "maaseutu")
@@ -146,7 +134,7 @@ d. Three methods give very similar result.
 
 </blockquote>
 
-#Exercise 5
+## Exercise 5
 
 On use of Bootstrap-methodology.
 
@@ -160,21 +148,21 @@ Bootstrap has many advantage, but the following can be considered as major disad
 3. Bootstrap does not change the model, and it cannot help to elimate modeling issues while it also creates challenge in model diagnostics.
 </blockquote>
 
-#Exercise 6
+## Exercise 6
 
 Generalized linear model on 2009 PISA-data.
 
 <blockquote>
 ```{r d306}
   #a) read data
-pisa <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/pisafull.txt")
+pisa <- pisafull
   #b) ggpairs plot; this gives the most useful plots for explore data
 library(GGally)
 ggpairs(pisa)
   #c) d)
 attach(pisa)
 library(nlme)
-  #e) generalized linear model fitting
+  ## E) generalized linear model fitting
 fit <- gls(sciescore ~ matem + gender + ESCS + motiv + urban + region,
            correlation = corCompSymm(form = ~ 1 | SCHOOLID))
 summary(fit)
@@ -203,7 +191,7 @@ cbind("ML - se" = coef(summary(fit2.ml))[,2],
 ```
 </blockquote>
 
-#Exercise 7
+## Exercise 7
 
 Hierarchical model on 2009 PISA-data
 

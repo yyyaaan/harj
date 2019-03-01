@@ -1,14 +1,11 @@
----
-title: "Demo 6"
-author: "Yan Pan | all 8 exercises completed | created with R-markdown"
-output: html_document
----
+# TILS644 Monimuuttujamenetelmät (Demo 6)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+load("mmm_0.RData")
 ```
 
-# exercise 1
+## exercise 1
 
 (a) It is data-exploration, trying to clustering (or distinguishing) by certain characteristics (i.e. dimensions).
 
@@ -18,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 <br>
 
-# exercise 2
+## exercise 2
 ```{r}
 library(mvabund)
 data(spider)
@@ -46,7 +43,7 @@ Naturally, they are the same, as the calculation is exactaly the same
 
 <br>
 
-# exercise 3
+## exercise 3
 
 ```{r}
 matDelta2 <- matDelta^2 
@@ -61,7 +58,7 @@ plot(X)
 
 <br>
 
-# exercise 4
+## exercise 4
 
 ```{r}
 prc <- prcomp(Y)
@@ -72,7 +69,7 @@ Visually, it seems to be 180-degree rotation of the PCoA.
 
 <br>
 
-# exercise 5
+## exercise 5
 
 ```{r}
 prc <- procrustes(X, prc$x[,1:2])
@@ -84,7 +81,7 @@ By the type-2 residual graph and the Procrustes sum of squares (-2.91e-11), it m
 
 <br>
 
-# exercise 6
+## exercise 6
 
 ```{r}
 nmds.eucl <- metaMDS(Y, distance = "euclidean", k = 2, trace = 0)
@@ -106,7 +103,7 @@ biplot(nmds.bray$points, nmds.bray$species)
 
 <br>
 
-# exercise 7
+## exercise 7
 
 ```{r}
 ef.eucl <- envfit(nmds.eucl, Xenv, permutations = 999)
@@ -120,7 +117,7 @@ plot(ef.bray, p.max = 0.1)
 
 <br>
 
-# exercise 8
+## exercise 8
 
 ```{r}
 plot(cca(Y), type = "t")

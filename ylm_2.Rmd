@@ -1,20 +1,12 @@
----
-title: "Demo 2"
-author: Yan Pan
-output:
-  html_document:
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: paged
-    theme: 'readable'
----
+# Yleistetty Lineaarinen Malli (Demo 2)
+
+```{r setup, echo = F}
+load("ylm_0.RData")
+```
 
 All symbols except for $\pi,\sigma$ stands for matrix.
 
-#Exercise 1
+## Exercise 1
 Suppose the linear model $\boldsymbol{y= X\beta+\epsilon,\ \ \epsilon} \sim N(0, \sigma^2\boldsymbol I_n)$. Derive the maxmial likelihood estimator.
 
 <blockquote>
@@ -29,7 +21,7 @@ $$\begin{aligned} L(\beta)
 \end{aligned}$$
 </blockquote>
 
-#Exercise 2
+## Exercise 2
 
 Continue from the model in 1, and suppose $\boldsymbol X\ n\times(p+1)$ design-matrix. Let hat-matrix $\boldsymbol{H=X(X^T X)^{-1}X^T}$. Show that $\boldsymbol{\hat y ^T \hat\epsilon=0}$ and $\boldsymbol{\hat\epsilon^T X =0}$
 
@@ -51,7 +43,7 @@ $$\begin{aligned} \boldsymbol {\hat y ^T\hat\epsilon}
 \end{aligned}$$
 </blockquote>
 
-#Exercise 3
+## Exercise 3
 
 Show that $E(\hat\epsilon ^T \hat\epsilon) = \sigma^2(n-p-1)$
 
@@ -74,7 +66,7 @@ E(\hat\epsilon ^T \hat\epsilon)
 </blockquote>
 
 
-#Exercise 4
+## Exercise 4
 
 Show that $SST=SSE + SSR$
 
@@ -90,7 +82,7 @@ $$\begin{aligned} SST &= \sum\limits_{i=1}^n (y_i-\bar y)^2
 The final equation holds because the random variables $\epsilon$ and $\hat Y,\ \bar Y$ are independent by model assumption; thus $E(\epsilon \hat Y) = E(\epsilon) E(\hat Y) = 0$.
 </blockquote>
 
-#Exercise 5
+## Exercise 5
 
 Show that $E(\hat\beta)=\beta,\ \ \text{Cov}(\hat\beta)=\sigma^2 (X^T X)^{-1},\ \ \hat\beta\sim N(\beta,\sigma^2(X^TX)^{-1})$
 
@@ -104,7 +96,7 @@ $$\begin{aligned} \hat\beta
 \end{aligned}$$
 </blockquote>
 
-#Exercise 6R
+## Exercise 6R
 
 PISA survey linear regression.
 
@@ -112,7 +104,6 @@ PISA survey linear regression.
 Using matrix calculation $\beta = (X^T X)^{-1}Xy$ and $\hat\sigma^2=\frac{\hat\epsilon ^T\hat\epsilon}{n-p-1}$
 
 ```{r d206}
-pisa <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/pisa.txt")
 # ref from question
 mat <- pisa$matem
 sp <- as.numeric(pisa$sukup == "tytto")
@@ -132,7 +123,7 @@ sqrt(hat.sigma2)
 ```
 </blockquote>
 
-#Exercise 7R
+## Exercise 7R
 
 Continue from above, calculate the standard error of $\hat\beta$ and $R^2$
 
@@ -151,7 +142,7 @@ SSR/SST
 ```
 </blockquote>
 
-#Exercise 8R
+## Exercise 8R
 Hypothesis testing for (a) $H_0:\beta_2 = 0$; (b) $H_0:\beta_1= \cdots = \beta_6 =0$; (c) $H_0:\beta_4= \beta_5 = \beta_6 =0$; (d) $H_0:\beta_4 = \beta_6$
 <blockquote>
 Find $K$ for each cases.

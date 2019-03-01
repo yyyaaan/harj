@@ -1,8 +1,10 @@
----
-author: "PAN Yan"
----
+# Ryhmittely-, luokittelu- ja regressiomenetelmiä (Demo 2)
 
-```{r setup, echo=F, result = 'hide'}
+```{r echo=F}
+load("rlr_0.RData")
+```
+
+```{r setup, echo=T, results='hide'}
 require(magrittr)
 require(cluster)
 require(fpc)
@@ -77,8 +79,7 @@ Using different linkage function to perform clustering with manhattan distance.
 </blockquote>
 
 ```{r rlr204a}
-
-altruismi <- readRDS("altruismi_corrected.rds")
+altruismi <- altruismi_corrected
 # perform clustering | results are in a list
 clusters <- lapply(c("average", "single", "complete", "ward"),
                   function(m) agnes(altruismi, metric="manhattan", method=m, keep.diss = T))

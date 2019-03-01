@@ -1,8 +1,9 @@
 ---
-output:
-  html_document:
-    theme: 'readable'
 ---
+
+# A Collection of Course Exercises
+
+Please use the menu above
 
 # Very Brief Matrix Differentiation
  
@@ -14,4 +15,3 @@ $$\begin{aligned}
  \frac{d \boldsymbol {x}^T \boldsymbol A}{d \boldsymbol x} &= \boldsymbol A^T\\
  \frac{d \boldsymbol {x}^T \boldsymbol {Ax}}{d \boldsymbol x} &= \boldsymbol x^T ( \boldsymbol A + \boldsymbol A^T )
 \end{aligned}$$
-

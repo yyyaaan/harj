@@ -1,22 +1,14 @@
----
-output:
-  html_document:
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: kable
-    theme: 'readable'
----
+# Spatiaalinen Analyysi (Demo 2)
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+load("sda_0.RData")
 library(geoR)
 options(geoR.messages = FALSE)
 ```
 
-# 2-2 Kriging without and with nugget effect
+## 2-2 Kriging without and with nugget effect
 
 > without nugget
 
@@ -94,7 +86,7 @@ tul<-krige.conv(y.geo,locations=c(0.5,0.4),krige=uknugget)
 cat(tul$predict, tul$krige.var)
 ```
 
-# 2-3 Variogram Fitting
+## 2-3 Variogram Fitting
 
 On kriging the calcium material data (`ca20`). Check the first and second order trend, using a) `variofit` function and b) `likfit` function, and compare the result
 
@@ -207,12 +199,11 @@ points(ca20, pch=20,cex.max=1,pt.divide='equal',add.to.plot=TRUE, lty=2)
 contour(k, values=sqrt(k$krige.var), add=T, nlevels=10)
 ```
 
-# 2-6 Random Fields Simulation
+## 2-6 Random Fields Simulation
 
 Conduct conditional simulation of `moreeni.dat` and compare the result with `RFsimulate` function.
 
 ```{r d26}
-moreeni <- read.table("https://yan.fi/docs/sda/moreeni.dat",head=TRUE)
 moreenigeo <- as.geodata(matrix(c(moreeni$x,moreeni$y,
                                   moreeni$pitoisuus),ncol=3))
 

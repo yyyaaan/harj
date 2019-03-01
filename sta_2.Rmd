@@ -1,6 +1,4 @@
----
-author: "PAN Yan"
----
+# Stockastic Analysis (Demo 2)
 
 ## Demonstration 2 Exercise 1
 

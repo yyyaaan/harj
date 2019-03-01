@@ -1,20 +1,4 @@
----
-title: "Harjoitus 2"
-author: "PAN Yan"
-output:
-  html_document:
-    df_print: paged
-    theme: readable
----
-
-<style>
-h1,h2,h3{
-	font-family: Georgia,"Times New Roman",Times,serif !important;
-	padding-top: 20px;
-}
-</style>
-
-All exercises done.
+# Otantamenetelmät (Demo 2)
 
 ## Exercise 1
 

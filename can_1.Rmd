@@ -1,20 +1,4 @@
----
-title: "Complex Analyis Harjoitus 1"
-author: "PAN Yan"
-output:
-  html_document:
-    df_print: paged
-    theme: readable
----
-
-<style>
-h1,h2,h3{
-	font-family: Georgia,"Times New Roman",Times,serif !important;
-	padding-top: 20px;
-}
-</style>
-
-All exercises done. Since I would not be able to participate the demo, hereby attach the solutions for all exercises
+# Kompleksianalyysi (Harj 1)
 
 ##K1.1
 <blockquote> Let $z= \frac 1 2 - \frac{\sqrt3} 2 i$, find $z^{100}$</blockquote>

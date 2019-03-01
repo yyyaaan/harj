@@ -1,29 +1,4 @@
----
-title: "Complex Analysis Harjoitus 6 | Yan PAN"
-output: 
-  html_document: 
-    df_print: paged 
-    theme: 'readable'
----
-
-<style>
-h1,h2,h3{
-  font-family: Georgia,"Times New Roman",Times,serif !important;
-  padding-top: 20px;
-}
-blockquote{
-  font-size: 16px; !important;
-}
-</style>
-
-```{r setup, include=FALSE} 
-knitr::opts_chunk$set(echo = FALSE, 
-                      message = FALSE, 
-                      warning = FALSE, 
-                      comment = "") 
-myprint <- function(printD, dig = 4)
-  data.frame(round(printD, digits = dig)) 
-```
+# Kompleksianalyysi (Harj 6)
 
 ##Exercise K6.1
 <blockquote>

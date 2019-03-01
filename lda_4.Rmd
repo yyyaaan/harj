@@ -1,27 +1,23 @@
----
-title: "R-exercise 4"
-author: "Yan Pan"
-output: pdf_document
----
+# Sekamallit ja Pitkittäisaineistonjen Analyysi (Demo 4)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+load("lda_0.RData")
 ```
 
-##Exercise 1
+## Exercise 1
 
-####1a initialization
+#### 1a initialization
 ```{r}
 library(nlme)
 library(plotly)
-lyijy <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/lyijy.txt")
 names(lyijy) <- c("id", "trt", "c0", "c1", "c4", "c6")
 lyijy.l <- reshape(lyijy, direction = "long", idvar = "id", 
                    v.names = "concentration",
                    times = c(0,1,4,6), varying = list(c("c0","c1","c4","c6")))
 ``` 
 
-####1b GLS
+#### 1b GLS
 ```{r}
 fit1b <- gls(concentration ~  time * trt, data = lyijy.l, 
              correlation = corCompSymm(form = ~1 |id), method = "ML")
@@ -30,7 +26,7 @@ summary(fit1b)$tTable
 
 Model can be written as $y_{ij}=20.3 - 4.3 t_j + 5.4 trtP_i + 0.06 trtP_i * t_j$.
 
-####1c between groups
+#### 1c between groups
 
 Placebo Group: $y_{ij}=25.7 -4.24 t_j$, and
 
@@ -38,7 +34,7 @@ Treatment Grp: $y_{ij}=20.3 - 4.3t_j$.
 
 The interactive item is NOT significant.
 
-####1d plot
+#### 1d plot
 ```{r}
 b <- fit1b$coefficients
 plot2d <- ggplot(aes(x = time, y = concentration, color = trt), data = lyijy.l) +
@@ -48,7 +44,7 @@ plot2d <- ggplot(aes(x = time, y = concentration, color = trt), data = lyijy.l) 
 plot2d
 ``` 
 
-####1e linear model
+#### 1e linear model
 ```{r}
 fit1e <- lm(concentration ~ time * trt, data = lyijy.l)
 anova(fit1b, fit1e)
@@ -90,7 +86,6 @@ It seems that it does not change the model considerably.
 
 ##Exercise 2
 ```{r}
-weights <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/weights.txt")
 names(weights)[1:2] <- c('id', 'trt')
 weights.l <- reshape(weights, direction = "long", idvar = "id", v.names = "weight",
                      times = c(0,2,4,6,8,10,12), 

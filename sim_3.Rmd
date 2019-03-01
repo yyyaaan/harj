@@ -1,21 +1,4 @@
----
-title: "Stochastic Simulation | Problems 3"
-author: " Yan PAN"
-output: 
-  html_document: 
-    df_print: paged 
-    theme: 'readable'
----
-
-<style>
-h1,h2,h3{
-  font-family: Georgia,"Times New Roman",Times,serif !important;
-  padding-top: 20px;
-}
-blockquote{
-  font-size: 16px; !important;
-}
-</style>
+# Stochastic Simulation | Problems 3
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(echo = TRUE, 

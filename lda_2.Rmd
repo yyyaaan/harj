@@ -1,22 +1,17 @@
----
-title: "R-exercise 2"
-author: "Yan Pan | Created with R-markdown, powered by Plotly"
-output: html_document
----
+# Sekamallit ja Pitkittäisaineistonjen Analyysi (Demo 2)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+load("lda_0.RData")
 ```
 
-##1.R pacakge download
+## 1.R pacakge download
 ```{r results='hide'}
 library(plotly)
 ``` 
 
-##2.Graphs for longitudinal data
+## 2.Graphs for longitudinal data
 ```{r}
-
-lyijy <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/lyijy.txt")
 names(lyijy) <- c('id', "kas", "vk0", "vk1", "vk4", "vk6")
 lyijy.long <- reshape(lyijy,
                       varying = list(c("vk0", "vk1", "vk4", "vk6")),
@@ -54,7 +49,7 @@ ggplotly(g2e)
 ``` 
 
 
-##Exercise 3
+## Exercise 3
 ```{r}
 
 g3 <- ggplot(aes(x = time, y = lyijypitoisuus, color = kas), data = lyijy.long) 

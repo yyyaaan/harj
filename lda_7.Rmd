@@ -1,12 +1,4 @@
----
-title: "R-exercise 6"
-author: "Yan Pan"
-output:
-  html_document:
-    toc: true
-    df_print: paged
-    theme: 'readable'
----
+# Sekamallit ja Pitkittäisaineistonjen Analyysi (Demo 7)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, tidy = TRUE, comment = "")
@@ -15,10 +7,11 @@ library(plotly)
 myprint <- function(printD, dig = 3){
   data.frame(round(printD, digits = dig)) 
 }
+load("lda_0.RData")
 ```
+
 ##Exercise 1: Generalized Logistic Model
 ```{r eval = TRUE}
-inf <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/infection.txt")
 names(inf) <- c("id", "inf", "trt", "visit")
 
 library(geepack)
@@ -54,7 +47,6 @@ In this model, when consider the <code>inf</code> group, the treatment becomes s
 ##Exercise 2: Poisson Mixed MOdel
 
 ```{r eval = TRUE}
-skin <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/skincan.txt", header = TRUE)
 can.glmm <- glmer(cancer ~ year * trt - trt + (1|id), family = poisson, data = skin)
 betas <- summary(can.glmm)$coefficients
 myprint(betas)
@@ -63,17 +55,18 @@ myprint(betas)
 Based on the P value and the estimates, the treatment is effective.
 
 ```{r eval = TRUE}
-betas <- cbind(betas, confint(can.glmm)[2:4,])
-
-betas.new <- data.frame(lwr = betas[,5],
-                        est = betas[,1],
-                        upp = betas[,6])
-betas.new["Placebo",] <- betas.new[2,]
-betas.new["Treatment",] <- betas.new[2,] + betas.new[3,]
-
-odds <- exp(t(betas.new[4:5,]))
-colnames(odds) <- c("Placebo.RiskRatio","Treatment.RiskRatio")
-odds
+# betas <- cbind(betas, confint(can.glmm)[2:4,])
+# 
+# confint(can.glmm)
+# betas.new <- data.frame(lwr = betas[,5],
+#                         est = betas[,1],
+#                         upp = betas[,6])
+# betas.new["Placebo",] <- betas.new[2,]
+# betas.new["Treatment",] <- betas.new[2,] + betas.new[3,]
+# 
+# odds <- exp(t(betas.new[4:5,]))
+# colnames(odds) <- c("Placebo.RiskRatio","Treatment.RiskRatio")
+# odds
 
 par(mfrow = c(1,3))
 plot(skin$age, resid(can.glmm))
@@ -94,7 +87,6 @@ It seems <code>age</code>, <code>skin</code> and <code>exp</code> are all statis
 ##Exercise 3: Transitiomallit
 
 ```{r eval = TRUE}
-depr <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/tunteet.txt")
 names(depr) <- c("id", "terapiamuoto", "sp", "terapiavko", "tunteet")
 
 # "lazy way" to get the lag

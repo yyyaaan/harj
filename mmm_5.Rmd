@@ -1,32 +1,30 @@
----
-title: "Demo 5"
-author: "Yan Pan | all exercises completed | created with R-markdown"
-output: html_document
----
+# TILS644 Monimuuttujamenetelmät (Demo 5)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+load("mmm_0.RData")
+
 ```
 
-# exercise 1 
+## exercise 1 
 
 $\begin{align} a)\ \bar d _{i\cdot}   &=  \frac{1}{n_i} \sum\limits_{j=1}^{ n_i}   \big( v_1 x _{xy(1)} +v_2 x _{ij(2)}  \big) \\ &= v_1 \cdot \frac{1}{n_i} \sum\limits_{j=1}^{ n_i}   x _{ij(1)} +v_2 \cdot \frac{1}{n_i} \sum\limits_{j=1}^{ n_i}   x _{ij(2)}     \\ &= v_1 \bar x _{i\cdot(1)} + v_2 \bar x _{i\cdot(2)} \\ b)\  \bar d _{\cdot\cdot}  &=  \frac{1}{n} \sum\limits_{i=1}^{ k}  \sum\limits_{j=1}^{ n_i}  d _{ij} \\ &=  \frac{1}{n} \sum\limits_{i=1}^{ k} n_i \bar d _{i\cdot} \\ &=    v_1 \cdot \frac{1}{n} \sum\limits_{i=1}^{ k}  n_i \bar x _{i\cdot(1)}  + v_2 \cdot \frac{1}{n} \sum\limits_{i=1}^{ k}  n_i \bar x _{i\cdot(2)} \\ &=  v_1 \bar x _{\cdot\cdot(1)} + v_2 \bar x _{\cdot\cdot (2)}  \end{align}$
 
 <br>
 
-# exercise 2
+## exercise 2
 
 
 $\begin{align} \boldsymbol{v'SS} _{A(x)} \boldsymbol{v'}  &= \begin{bmatrix} v_1 & v_2 \end{bmatrix} \begin{bmatrix}  SS _{A(1)}  & SP _{A(1,2)} \\ SP _{A(1,2)}  & SS _{A(2)}  \end{bmatrix}  \begin{bmatrix} v_1 \\ v_2\end{bmatrix}  \\ &=  v_1^2 SS _{A(1)} +2 v_1 v_2 SP _{A(1,2)}  + v_2^2 SS _{A(2)} \\ &=  \sum\limits_{i} \sum\limits_{j}  \bigg( (v_1 \bar x_{i\cdot(1)} - v_1 \bar x _{\cdot\cdot(1)}  )^2 + 2(v_1 \bar x_{i\cdot(1)} - v_1 \bar x _{\cdot\cdot(1)}  )(v_1 \bar x_{i\cdot(2)} - v_1 \bar x _{\cdot\cdot(2)}  ) + (v_1 \bar x_{i\cdot(2)} - v_1 \bar x _{\cdot\cdot(2)}  )^2 \bigg)  \\ &=  \sum\limits_{i} \sum\limits_{j}  \bigg( (v_1 \bar x_{i\cdot(1)} - v_1 \bar x _{\cdot\cdot(1)}  + v_1 \bar x_{i\cdot(2)} - v_1 \bar x _{\cdot\cdot(2)}   \bigg)^2  \\ &=  \sum\limits_{i}^{ k}  \sum\limits_{j}^{ n_i}   \bigg(  v_1 \bar x _{i\cdot(1)} + v_2 \bar x _{i\cdot (2)} -  v_1 \bar x _{\cdot\cdot(1)} - v_2 \bar x _{\cdot\cdot (2)}    \bigg)^2 \\ &=  SS_A(d)  \end{align}$ 
 
 <br>
 
-# exercise 3
+## exercise 3
 
 ```{r}
 
 # (a)
-data1=read.table("koulu.dat")
+data1=koulu
 data2=data1[,c("V2","V6","V9","V14","V24","V31","V34","V19")]
 data2=data2[complete.cases(data2),]
 names(data2)=c("gender","luke6","kirj6", "vk16", "mate6", "biol6", "maan6", "hist6")
@@ -41,7 +39,7 @@ The impressions is that for some subjects (reading, writing, English), different
 
 <br>
 
-# exercise 4
+## exercise 4
 
 ```{r}
 # (a)
@@ -72,7 +70,7 @@ abline(h = qchisq(0.975,6), col = "red")
 
 <br>
 
-#exercise 5
+## exercise 5
 
 ```{r}
 library(candisc)
@@ -100,7 +98,7 @@ resultcda$means
 
 <br>
 
-# exercise 6
+## exercise 6
 
 The R code is below is copied from the question sheet
 

@@ -1,0 +1,182 @@
+# Ryhmittely-, luokittelu- ja regressiomenetelmiä (Demo 6)
+
+```{r echo=F}
+load("rlr_0.RData")
+```
+
+```{r setup, echo=T, results = 'hide'}
+require(tidyverse)
+require(MASS)
+require(mixtools)
+require(reshape2)
+require(npmlreg)
+```
+
+# 1. Entropy
+
+<blockquote>
+With decision tree's entropy, show that $H(Y)$ is maximized when $\pi_l,\ l=1,2,\dots, k$ are equivalent and $H_{max} = \ln (k)$
+</blockquote>
+
+Use Langrange function with the restriction $g(\pi_1,\dots,\pi_l) = \sum\limits_{l=1}^k \pi_l -1$, which is from the assumption of decision tree.
+
+$$\begin{aligned} \text{Maximize }\mathcal L(\pi_1,\dots,\pi_k, \lambda) &= - \sum\limits_{l=1}^{k} \pi_l \ln(\pi_l) - \lambda \bigg( \sum\limits_{l=1}^k \pi_l -1 \bigg)
+\\ &\Rightarrow 
+\begin{cases} \frac{\partial \mathcal L}{\partial \pi_l} &=-(\ln(\pi_l) + 1) - \lambda =0 &\text{for all }l=1,2,\dots, k
+\\ \frac{\partial \mathcal L}{\partial \lambda} &= \sum\limits_{l=1}^k \pi_l -1 = 0
+\end{cases}
+\\ &\Rightarrow 
+\begin{cases}\pi_l &= e^{-1-\lambda} &\text{for all }l=1,2,\dots, k
+\\ \frac{\partial \mathcal L}{\partial \lambda} &= \sum\limits_{l=1}^k \pi_l -1 = 0
+\end{cases}
+\\ &\Rightarrow \pi_1 = \pi_2 =\cdots = \pi_l = e^{-1-\lambda} = \frac 1 k
+\\ &\Rightarrow H_max = - \sum\limits_{l=1}^k \frac 1 k \ln (\frac 1 k) = - \ln(1/k) = \ln(k)
+\end{aligned}$$
+
+Therefore, the entropy is maxized with equal $\pi_l$ and $H_{max} = \ln(k)$
+
+# 2. EM-algorithm
+
+<blockquote>
+(Partial proof of EM-algorithm series likelihood is non-descreasing) Let 
+
+$$
+R( \boldsymbol\Psi, \boldsymbol\Psi^{(j)}) = \mathbb E \bigg( \log p( \boldsymbol Z| \boldsymbol x, \boldsymbol \Psi) \ | \ \boldsymbol x, \boldsymbol \Psi^{(j)} \bigg)
+$$
+
+Show that $R( \boldsymbol\Psi^{(j+1)}, \boldsymbol\Psi^{(j)}) - R( \boldsymbol\Psi^{(j)}, \boldsymbol\Psi^{(j)}) \leq 0$
+</blockquote>
+
+$$\begin{aligned} R( \boldsymbol\Psi^{(j+1)}, \boldsymbol\Psi^{(j)}) - R( \boldsymbol\Psi^{(j)}, \boldsymbol\Psi^{(j)})
+&= \mathbb E \bigg( [\log p( \boldsymbol Z| \boldsymbol x, \boldsymbol \Psi^{(j+1)}) \ | \ \boldsymbol x, \boldsymbol \Psi^{(j)}] -  [\log p( \boldsymbol Z| \boldsymbol x, \boldsymbol \Psi^{(j)}) \ | \ \boldsymbol x, \boldsymbol \Psi^{(j)}] \bigg)
+\\ &= \mathbb E \bigg( \log  \frac{p( \boldsymbol Z| \boldsymbol x, \boldsymbol \Psi^{(j+1)}) \ | \ \boldsymbol x, \boldsymbol \Psi^{(j)}}{ p( \boldsymbol Z| \boldsymbol x, \boldsymbol \Psi^{(j)}) \ | \ \boldsymbol x, \boldsymbol \Psi^{(j)}} \bigg)
+\\ &\leq \log \bigg(\mathbb E  \frac{p( \boldsymbol Z| \boldsymbol x, \boldsymbol \Psi^{(j+1)}) \ | \ \boldsymbol x, \boldsymbol \Psi^{(j)}}{ p( \boldsymbol Z| \boldsymbol x, \boldsymbol \Psi^{(j)}) \ | \ \boldsymbol x, \boldsymbol \Psi^{(j)}} \bigg)
+\\ &\leq \log \bigg(\mathbb E  \frac{p( \boldsymbol Z| \boldsymbol x, \boldsymbol \Psi^{(j+1)}) \ | \ \boldsymbol x, \boldsymbol \Psi^{(j)}}{ p( \boldsymbol Z| \boldsymbol x, \boldsymbol \Psi^{(j)})}  \bigg)
+\\ &= \log 1= 0
+\end{aligned}$$
+
+# 3. Mixed Distribution Plot
+
+```{r rlr603a}
+par(mfrow=c(1,2))
+hist(hoikkarapumjat$Height, breaks = 10)
+hist(hoikkaeirapumjat$Height, breaks = 10)
+
+normal2koe <-alldist(Height~1,data=hoikkarapumjat, k=2, plot.opt = 0)
+summary(normal2koe)
+
+mixed_distribution <- function(x){
+  em_means <- normal2koe$mass.points
+  em_sd <- normal2koe$sdev$sdev
+  em_pis <- normal2koe$masses
+  d1 <- dnorm(x, mean = em_means[1], sd = em_sd)
+  d2 <- dnorm(x, mean = em_means[2], sd = em_sd)
+  y <- em_pis[1] * d1 + em_pis[2] * d2
+  return(list(p1 = d1, p2 = d2, y = y))
+}
+
+x = 100:800
+y = numeric(701)
+for (i in 1:701) y[i] = mixed_distribution(x[i])$y
+plot_data = data.frame(x=x, y=y)
+
+ggplot() + 
+  geom_histogram(data=hoikkarapumjat, aes(x = Height, y = ..density..), bins = 10) +
+  geom_line(data=plot_data, aes(x, y))
+```
+
+# 4. Clustering
+
+```{r rlr604a}
+koe_clusters <- ifelse(normal2koe$post.prob[,1] > normal2koe$post.prob[,2], 1, 2 )
+koe_kmeans   <- kmeans(hoikkarapumjat$Height, 2)$cluster
+table(koe_clusters, koe_kmeans)
+```
+
+It seems to have exactly same results!
+
+# 5. Number of Mixture Components
+
+```{r rlr605a}
+thefun <- function(kk) {
+  mixed <- alldist(Width~1,data=hoikkarapumjat, k=kk, 
+               verbose = F, plot.opt = 0)
+  return(list(mixed$disparity, mixed$mass.points))
+}
+
+# use width
+lapply(1:6, thefun)
+```
+
+Though $k=6$ gives smallest disparity, 2 mixtures seem to be more practical as the centers are very closed to each other in more mixture cases.
+
+# 7. Multi-dimensional Mixed Distribution 
+
+```{r rlr607a}
+names(hoikkaeirapumjat) <- names(hoikkarapumjat)
+all_data <- rbind(hoikkaeirapumjat, hoikkarapumjat)
+melt(all_data) -> a
+
+all_data$ryhma <- "kontrolli"
+all_data$ryhma[1:181] <- "koe"
+
+ggplot(reshape2::melt(all_data, id.vars = "ryhma"))+ 
+  geom_boxplot(aes(y = value, color = ryhma)) +
+  facet_wrap(~variable, scales = "free")
+
+init_mu <- list( c(200, 200, 1e4, 1000, 200, 200, 200),
+                 c(650, 650, 2e4, 2000, 600, 750, 750),
+                 c(300, 300, 3e4, 1200, 300, 300, 300))
+# tulosrapu  <- mvnormalmixEM(hoikkarapumjat  , mu = init_mu, k=3)
+# tuloseirapu<- mvnormalmixEM(hoikkaeirapumjat, k=3)
+```
+
+# 8. Find Best Solution
+
+```{r rlr608a}
+# code referenced (J. Isoketo & J. Itkonen, 2012)
+tulos.EM = function(data) {
+testiLoglik = data.frame(loglik= -1000000000)
+loglik = -1000000
+tulos.paras = NULL
+n = 1
+while (n <= 30) {
+tulos = tryCatch(mvnormalmixEM(data,k=3), error=function(e) testiLoglik)
+#sovitus ei aina onnistu
+if (tulos$loglik > loglik) {
+loglik = tulos$loglik
+tulos.paras = tulos }
+n = n+1
+}
+tulos.paras
+}
+
+# end ref
+
+# tulos.rapu.paras = tulos.EM(data=hoikkarapumjat)
+
+```
+
+# 9. N<<p: Uncorrelated Variables
+
+```{r rlr609a}
+n <- sum(cor(training[,-1]) > 0.75) - ncol(training)
+cat("There are",n, "pairs of highly correlated vars")
+lda_fit <- lda(class ~ ., data=training)
+lda_pred <- predict(lda_fit, newdata = testing[,-1])
+table(lda_pred$class, testing$class)
+```
+
+# 10. N<<p: PCA
+
+```{r rlr610a}
+training_pca <- prcomp(training[,-1])$x[, 1:20]
+testing_pca  <- prcomp(testing [,-1])$x[, 1:20]
+
+training_pca <- as.data.frame(training_pca)
+training_pca$class <- training$class
+lda_pca <- lda(class ~., data=training_pca)
+pred_pca <- predict(lda_pca, newdata = as.data.frame(testing_pca))
+table(pred_pca$class, testing$class)
+
+```

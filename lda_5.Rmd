@@ -1,21 +1,16 @@
----
-title: "R-exercise 5"
-author: "Yan Pan"
-output: html_document
----
+# Sekamallit ja Pitkittäisaineistonjen Analyysi (Demo 5)
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(plotly)
 library(DT)
+load("lda_0.RData")
 ```
 
 # Exercise 1 (Muscle Strength)
 
 ```{r}
 library(nlme)
-wlong <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/wlong.txt", 
-                    header = TRUE)
 wlong$trt <- factor(wlong$trt)
 
 weights.lme <- lme(st ~ time * trt, random = ~ 1 + time | id, data = wlong)
@@ -37,7 +32,7 @@ datatable(data.frame(random.effects(weights.lme)))
 ```
 
 ```{r results='hide'}
-plotdata <- cbind(wlong, weights.lme$fitted)
+plotdata <- cbind(wlong, weights.lme$fitted)[,-6]
 plot1 <- ggplot(aes(x = time, y = fixed, color = trt), data = plotdata) + 
   geom_line() + 
   geom_point(aes(y = st)) +
@@ -51,8 +46,6 @@ ggplotly(plot1)
 
 # Exercise 2 (PISA-maths)
 ```{r}
-pisa <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/pisamat.txt",
-                   header = TRUE)
 plot(mathscore ~ factor(SCHOOLID), data = pisa)
 ``` 
 

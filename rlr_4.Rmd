@@ -1,0 +1,113 @@
+# Ryhmittely-, luokittelu- ja regressiomenetelmiä (Demo 4)
+
+```{r echo=F}
+load("rlr_0.RData")
+```
+
+```{r setup, echo=T, results = 'hide'}
+require(magrittr)
+require(cluster)
+require(fpc)
+require(clue)
+require(tidyverse)
+```
+
+Working with Bugs-data (Pohjaeläinaineisto). 
+
+Unlike the training code, this exercise using TidyVerse style analysis flow.
+
+# 1. Reading data and modifications
+
+```{r rlr401a}
+# filtering and subsetting using tidyverse
+osadata <- bugs %>%     
+  filter(Species %in% c("Baetisrhodani", "Hydropsychepellucidulla")) %>%
+  dplyr::select("Species", "Area", "Height")
+osadata
+
+# sample train and test data obs
+set.seed(123)
+train_rows <- sample(1:nrow(osadata), nrow(osadata)/2)
+osa.train <- osadata[ train_rows, ]
+osa.test  <- osadata[-train_rows, ]
+
+# plotting using ggplot and long data
+osadata$trainORtest <- "TEST"
+osadata$trainORtest[train_rows] <- "TRAIN"
+osadata %>%
+  reshape2::melt(c("Species", "trainORtest")) %>%
+  ggplot() +
+  geom_boxplot(aes(y = value, color = Species)) +
+  facet_wrap(variable ~ trainORtest, scales = "free_y") +
+  theme(legend.position = "bottom", aspect.ratio = 1)
+
+```
+
+# 2. Plot Decision Areas
+
+(Prepare data structure)
+
+```{r rlr402a}
+  # prepare data structure
+osa.test$SpeciesLk <- rep(0, nrow(osa.test))
+  # key value from training
+training1 <- osa.train[osa.test$Species == "Baetisrhodani", 2:3]
+training2 <- osa.train[osa.test$Species == "Hydropsychepellucidulla", 2:3]
+m1 <- colMeans(training1)
+m2 <- colMeans(training2)
+cov1 <- cov(training1)
+cov2 <- cov(training2)
+
+osadata %>% ggplot(aes(Area, Height)) + geom_point()
+```
+
+## (1) by Euclidean distance
+
+```{r rlr402b}
+osa.test.euclidean <- osa.test
+for(i in 1:nrow(osa.test.euclidean)){
+  d1 <- dist(rbind(osa.test.euclidean[i, 2:3], m1), method = "euclidean")
+  d2 <- dist(rbind(osa.test.euclidean[i, 2:3], m2), method = "euclidean")
+  if(d1 <= d2) osa.test.euclidean$SpeciesLk[i] <- 1
+  else osa.test.euclidean$SpeciesLk[i] <- 2
+}
+osa.test.euclidean %>% 
+  ggplot(aes(Area, Height, color = as.factor(SpeciesLk))) +
+  geom_point() + ggtitle("Euclidean")
+```
+
+
+(b) Mahalanobis Distance with polarized covariance
+
+```{r rlr402c}
+osa.test.mahalanobis  <- osa.test
+covp<-((nrow(training1)-1)*cov1+(nrow(training2)-1)*cov2)/(nrow(osa.train)-2)
+
+for(i in 1:nrow(osa.test.mahalanobis )){
+  d1 <- mahalanobis(osa.test.mahalanobis [i, 2:3], m1, covp)
+  d2 <- mahalanobis(osa.test.mahalanobis [i, 2:3], m2, covp)
+  if(d1 <= d2) osa.test.mahalanobis $SpeciesLk[i] <- 1
+  else osa.test.mahalanobis$SpeciesLk[i] <- 2
+}
+
+osa.test.mahalanobis %>% 
+  ggplot(aes(Area, Height, color = as.factor(SpeciesLk))) +
+  geom_point() + ggtitle("Mahalanobis Dsitance and COV_P")
+```
+
+(c) Mahalanobis Distance with Class-wise Covaraince
+
+```{r rlr403d}
+osa.test.m2  <- osa.test
+
+for(i in 1:nrow(osa.test.m2)){
+  d1 <- mahalanobis(osa.test.m2 [i, 2:3], m1, cov1)
+  d2 <- mahalanobis(osa.test.m2 [i, 2:3], m2, cov2)
+  if(d1 <= d2) osa.test.m2$SpeciesLk[i] <- 1
+  else osa.test.m2$SpeciesLk[i] <- 2
+}
+
+osa.test.m2 %>% 
+  ggplot(aes(Area, Height, color = as.factor(SpeciesLk))) +
+  geom_point() + ggtitle("Mahalanobis Dsitance and Class-wise Covariance")
+```

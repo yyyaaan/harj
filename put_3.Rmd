@@ -1,18 +1,6 @@
----
-title: "TILS1510 Harjoitustehtävät 2"
-author: "Yan PAN"
-output:
-  html_document:
-    df_print: kable
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    theme: 'readable'
----
+# Puuttuvat Tiedot (Demo 3)
 
-#Exercise 2
+## Exercise 2
 
 Suppose random variables $Y_1, Y_2, U$,
 
@@ -57,7 +45,7 @@ All the above items can be expanded in terms of normal density.
 
 </blockquote>
 
-#Exercise 3
+## Exercise 3
 
 Concerning two binary variable in contigency table with possible missing values in $Y$. Calculate the maximum likelihood estimator for $\boldsymbol \theta = (\theta_X,\theta_Y, \theta_{XY})$ assuming MAR.
 

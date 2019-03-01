@@ -1,0 +1,117 @@
+# Ryhmittely-, luokittelu- ja regressiomenetelmiä (Demo 5)
+
+```{r echo=F}
+load("rlr_0.RData")
+```
+
+```{r setup, echo=T, results='hide'}
+require("tidyverse")
+require("e1071")
+require("sortinghat")
+require("MASS")
+```
+
+# 2. Lasse Moiso's Thesis
+
+The thesis compared different measurements of estimation errors using MC, which solves the problem of relative small sample size and non-independence in classification study.
+
+In the case of QDA, the 0.631-bootstrap estimators are the best.
+
+The stepclass follows the R function `klaR::stepclass` that detailed in package documentation.
+
+# 3. Support Vector Machine (linear)
+
+```{r rlr503a}
+circ_train$y <- as.factor(circ_train$y)
+circ_test$y <- as.factor(circ_test$y)
+
+# data printing
+ggplot(circ_train) + geom_point(aes(x=x1, y=x2, color=y))
+
+svm_linear_12 <- svm(y ~ . , data = circ_train[,c(1,2,4)], kernel = "linear")
+
+# predicating (plotting skipped for performances)
+pred_linear_12 <- predict(svm_linear_12, circ_test[,c(1,2)])
+table(pred_linear_12, circ_test$y)
+```
+
+# 4. Support Vector Machine Continued with Radial Kernel
+
+```{r rlr504a}
+# use all x1 x2 x3
+svm_linear_123 <- svm(y ~ . , data = circ_train, kernel = "linear")
+
+# predicating and plotting SVM
+cls_linear_123 <- predict(svm_linear_123, circ_test[,1:3])
+table(pred_linear_12, circ_test$y)
+```
+
+As $x_3$ is just a transformation of $x_1$ and $x_2$, the results are exactly the same compared with only using first two.
+
+```{r rlr504b}
+svm_radial_12 <- svm(y ~ . , data = circ_train[,c(1,2,4)], kernel = "radial")
+pred_radial_12 <- predict(svm_radial_12, circ_test[,c(1,2)])
+table(pred_radial_12, circ_test$y)
+
+```
+
+According to R documentation: For multiclass-classification with k levels, k>2, libsvm uses the ‘one-against-one’-approach, in which k(k-1)/2 binary classifiers are trained; the appropriate class is found by a voting scheme. (extracted from R documentation)
+
+# 5. Support Vector Paramter Tuning
+
+```{r rlr505a}
+# use cross-validation with cross = 10
+svm_yeast <- svm(Class ~ ., data = yeast, cross = 10)
+summary(svm_yeast)
+
+# use cost and gamma
+svm_yeast_2 <- svm(Class ~ . , data = yeast, 
+                   cost = 2^(-1:3), gamma = 2^{-6:-3})
+summary(svm_yeast_2)
+
+# estimation and error
+pred1 <- predict(svm_yeast, yeast[,-9])
+err1 <- 1 - sum(as.numeric(pred1) == as.numeric(yeast$Class)) / nrow(yeast)
+
+pred2 <- predict(svm_yeast_2, yeast[,-9])
+err2 <- 1 - sum(as.numeric(pred2) == as.numeric(yeast$Class)) / nrow(yeast)
+
+cat("with 10-fold corss validation, the error is:", err1, "\nwith selected Gamma and Cost, the error is ", err2)
+
+
+```
+
+# 6. Bootstrap
+
+```{r rlr506a}
+wrapper <- function(object, newdata) { predict(object, newdata)$class} 
+err632_lda <- errorest_632(x = cancer[,-1], y = cancer[,1],
+                           train = lda, classify = wrapper)
+
+err632_qda <- errorest_632(x = cancer[,-1], y = cancer[,1],
+                           train = qda, classify = wrapper)
+cat("LDA err632 =", err632_lda, "| QDA err632 = ", err632_qda)
+```
+
+# 7. The Influence on Error from the Relative Size of Training and Test Data
+
+```{r rlr507a}
+# data loaded before
+
+propotion_training <- function(training_pcn){
+  training_size <- floor(training_pcn * nrow(yeast))
+  training_index <- sample(1:nrow(yeast), training_size)
+  training  <- yeast[training_index,]
+  test_data <- yeast[-training_index, -9] # no Class in test data
+  test_ans  <- yeast[-training_index, 9] # Class, the correct answer
+  svm_here  <- svm(Class ~ . , data = training)
+  pred_here <- predict(svm_here, test_data)
+  err <-  1 - sum(as.numeric(pred_here) == as.numeric(test_ans)) / nrow(test_data)
+  return(err)
+}
+
+pcn_list <- c(0.5, 0.6, 0.7, 0.8, 0.9)
+lapply(pcn_list, function(x) propotion_training(x))
+```
+
+Seems that the proportion of training and test does not affect a lot.

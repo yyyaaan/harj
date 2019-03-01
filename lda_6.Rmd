@@ -1,12 +1,4 @@
----
-title: "R-exercise 6"
-author: "Yan Pan"
-output:
-  html_document:
-    toc: true
-    df_print: paged
-    theme: 'readable'
----
+# Sekamallit ja Pitkittäisaineistonjen Analyysi (Demo 6)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, tidy = TRUE, comment = "")
@@ -15,12 +7,12 @@ library(plotly)
 myprint <- function(printD, dig = 3){
   data.frame(round(printD, digits = dig)) 
 }
+load("lda_0.RData")
 ```
 # Generalized Estimating Equations
 
 ## 1. Dichotomous case
 ```{R}
-resp <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/resplong.txt", header = T)
 library(geepack)
 resp.gee <- geese(resp ~ trt * time, id = id, data = resp, family = binomial,
                   corstr = "exch", scale.fix = TRUE)
@@ -51,7 +43,6 @@ myprint(summary(resp.ext)$mean)
 
 ## 2. Count number/integer case
 ```{R}
-astma <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/astmalong.txt", header = TRUE)
 astma$sev <- as.factor(astma$sev)
 
 astma.gee <- geese(lkm ~ sev * time, id = id, data = astma, family = poisson,
@@ -81,7 +72,6 @@ The model is written as,
 $$\log\bigg(E\underbrace{\bigg(\frac{epil_{ij}}{t}\bigg)}_{\text{epil per week}}\bigg) = \beta_0 + \beta_1 trt_{ij} + \beta_2 Ptime_{ij} + \beta_3 trt_{ij} Ptime_{ij}$$
 
 ```{R}
-epilong <- read.table("http://users.jyu.fi/~slahola/files/lda_datoja/epilong.txt", header = TRUE)
 epilong$Ptime <- ifelse(epilong$time == 0, 0, 1)
 epilong$t <- ifelse(epilong$time == 0, 8, 2)
 

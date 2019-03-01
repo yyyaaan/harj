@@ -1,21 +1,4 @@
----
-title: "Stochastic Simulation | Problems 2"
-author: " Yan PAN"
-output: 
-  html_document: 
-    df_print: paged 
-    theme: 'readable'
----
-
-<style>
-h1,h2,h3{
-  font-family: Georgia,"Times New Roman",Times,serif !important;
-  padding-top: 20px;
-}
-blockquote{
-  font-size: 16px; !important;
-}
-</style>
+# Stochastic Simulation | Problems 2
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(echo = TRUE, 
@@ -136,7 +119,7 @@ save(a,b, file = "demo24.RData")
 ```
 
 ```{r demo24b, results="hold"}
-load("demo24.RData") 
+load("sim_0.RData") 
 #to improve efficiency, the 100 tests results are cached
 par(mfrow = c(1,3))
 hist(a, main = "Classical Monte Carlo", xlab = "")

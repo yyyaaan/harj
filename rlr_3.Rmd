@@ -1,8 +1,10 @@
----
-author: "PAN Yan"
----
+# Ryhmittely-, luokittelu- ja regressiomenetelmiä (Demo 3)
 
-```{r setup, echo=F, result = 'hide'}
+```{r echo=F}
+load("rlr_0.RData")
+```
+
+```{r setup, echo=T, results = 'hide'}
 require(magrittr)
 require(cluster)
 require(fpc)
@@ -14,7 +16,6 @@ Working with Bugs-data (Pohjaeläinaineisto). There are a few modifications from
 # 1. Reading data
 
 ```{r rlr301a}
-bugs<-read.table("bugs.dat",header=TRUE)
 bugs %>% str
 ```
 

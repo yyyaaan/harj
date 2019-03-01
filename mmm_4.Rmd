@@ -1,28 +1,25 @@
----
-title: "Demo 4"
-author: "Yan Pan | 6 exercises completed | created with R-markdown"
-output: html_document
----
+# TILS644 Monimuuttujamenetelmät (Demo 4)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+load("mmm_0.RData")
 ```
 
 For simple typesetting, some matrix symbol are not in bold
 
-# exercise 1
+## exercise 1
 
 $\begin{align} cov(\boldsymbol{X} )&=  E(X-\mu)(X-\mu)'  \\ &=  EXX' & \text{since } X \text{ is standard} \\ &=  E(Af+e)(Af+e)' \\ &=  cov(Af+e) \\ &=  cov(Af) + cov(e) & \text{becasue of incorrelation} \\ &=  Acov(f) A' + cov(e) & \text{affine transformation} \\ &= \boldsymbol{ A\Phi A'}  + \boldsymbol\Psi  \end{align}$ 
 
 <br>
 
-# exercise 2
+## exercise 2
 
 $\begin{align} cov(\boldsymbol{X,f} )&= E(X-\mu_X)(f-\mu_f)' \\ &= E[Xf'] \\ &=  E[(Af+e)f'] \\ &= E[Aff' + ef'] \\ &=  AE[ff'] + E[ef'] & \text{linearity of expectation} \\ &=  A cov(f) + E(e) E(f') & \text{because } cov(e,f)=0 \\ &=  \boldsymbol{A\Phi}  \end{align}$ 
 
 <br>
 
-# exercise 3
+## exercise 3
 Use the online material mmm2, tulos 2.4:
 
 $\mu _{f|X} = \mu_f+ \Sigma _{12}  \Sigma _{22}^{-1} (X-\mu_x)$, this is, in our case,
@@ -31,11 +28,10 @@ $\begin{align} E(\boldsymbol{f|X} )&= E(f) + cov(f,X) cov(X) ^{-1} (X-E(X)) \\ &
 
 <br>
 
-# exercise 5
+## exercise 5
 
 ```{r}
 #5a
-toimcsv=read.csv2("toim.csv")
 toimcsvpart=toimcsv[,c("p217","p218","p219","p220","p221",
                        "p222","p223","p224","p225","p226")]
 mydata=toimcsvpart
@@ -80,7 +76,7 @@ f. We can understand loadings just like the regression coefficient, but the fact
 
 <br>
 
-# exercise 6
+## exercise 6
 
 ```{r}
 #6a
@@ -127,7 +123,7 @@ cor(sysScores)
 
 <br>
 
-# exercise 7
+## exercise 7
 
 In Promax-rotated, the factors are not independent, but still similar idea with question 5.
 

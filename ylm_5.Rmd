@@ -1,22 +1,11 @@
----
-title: "Demo 5"
-author: "Yan PAN"
-output:
-  html_document:
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: kable
-    theme: 'readable'
----
+# Yleistetty Lineaarinen Malli (Demo 5)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+load("ylm_0.RData")
 ```
 
-#Exercise 1
+## Exercise 1
 
 $y_i\sim Bin(n_i,\pi_i)$ and $\log \bigg( \frac{\pi_i}{1-\pi_i} \bigg) = \boldsymbol x_i^T \boldsymbol \beta$. Find the maximal likelihood estimator equations.
 
@@ -35,7 +24,7 @@ The above gives the equation for "solving" the ML-estimators
 
 </blockquote>
 
-#Exercise 2
+## Exercise 2
 
 Suppose $y_i \overset{iid}\sim Bin(1,\pi_i)$ Show that $D = 2 \sum\limits_{i=1}^k \bigg[ y_i \log \frac{y_i}{\hat y_i} + (1-y_i) \log \frac{1 - y_i}{1- \hat y_i}  \bigg]$ and $\hat y_i = \hat\pi_i$
 
@@ -50,7 +39,7 @@ $$\begin{aligned} D
 
 </blockquote>
 
-#Exercise 3
+## Exercise 3
 
 Same model with question 1 but with $y_i \sim Bin(1,\pi_i)$. Write the Fisher-Scoring algorithm
 
@@ -68,13 +57,12 @@ The Fisher-score algorithm follows the matrix form $\boldsymbol\beta_{n+1} = \bo
 </blockquote>
 
 
-#Exercise 5R
+## Exercise 5R
 
 Regarding Northern-Finland premature baby data, construct new variables and explain the potential factors
 
 <blockquote>
 ```{r d505}
-lapset <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/lapset.txt")
   #define new vars
 lapset$lapsia <- 0
 lapset$lapsia[which(lapset$parit == 1)] <- 1
@@ -86,7 +74,7 @@ head(lapset)
 It seems that all variables could potentially be influential factors towards premature baby. For example, overweight could affect the weight of baby. On the other hand, preganancy week should be a predictor due to the fact that it is a direct cause of premature (i.e. the information is fully included in response)
 </blockquote>
 
-#Exercise 6R
+## Exercise 6R
 
 Logistic model - odds ratio
 
@@ -102,7 +90,7 @@ or
 ```
 </blockquote>
 
-#Exercise 7R
+## Exercise 7R
 
 Logistic model - probability
 
@@ -122,7 +110,7 @@ invlogit(logit)
 ```
 </blockquote>
 
-#Exercise 8
+## Exercise 8
 
 Add `rviik` as predictor
 

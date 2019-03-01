@@ -1,22 +1,11 @@
----
-title: "Demo 4"
-author: "Yan PAN"
-output:
-  html_document:
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: kable
-    theme: 'readable'
----
+# Yleistetty Lineaarinen Malli (Demo 4)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+load("ylm_0.RData")
 ```
 
-#Exercise 1
+## Exercise 1
 
 Formulate score fucntion. Suppose $Y_1,\dots, Y_n$ are independent and identically distributed.
 
@@ -52,7 +41,7 @@ $$\begin{aligned} L(\pi;y_1,\dots,y_n)
 </blockquote>
 
 
-#Exercise 2 R
+## Exercise 2 R
 
 Plot score function with 20 samples (each with 10 obervations) for $N(4,1),\ {Poisson}(4),\ {Bin}(1, 0.4)$
 
@@ -98,7 +87,7 @@ for (i in 1:19) {
 ```
 </blockquote>
 
-#Exercise 3
+## Exercise 3
 
 Continue from 1(a), test $H_0:\mu=\mu_0$ against $H_1: \mu\neq \mu_0$
 
@@ -113,7 +102,7 @@ $$\begin{aligned}
 \end{aligned}$$
 </blockquote>
 
-#Exercise 4
+## Exercise 4
 
 Continue from 1(b), test $H_0: \lambda = \lambda_0$ against $H_1:\lambda\neq\lambda_0$
 
@@ -128,7 +117,7 @@ $$\begin{aligned}
 \end{aligned}$$
 </blockquote>
 
-#Exercise 5
+## Exercise 5
 
 $y_1,\dots,y_n$ are samples from the exponential family distribution. Let $\Lambda = L(\hat\theta_\max) / L(\hat\theta)$. Forumulate the deviance $D= 2\log \Lambda$
 
@@ -142,7 +131,7 @@ $$\begin{aligned} D
 \end{aligned}$$
 </blockquote>
 
-#Exercise 6 R
+## Exercise 6 R
 
 Logistic regression on ear infections with parents' smoking habit and number of siblings (data `korvatulehdus`)
 
@@ -150,13 +139,12 @@ Logistic regression on ear infections with parents' smoking habit and number of 
 All coefficient is in the sense of odds ratio
 
 ```{r d406}
-korvatul <- read.table("http://users.jyu.fi/~slahola/files/glm2_datoja/korvatul.txt")
 fit <- glm(tulehdus ~ tupak * factor(lapsia), family = binomial, data = korvatul)
 summary(fit)
 ```
 </blockquote>
 
-#Exercise 7 R
+## Exercise 7 R
 
 Continue with the eye infection data, a) explain the effects
 

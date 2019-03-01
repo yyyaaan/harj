@@ -1,22 +1,10 @@
----
-title: "Demo 1"
-author: Yan Pan
-output:
-  html_document:
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    df_print: paged
-    theme: 'readable'
----
+# Spatiaalinen Analyysi (Demo 0)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Exercise 1
+## Exercise 1
 
 $\{Y(s)\}$ is a random field with $\mu(s)\equiv 0$ and covariance $C(h)= e^{-ah},\ a\gt0$. The observate spaces are $s_1=(0,0),\ s_2=(1,0),\ s_3=(2,0)$. Check two estimators for mean:
 
@@ -46,7 +34,7 @@ $$\begin{aligned} \text{Var} (\hat\mu_1) &= \frac{1}{4}\bigg( \text{Var}(Y(s_1))
 
 > The introduction of a third observation give accurate 2 effects to the accuracy; one is that naturally provide further information about mean while the other is that it also bring its own, and usually quite large amount of, variances. In our case, since the mean is assumed to 0, the second effect dominates
 
-#Exercise 2
+## Exercise 2
 
 Suppose a spatial process $\{Z(s)\}:\ Z(s)=Y(s)+\delta(s)$, where $\delta(s)$ is measurement error. Further suppose $\{Y(s)\}$ is stationary with $EY(s) \equiv 0$, $C_Y(h)$ is continuous around 0 and $\delta(s) \perp\!\!\!\perp Y(s)$.
 
@@ -84,7 +72,7 @@ $$\begin{aligned} C_Z(0)
 
 </blockquote>
 
-#Exercise 2-1
+## Exercise 2-1
 
 About simple kriging formulas. Suppose $\hat U(s) = \sum\limits_{i=1}^n \lambda_i(s)U(s_i)$
 

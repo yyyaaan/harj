@@ -1,18 +1,6 @@
----
-title: "TILS1510 Harjoitustehtävät 5"
-author: "Yan PAN"
-output:
-  html_document:
-    df_print: kable
-    code_folding: show
-    toc: true
-    toc_depth: 2
-    toc_float:
-      collapsed: false
-    theme: 'readable'
----
+# Puuttuvat Tiedot (Demo 5)
 
-#Exercise 1
+## Exercise 1
 
 About EM-algorithm.
 
@@ -29,7 +17,7 @@ d) Weakness: dependence on initial value; efficiency; is it always convergent? S
 (The EM alogrithm and extension)
 </blockquote>
 
-#Exercise 2
+## Exercise 2
 
 $X\sim Bernoulli(\gamma)$ and $X_{1,2,\dots,r}$ are observed and is missing for $X_{r+1, \dots, n}$. Random variable $Y|(X=j) \sim N(\mu_j,\sigma^2_j)$
 
@@ -75,7 +63,7 @@ M-step by maximize $Q$ through $\frac {\partial Q}{\partial \gamma}, \frac {\par
 
 </blockquote>
 
-#Exercise 3
+## Exercise 3
 
 EM algorithm using own code
 
@@ -154,7 +142,7 @@ runC <- myEM(init, xc, 100)
 ```
 </blockquote>
 
-#Exercise 4
+## Exercise 4
 
 Using `optim` function
 
@@ -203,7 +191,7 @@ likely <- function(x, pars){
 
 </blockquote>
 
-#Exercise 5
+## Exercise 5
 
 Hierarchical model,
 
