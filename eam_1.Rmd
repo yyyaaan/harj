@@ -1,0 +1,134 @@
+# Elinaikamallit Harj. 1
+
+Yan Pan | 11.01.2020
+
+Function `lifetable` is referenced from `r1-vast`, and code is hidden here.
+
+```{r setup, echo=F}
+# reference Taskinen (2020)
+lifetable <- function(np, c, d){
+  N <- length(np)
+  nrisk <- np - 0.5 * c
+  q <- d / nrisk
+  S <- cumprod(1 - q)
+  h <- q / 1
+  seh <- sqrt(q * (1 - q) / nrisk)
+  vS <- q / ((1-q) * nrisk)
+  seS <- sqrt((1 / log(S)^2) * cumsum(vS))
+  llS <- S^{exp(-1.96 * seS)}
+  ulS <- S^{exp(1.96 * seS)}
+  table <- data.frame(round(cbind(np, c, nrisk, d, h, S, seh, seS, llS, ulS), 4))
+  table
+}
+```
+
+## Tehtävä 1
+
+<blockquote> Tarkastellaan kroonista tulehdustautia sairastavien potilaiden ensimmäisen tulehduksen ajankohtaa $T$. Aineisto on ryhmitelty kuukauden pituisiin jaksoihin ja kultakin jaksolta tunnetaan</blockquote>
+
+```{r eam101}
+data <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/inf.dat", header = T)
+dataK <- data[data$treat == 1,]
+dataL <- data[data$treat == 2,]
+ltK <- lifetable(dataK$np, dataK$c, dataK$d)
+print(ltK)
+plot(1:nrow(ltK), ltK$S, type = "l", ylim = c(0,1), 
+     xlab = "Month", ylab = "Survival")
+cat("P(T>3)  = ", sum(ltK$S[3]), '\n')
+cat("P(T<=3) = ", 1 - ltK$S[3], '\n')
+cat("P(T=3)  = ", ltK$S[2] - ltK$S[3], '\n')
+
+```
+
+
+## Tehtävä 2
+
+<blockquote>
+Muodosta sitten elinaikataulukko myös lääkehoitoryhmälle ja piirrä välttöfunktioestimaatit samaan kuvaajaan. Mitä voit sanoa lääkehoidon vaikutuksesta ensimmäisen tulehduksen ajankohtaan, kun verrataan kahta
+ryhmää?
+</blockquote>
+
+```{r eam102}
+ltL <- lifetable(dataL$np, dataL$c, dataL$d)
+# previous graph is called again, this is not needed in normal R mode
+plot(1:nrow(ltK), ltK$S, type = "l", ylim = c(0,1), 
+     xlab = "Month", ylab = "Survival")
+lines(1:nrow(ltL), ltL$S, col = "blue")
+```
+
+From the plot, as the blue-colored line is significantly above the black one, the medication seems to be effective in prolong survival time.
+
+## Tehtävä 3
+
+<blockquote>
+Piirrä vaarafunktioiden kuvaajat ryhmittäin samaan kuvaan. Missä kohdissa vaara on suurimmillaan ja miten ryhmät eroavat vaaran suhteen?
+</blockquote>
+
+```{r eam103}
+plot (1:nrow(ltK), ltK$h, type = "l", ylim = c(0,1), 
+      xlab = "Month", ylab = "Hazard")
+lines(1:nrow(ltL), ltL$h, col = "blue")
+```
+
+In general, medication group improves survial in terms of reducing hazard at almost all time points. Around Month 8, the medication greatly reduce the chance of hazard.
+
+## Tehtävä 4
+
+<blockquote>
+Olkoot $T_11$ ja $T_2$ kahden satunnaisesti valitun kontrolliryhmän potilaan esimmäisten tulehdusten ajankohdat. Arvioi elinaikataulukon avulla seuraavia todennäköisyyksiä:
+
+a) Kumpikin saa tulehduksen ensimmäisen viiden kuukauden aikana
+
+b) Kumpikaan ei saa tulehdusta ensimmäisen viiden kuukauden aikana
+
+c) Vain toinen saa tulehduksen ensimmäisen viiden kuukauden aikana
+</blockquote>
+
+```{r eam104}
+# using the results from previous exercises
+pboth <- (1-ltK$S[5])*(1-ltL$S[5])
+pnone <- ltK$S[5] * ltL$S[5]
+cat(' Both infected:    ', pboth, '\n',
+    'Neither infected: ',  pnone, '\n',
+    'Only one infected:', 1-pboth-pnone)
+```
+
+## Tehtävä 5
+
+<blockquote>
+Oletetaan, että $T$ noudattaa eksponenttijakaumaa parametrilla $\lambda$. Tällöin $T$:n tiheysfunktio on $f(t) = \lambda \exp(−\lambda t),\ t>0$. Etsi $T$:n kertymäfunktio, välttöfunktio ja vaarafunktio. Etsi myös $T$:n odotusarvo ja mediaani.
+</blockquote>
+
+$F(t) = \displaystyle\int_0^t \lambda e ^{-\lambda x} dx = {/}_0^t -e^{-\lambda x} = 1- e^{-\lambda t}$
+
+$S(t) = 1-F(t) = e^{-\lambda t}$
+
+$h(t) = \frac{f(t)}{S(t)}=\lambda$
+
+$E(T) = \displaystyle\int_0^\infty \lambda xe^{-\lambda x} dx = \int_0^\infty - x d e^{-\lambda x} =  \int_0^\infty e^{-\lambda x} dx - /_0^\infty xe^{-\lambda x}= /_0^\infty  \frac{e^{-\lambda x}}{-\lambda} = \frac 1 \lambda$
+
+$F(t)=\frac 1 2 \Rightarrow 1-e^{-\lambda t} = \frac 1 2 \Rightarrow t=\frac {\ln2} \lambda$ is the median.
+
+## Tehtävä 6
+
+<blockquote>
+Oletetaan, että potilaiden elinajat $T$ noudattavat eksponenttijakaumaa parametrilla $\lambda = 0.5$. Piirrä R:llä välttöfunktion kuvaaja ja arvioi kuvaajan avulla $T$:n odotusarvoa, mediaania ja kvartiiliväliä.
+</blockquote>
+
+```{r eam106}
+x <- seq(0.01, 10, by=0.01)
+y <- 1-pexp(x, rate = 0.5)
+plot(x, y, type = 'l')
+```
+
+## Tehtävä 7
+
+<blockquote>
+Osoita etta $S(t)=\exp(-H(t))$
+</blockquote>
+
+First, $S'(x) = (1-F(x))' = - f(x)$ and $\log(x) = \int 1/x$.
+
+$\begin{aligned} H(t) &= \displaystyle\int_0^t h(x)dx \\&= \displaystyle\int_0^t \frac{f(x)}{S(x)} dx \\&= \displaystyle\int_0^t \frac{-S'(x)}{S(x)} dx \\ &= -\displaystyle\int_0^t \frac{1}{S(x)} dS(x) \\ &=-/_0^t\log S(x) \\ &= -\log S(t) \end{aligned}$
+
+Therefore, $S(t) = \exp(-H(t))$

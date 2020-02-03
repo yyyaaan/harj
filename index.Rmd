@@ -3,7 +3,7 @@
 
 # A Collection of Course Exercises
 
-Please use the menu above
+Please use the menu above.
 
 # Very Brief Matrix Differentiation
  

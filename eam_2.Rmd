@@ -1,0 +1,135 @@
+# Elinaikamallit Harj. 2
+
+Yan Pan | 20.01.2020
+
+```{r setup, echo=FALSE}
+library(ggplot2)
+kuolleet <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/kuolleet.txt", header = T)
+vakiluku <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/vakiluku.txt", header = T)
+kuolleisuus04 <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/kuolleisuus04.txt", header = T)
+
+lifetable <- function(np, c, d){
+  N <- length(np)
+  nrisk <- np - 0.5 * c
+  q <- d / nrisk
+  S <- cumprod(1 - q)
+  h <- q / 1
+  seh <- sqrt(q * (1 - q) / nrisk)
+  vS <- q / ((1-q) * nrisk)
+  seS <- sqrt((1 / log(S)^2) * cumsum(vS))
+  llS <- S^{exp(-1.96 * seS)}
+  ulS <- S^{exp(1.96 * seS)}
+  table <- data.frame(round(cbind(np, c, nrisk, d, h, S, seh, seS, llS, ulS), 4))
+  table
+}
+```
+
+## Exercise 1
+
+<blockquote>
+Etsi artikkeli (esimerkiksi omalta alaltasi), jossa sovelletaan elinaika-analyysiä.
+</blockquote>
+
+Glennon, Dennis, and Peter Nigro. "Measuring the default risk of small business loans: A survival analysis approach." Journal of Money, Credit and Banking (2005): 923-947.
+
+The article is a flagship example that apply survial analysis in financial industry. It uses mainly cash flow framework to estimate the possiblility of a firm to default a loan. The key methodology is discrete harzard model, and defines the suruvial as time-to-default.
+
+## Exercise 2
+
+<blockquote>
+Lue kurssin kotisivuiltaR:ään aineistot kuolleet.txt ja vakiluku.txt. Ensimmäinen sisältää vuosina 1751-2018 Suomessa kuolleiden miesten ja naisten lukumäärät (sekä totaalit), ja jälkimmäinen väkiluvut vastaavina vuosina. Estimoi vuosittaista kuolemanvaaraa erikseen miehille ja naisille, ja pohdi, mitkä tapahtumat ovat johtaneetkuolemanvaaran nousuun tiettyinä vuosina
+</blockquote>
+
+```{r eam202}
+# data loading steps are hidden
+# calculate harzard by manual function
+res202 <- data.frame(year = vakiluku$vuosi,
+                     p_death_m = kuolleet$miehet / vakiluku$miehet,
+                     p_death_f = kuolleet$naiset / vakiluku$naiset)
+res202$hazard_m = res202$p_death_m / (1-res202$p_death_m)
+res202$hazard_f = res202$p_death_f / (1-res202$p_death_f)
+res202
+
+ggplot(res202) +
+  geom_line(aes(year, hazard_m, color = "Male")) +
+  geom_line(aes(year, hazard_f, color = "Female")) +
+  labs(title = "Hazard by Gender", y = "Hazard", x = "Year")
+```
+
+We notice in general males have slightly higher hazard compared with females. However, the time of World War II, males causality are significantly higher than females'.
+
+## Exercise 3
+
+<blockquote>
+Aineisto kuolleisuus04.txt sisältää ikäryhmittäin ja sukupuolittainen kuolleiden lukumäärät 100,000 elävänä syntynyttä kohden. Esitä kuolleisuuteen liittyvät välttöfunktiot miehille ja naisille. Mikä on todennäköisyys, että naiset elävät yli 80 vuotiaaksi? Entä vastaava luku miehillä? Entä todennäköisyydet sille, että naiset/miehet elävät yli 100 vuotiaaksi, ehdolla että he ovat eläneet 90 vuotiaiksi.
+</blockquote>
+
+```{r eam203}
+# used previous lifetable() function
+male   <- lifetable(100000, 0, kuolleisuus04$miehet)
+female <- lifetable(100000, 0, kuolleisuus04$naiset)
+
+ggplot() +
+  geom_line(aes(1:nrow(  male),   male$h, color = "Male")) +
+  geom_line(aes(1:nrow(female), female$h, color = "Female"))+
+  labs(title = "Hazard by Gender", x = "Life Year", y = "Hazard")
+
+cat(" Female over 80 years old: ", female$S[80], "\n",
+    "  Male over 80 years old: ",   male$S[80], "\n",
+    "Female over 100 given already 80: ", female$S[100]/female$S[80], "\n",
+    "  Male over 100 given already 80: ",     male$S[100]/  male$S[80], "\n")
+```
+
+## Exercise 4
+
+<blockquote>
+Käytä `R`-paketin `survival` sisältämää datasettiä `leukemia`. Aineisto sisältää muuttujat
+
+time = leukemiapotilaiden elinaika
+
+status = sensurointi-indikaattori (1 = todellinen elinikä, 0 = sensuroitu aika)
+
+x = hoito (1 = kemoterapiaa jatkettu, 2 = kemoterapiaa ei jatkettu)
+
+Laske Kaplan-Meier kumulatiivisen vaarafunktion estimaatit ryhmille, joissa kemoterapiahoitoa on jatkettu
+ja ryhmälle, jossa hoitoa ei ole jatkettu. Esitä estimaatit samassa kuvassa ja vertaile käyriä. Kumpi käyrä
+liittyy hoitoryhmään? Testaa tilastollisen testin avulla, onko hoidolla vaikutusta potilaiden elinaikaan
+</blockquote>
+
+```{r eam204}
+library(survival)
+data(leukemia)
+fit <- survfit(Surv(time, status) ~ x, data=leukemia)
+plot(fit, fun="cumhaz", main = "Cumulative hazard by treatment status", xlab='time', ylab='hazard')
+
+survdiff(Surv(time, status) ~ x, data=leukemia)
+```
+
+## Exercise 5
+
+<blockquote>
+Olkoon Kaplan-Merier estimaattori
+
+$$
+\hat S(t) = \prod\limits_{t_{r}\leq t} \bigg( \frac{n-r}{n-r+1} \bigg)^{\delta_r}
+$$
+
+Osoita,että
+
+$$
+\hat H(t)= -\log(\hat S(t)) \approx \sum\limits_{t_{r}\leq t} \frac{\delta_r}{n-r+1}
+$$
+
+</blockquote>
+
+We use the results from previous exercise that $H(t) = -\log S(t)$ and $\log(1-x) \approx -x$
+
+$$
+\begin{aligned}
+\hat H(t)= -\log(\hat S(t)) &= -\log \prod\limits_{t_{r}\leq t} \bigg( \frac{n-r}{n-r+1} \bigg)^{\delta_r}
+\\ &= -\sum\limits_{t_{r}\leq t} \log\bigg( \frac{n-r}{n-r+1} \bigg)^{\delta_r}
+\\ &= -\sum\limits_{t_{r}\leq t} \delta_r\log \bigg( \frac{n-r + 1 -1}{n-r+1} \bigg)
+\\ &= -\sum\limits_{t_{r}\leq t} \delta_r\log \bigg(1 - \frac{1}{n-r+1} \bigg)
+\\ &\approx \sum\limits_{t_{r}\leq t} \frac{\delta_r}{n-r+1}
+\end{aligned}
+$$

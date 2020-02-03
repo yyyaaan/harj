@@ -1,0 +1,150 @@
+# Elinaikamallit Harj.3
+
+Yan Pan | 28.01.2020
+
+```{r setup, echo=FALSE}
+library(ggplot2)
+library(survival)
+cgd <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/cgd2.dat")
+cgd$sex <- factor(cgd$sex)
+cgd$anti <- factor(cgd$anti)
+
+```
+
+### Exercise 1
+
+<blockquote>
+Ota käyttöön `R`-paketista survival data `ovarian`, joka sisältää munasarjasyöpäpotilaiden elinaikoja leikkauksen jälkeen. Tutki, minkä muuttujien arvoja aineisto sisältää. Oletetaan, että sensuroimattomat elinajat ovat riippumattomia ja eksponenttijakautuneita parametreilla $\lambda$. Etsi funktiolla survreg parametrin $\beta_0$ jaedelleen elinajan odotusarvon estimaatti. Piirrä estimoitu välttöfunktio.
+</blockquote>
+
+```{r eam301}
+data(ovarian)
+t <- sort(ovarian$futime)
+
+fit301 <- survreg(Surv(futime, fustat) ~ 1, data = ovarian, dist = "exponential")
+lambda <- 1 / exp(coef(fit301))
+cat(" The estimator Beta_0 is: ", coef(fit301), "\n",
+    "The estimator Lambda is: ", lambda, "\n")
+
+fit0 <- survfit(formula = Surv(futime, fustat) ~ 1, data = ovarian)
+plot(fit0)
+lines(t, exp(- t * lambda), col="red" )
+
+print(fit0, print.rmean=TRUE)
+```
+
+### Exercise 2
+
+<blockquote>
+Edellisen tehtävän tilanteessa, lisää malliin mukaan muuttuja `age`. Osaatko kirjoittaa näkyviin malliyhtälön? Laske (`R`:llä) regressiokertoimien suurimman uskottavuuden estimaatit. Pohdi, miksi kertoimella $e^{\hat\beta_0}$ ei nyt
+ole järkevää tulkintaa. Laske $e^{\hat\beta_0}$ ja likimääräinen 95% luottamusväli (onnistuuko tämä?) ja tulkitse tulos.
+</blockquote>
+
+We cannot simply derive the parameters in exponentional model due to the formula, as the interception does not seem meaningful directly. 
+
+```{r eam302}
+fit302 <- survreg(Surv(futime, fustat) ~ age, data = ovarian, dist = "exponential")
+exp(coef(fit302)[2])
+exp(confint(fit302))
+```
+
+### Exercise 3
+
+<blockquote>
+Tutkitaan lääkehoidon, tupakoinnin ja aikaisemman hoidon vaikutusta krooniseen tulehdustautiin. Elinaikamuuttujana on nyt tulehduksen ajankohta ja tarkasteltavat selittäjämuuttujat ovat
+
+treat = lääkehoidon laatu (0 = placebo, 1 = interferoni)
+
+sex = (1 = mies, 2 = nainen)
+
+anti = antibioottien käyttö hoitoon tultaessa (1 = ei, 2 = kyllä)
+
+Oletetaan, että sensuroimattomien tulehdusten ajat ovat Weibull-jakautuneita.
+
+Sovita aineistoon Weibull-malli, jossa on mukana kaikki kolme kovariaattia. Osaatko kirjoittaa näkyviin malliyhtälön?
+
+Etsi (`R`:llä) regressiokertoimien suurimman uskottavuuden estimaatit. Etsi eri selittäjiin liittyvät luonnolliset piste-estimaatit ($e^{\beta_j}$) ja vastaavat likimääräiset 95% luottamusvälit. Tulkitse tulokset.
+</blockquote>
+
+```{r eam303}
+fit303 <- survreg(Surv(time, status) ~ treat + sex + anti, data = cgd, dist = "weibull")
+summary(fit303)
+exp(confint(fit303))
+```
+
+### Exercise 4
+
+<blockquote>
+Edellisen tehtävän tilanteessa, etsi tulehdusaikojen kvartiilien estimaatit (alakvartiili, mediaani ja yläkvartiili) erikseen sekä miehille että naisille, joita ei ole hoidettu antibiooteille, ja
+
+a) joille on annettu placebo-lääkettä
+
+b) joita on hoidettu interferoneilla.
+</blockquote>
+
+```{r eam304}
+?predict.survreg
+
+newdata <- data.frame(anti  = "1",
+                      sex   = c("1", "2", "1", "2"),
+                      treat = c(0, 0, 1, 1))
+
+pred <- predict(fit303, newdata, type='quantile', p=c(.1, .5, .9))
+colnames(pred) <- c("Q10", "Q50", "Q90")
+
+cat("difference between males and females, when in placebo\n"); pred[2,]- pred[1,]
+cat("difference between males and females, when in treatment\n"); pred[3,]- pred[4,]
+
+```
+
+### Exercise 5
+
+<blockquote>
+Olkoon $(t_1,  \delta_1), \ (t_2,  \delta_2),\dots, (t_n,\delta_n)$ sensuroitu otos Weibull-jakaumasta parametreilla $\lambda$ ja $p$. Oletetaan, että $p\gt 0$ on tunnettu. Johda $\lambda$:n suurimman uskottavuuden estimaatti ja sen asymptoottisen varianssin estimaatti.
+</blockquote>
+
+We use the fact for Weibull-distribution: $S(t_i) = e^{-\lambda t_i}$ and $h(t_i) = \lambda p (\lambda t_i) ^{p-1}$.
+
+Then, $\log S(t_i) = -\lambda t_i$ and $\log h(t_i) = p\log\lambda + \log p + (p-1)\log t_i$.
+
+$\begin{align} \log L &= \log \bigg[ \prod\limits_{i=1}^n [h(t_i)]^{\delta_i} S(t_i)\bigg] \\ &=  \sum\limits_{i=1}^n \bigg[\delta_i \log h(t_i) + \log S(t_i) \bigg] \\ & = \sum\limits_{i=1}^n \bigg[ \delta_i p \log\lambda + \delta_i p + \delta_i (p-1)\log (t_i) -\lambda t_i \bigg] \end{align}$
+
+$\begin{aligned} \frac {\partial \log L}{\partial \lambda} &= \sum\limits_{i=1}^n \bigg( \frac{p\delta_i} \lambda - t_i \bigg) \\ &= \frac p \lambda \sum\limits_{i=1}^n \delta_i - \sum\limits_{i=1}^n t_i \\ &:= 0 \end{aligned}$
+
+Since $p$ is known, we are done with $\lambda = p \frac{\sum\delta_i} {\sum t_i}$
+
+### Exercise 6(a)
+
+<blockquote>
+Oletetaan, että $h_B(t) = e^\Delta h_A(t)$, missä $\Delta$ on jokin vakio. Osoita, että $(-\log S_A(t), \ \log S_B(t)),\ t\gt 0$ on origon kautta kulkeva suora. Mikä on kulmakerroin?
+</blockquote>
+
+By the result of $S(t) = e ^{-H(t)}$,
+
+$\log S_B(t) = H_B(t) = \displaystyle\int_0^t h_B(u) du =  \displaystyle\int_0^t  e ^\Delta h_A(u) du = e ^\Delta H_A(t) = - e^\Delta \log S_A(t)$
+
+Therefore, $(-\log S_A(t), \ \log S_B(t)),\ t\gt 0$ is through the origin, and the coefficient is $e^\Delta$.
+
+### Exercise 6(b)
+
+<blockquote>
+Oletetaan, että $S_B(t) = S_A(e^\Delta t)$, missä $\Delta$ on jokin vakio. Osoita, että $(-S_A^{-1}(u), S_B^{-1}(u)), \ 0 < u < 1$ on origon kautta kulkeva suora. Mikä on kulmakerroin?
+</blockquote>
+
+$S_B^{-1}(u) = e^{-\Delta}\ S_A^{-1}(u)$.
+
+Therefore, $(-S_A^{-1}(u), S_B^{-1}(u))$ is through the origin, and the coefficient is $-e^{-\Delta}$.
+
+### Exercise 7
+
+<blockquote>
+Johda log-normaalisen jakauman tiheysfunktio ja välttöfunktio.
+</blockquote>
+
+The log-normal density function $f(t) = (2\pi)^{-1/2} p t^{-1} \exp \bigg( -\frac 1 2 p^2 (\log(\lambda t))^2 \bigg)$
+
+Let $x= p\log(\lambda u)$, then $dx= \frac{p}{u} du$ and $du = u p^{-1} dx$.
+
+$\begin{align}  F(t) &= \displaystyle\int_0^t (2\pi)^{-1/2} p u^{-1} \exp \bigg( -\frac 1 2 p^2 (\log(\lambda u))^2 \bigg) du \\ &= \displaystyle\int_0^t (2\pi)^{-1/2} pu^{-1} \exp \bigg( -\frac 1 2 x^2 \bigg)  u p^{-1} dx  \\ &= \displaystyle\int_0^t (2\pi)^{-1/2}  \exp \bigg( -\frac 1 2 x^2 \bigg)dx \\ &= \Phi(x) \end{align}$
+
+Therefore, $F(t) = \Phi ( p\log(\lambda t))$ and $S(t) = 1 - \Phi ( p\log(\lambda t))$, where $\Phi$ is the cumulative funciton of a normal distribution.

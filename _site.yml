@@ -2,6 +2,18 @@ name: "HT"
 navbar:
   title: "Harjoitukset"
   left:
+    - text: "Elinaikamallit"
+      menu:
+      - text: "harj.1"
+        href: eam_1.Rmd
+      - text: "harj.2"
+        href: eam_2.Rmd
+      - text: "harj.3"
+        href: eam_3.Rmd
+      - text: "harj.4"
+        href: eam_4.Rmd
+      - text: "harj.5"
+        href: eam_5.Rmd
     - text: "Statistics"
       menu: 
       - text: "RLR Ryhmittelymenetelmiä"
@@ -139,7 +151,7 @@ navbar:
     - icon: fa-leanpub fa-lg
       href: /web
     - icon: fa-home fa-lg
-      href: https://boring.fi
+      href: https://yan.fi
 #output: html_fragment
 output:
   html_document:
@@ -147,3 +159,4 @@ output:
     highlight: default
     df_print: paged
     css: z.style.css
+    

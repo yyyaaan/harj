@@ -1,0 +1,122 @@
+# Elinaikamallit Harj.4
+
+Yan Pan | 04.02.2020
+
+```{r setup, echo=FALSE}
+library(ggplot2)
+library(survival)
+cgd <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/cgd2.dat")
+smoking <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/smoking.txt")
+
+```
+
+### Exercise 1
+
+<blockquote>
+Tutustu kahteen Kopasta löytyvään artikkeliin (copd.pdf ja animals.pdf), joissa on käytetty elinaikamallinnusta
+</blockquote>
+
+In very brief, these two articles have similar approach using the Cox Proportional Harzard model. However, the major difference lays on the subject objective. While the Pulmonary Disease study focuses especially on the effect of sex, the other on the tagged-animal does not specially concentrate on one factor though it provides the comparison between hacth-year and after-hatch-year birds. Therefore, the COPD study presents result highlighting the effect sex, for example Table 1 and Figure 1, and it applies both univariate and multivariate models. In contrast, ANIMAL study shows the reulsts in a more generic way.
+
+### Exercise 2
+
+<blockquote>
+Tutkitaan jälleen lääkehoidon, tupakoinnin ja aikaisemman hoidon vaikutusta krooniseen tulehdustautiin. Elinaikamuuttujana on nyt tulehduksen ajankohta ja tarkasteltavat selittäjämuuttujat ovat treat = lääkehoidon laatu (0 = placebo, 1 = interferoni); sex = (1 = mies, 2 = nainen); anti = antibioottien käyttö hoitoon tultaessa (1 = ei, 2 = kyllä).
+
+Sovita aineistoon regressiomalli, jossa on mukana kaikki kolme kovariaattia. Oleta (A) eksponenttijakautuneet, (B) Weibull-jakautuneet, (C) lognormaalijakautuneet ja (D) log-logistiset vasteet. Tutki AIC-informaatiokriteerin avulla, mikä malleista (A)-(D) on paras.
+
+</blockquote>
+
+```{r eam402}
+cgd$sex  <- factor(cgd$sex)
+cgd$anti <- factor(cgd$anti)
+
+```
+
+### Exercise 4
+
+Same as Demo 3 Exercise 5
+
+### Exercise 5
+
+<blockquote>
+Tarkastellaan kolmen riippumattoman tapahtuman A, B ja C sattumisajankohtia $T_A$, $T_B$ ja $T_C$ . Olkoot tapahtumiin liittyvät vaarafunktiot muotoa $h_A(t) = e^\alpha h(t), \ h_B(t) = e^\beta h(t), \ h_C(t) = e^\gamma h(t)$. Mikä on todennäköisyys, että tapahtumat sattuvat järjestyksessä $ABC$?
+</blockquote>
+
+The events occurs sequentially as $ABC$ is equivalent to $P(T_A < T_B < T_C)$.
+
+$$\begin{aligned} P(T_A < T_B < T_C)
+&= P(T_A < T_B) \ P (T_B < T_C)
+\\ &= \frac {e^\alpha}{ e^\alpha + e^\beta} \ \frac {e^\beta}{ e^\beta + e^\gamma}
+\end{aligned}$$
+
+### Exercise 6
+
+<blockquote>
+Tutkitaan tupakoinnin vaikutusta elinikään (vuosia). Oletetaan, että elinaikamuuttujiin liittyvät vaarafunktiot ovat muotoa $h_i(t) = \lambda_i h_0(t)$, missä $\lambda_i = e^{\beta_1 x_{i1}}$, ja tupakointia kuvaava muuttuja on $x=1$, jos hlö on tupakoinut and $x=0$, jos hlö ei ole tupakoinut
+
+Olkoon havaittu aineisto:
+
+```{r eam405a, echo=FALSE}
+print(smoking)
+```
+
+Kirjoita Coxin ehdollinen uskottavuusfunktio.
+
+</blockquote>
+
+```{r eam405b, echo=FALSE}
+tbl_ord <- smoking[order(smoking$time),]
+# tbl_ord$i <- order(smoking$time)
+
+tbl_ord$R <- c(
+ "{1,2,3,4,5,6,7,8,9,10}",
+ "{1,2,3,4,5,7,8,9,10}",
+ "{1,2,3,4,7,8,9,10}",
+ "{1,2,3,4,7,8,10}",
+ "{2,3,4,7,8,10}",
+ "{2,3,4,8,10}",
+ "{2,3,8,10}",
+ "{2,3,10}",
+ "{2,10}",
+ "{2}")
+
+tbl_ord$R_simple <- c(
+ "{1,2,5,7,10}",
+ "{1,2,5,7,10}",
+ "{1,2,7,10}",
+ "{1,2,7,10}",
+ "{2,7,10}",
+ "{2,10}",
+ "{2,10}",
+ "{2,10}",
+ "{2,10}",
+ "{2}")
+
+print(tbl_ord)
+
+```
+
+We only need to count for the uncensored rows in the above table. The `R_simple` row counts for the set that have $x_{i1} = 1$
+
+$L(\beta_1) = \frac{e^\beta}{5e^\beta + 4} \frac{e^\beta}{4e^\beta + 3} \frac{e^\beta}{3e^\beta + 2} \frac{e^\beta}{2e^\beta} \frac{e^\beta}{e^\beta} = \frac 1 2 \frac{e^\beta}{5e^\beta + 4} \frac{e^\beta}{4e^\beta + 3} \frac{e^\beta}{3e^\beta + 2}$.
+
+### Exercise 7
+
+<blockquote>
+Edellisen tehtävän tapauksessa
+
+(a) kirjoita R-funktio, joka laskee Coxin uskottavuusfunktion arvon annetuilla parametrin $\beta_1$ arvoilla. Plottaa funktio, kun $\beta_1 \in [−5, 5]$. Mikä $\beta_1$:n arvo näyttäisi maksimoivan uskottavuusfunktion?
+
+(b) Etsi uskottavuusfunktion maksimi esimerkiksi R:n optimize-funktiolla. Vertaa tulosta coxph-funktion antamaan estimaattiin. Aineisto smoking.txt on ladattavissa kurssin kotisivuilta.
+
+</blockquote>
+
+```{r eam407}
+beta <- seq(from=-5, to=5, by=0.01)
+expx <- exp(beta)
+likelihood <- 0.5 * (expx/(5*expx + 4)) * (expx/(4*expx + 3)) * (expx/(3*expx + 2))
+ggplot() + geom_line(aes(beta, likelihood))
+
+coxph(Surv(time, delta)~x, data=smoking)
+```
