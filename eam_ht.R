@@ -4,8 +4,6 @@ library(tidyverse)
 
 load("eam_0.RData"); remove(list = ls()[!str_detect(ls(), "iki")])
 
-
-
 # Supporting utilities ----------------------------------------------------
 
 kg2newton <<- 9.80665
@@ -66,6 +64,18 @@ u_WAIScat <- function(wais){
   return(out)
 }
 
+mysurvplot <- function(fit, group, data){
+  fit %>%
+    ggsurvplot_group_by(
+      group.by = group, data = data,
+      surv.median.line = "hv", conf.int = TRUE, pval = TRUE,
+      risk.table = TRUE, risk.table.pos = "in", risk.table.fontsize = 3,
+      ggtheme = theme_bw()
+    ) %>%
+    arrange_ggsurvplots() %>%
+    print()
+}
+
 # data --------------------------------------------------------------------
 
 iki_ok <- ikivihreat %>% 
@@ -87,15 +97,12 @@ iki_ok <- ikivihreat %>%
 
 iki <- iki_ok %>% 
   filter(tte > 0) %>%
-  select(kh, tte, status, Sex, Age, BMIc, WAISc, VM12c, VM13c, VM14c) %>%
+  select(kh, tte, status, Sex, Age, BMIc, WAISc, VM12c) %>%
   as.data.frame()
 
 GGally::ggpairs(iki[, c("Age", "Sex", "tte")])
 
-## clean up environment
 remove(list = ls()[!str_detect(ls(), "iki|my")])
-
-
 
 # non-parametric ----------------------------------------------------------
 
@@ -109,108 +116,65 @@ fit_cox <- coxph(Surv(tte, status) ~ Sex + Age + BMIc + WAISc + VM12c, data = ik
 fit_cox %>% cox.zph() %>% ggcoxzph()
 fit_cox %>% ggforest()
 
-fit_cox %>% ggadjustedcurves(data = iki, variable = "Sex") 
-fit_cox %>% ggadjustedcurves(data = iki, variable = "Age")
-fit_cox %>% ggadjustedcurves(data = iki, variable = "BMIc")
-fit_cox %>% ggadjustedcurves(data = iki, variable = "WAISc")
-fit_cox %>% ggadjustedcurves(data = iki, variable = "VM12c")
-
-
-## stratified
-for(stratum in levels(iki$Age)){
-  ikis <- iki %>% filter(Age == stratum)
-  coxph(Surv(tte, status) ~ Sex + BMIc + WAISc + VM12c, data = ikis) %>% 
-    ggforest(main = paste("Hazard Ratio | Stratum: Age =", stratum), fontsize = 0.9) %>%
-    print()
-}
+fit_cox %>% ggadjustedcurves("Sex"  , iki)
+fit_cox %>% ggadjustedcurves("Age"  , iki)
+fit_cox %>% ggadjustedcurves("WAISc", iki)
+fit_cox %>% ggadjustedcurves("VM12c", iki)
 
 # parametric --------------------------------------------------------------
 
 survreg(Surv(tte, status) ~ Sex + Age + BMIc + WAISc + VM12c, data = iki) %>% plot()
-  ggsurvplot()
 
 # Imputation --------------------------------------------------------------
 
 library(mice)
+
 iki_miss <- iki_ok %>% 
+  #  filter(tte > 0) %>%
   select(kh, tte, status, Sex, Age, bmi, WAIS, vm12) %T>%
   md.pattern(plot = TRUE, rotate.names = TRUE)
   
-iki_miss %>% 
-  mice(m=1000, printFlag = FALSE) %>%
+fit_mipo <- iki_miss %>% 
+  mice(m=100, printFlag = FALSE) %>%
   with(coxph(Surv(tte, status) ~ Age + Sex + bmi + WAIS + vm12)) %>%
-  pool(dfcom = nrow(iki_miss) - 6) -> fit_mipo
-  
-## stratified
-for(stratum in levels(iki$Age)){
-  
-  cat("\n=========\nAge Group ", stratum, "\n=========\n")
-  ikis <- iki_miss %>% filter(Age == stratum) 
-  ikis %>% 
-    mice(m = 100, printFlag = FALSE) %>%
-    with(coxph(Surv(tte, status) ~ Sex + bmi + WAIS + vm12)) %>%
-    pool(dfcom = nrow(ikis) - 5) %>%
-    summary(conf.int = TRUE) %>% print()
-}
+  pool(dfcom = nrow(iki_miss) - 6)
 
 
+# forest plot -------------------------------------------------------------
 
-# playground --------------------------------------------------------------
 
 library(forestplot)
 
-fit_cox %>% 
-  summary() %>% 
-  extract2(7) %>%
-  data.frame() %>%
-  transmute(rowname = rownames(.) ,
-            value   = rownames(.) %>% str_remove("Sex|Age|BMIc|WAISc|VM12c"),
-            Estimate = paste0(round(exp(coef), 3), "\n(", 
-                              round(exp(coef + qnorm(0.025) * se.coef.),3),
-                              "-", round(exp(coef + qnorm(0.975) * se.coef.),3),")"),
-            p.value  = ifelse(Pr...z.. <0.001, "<.001", round(Pr...z..,  3)),
-            p.sig    = case_when(Pr...z.. < 0.001 ~ "***",
-                                 Pr...z.. < 0.01 ~ "**",
-                                 Pr...z.. < 0.05 ~ "*",
-                                 TRUE ~ ""),
-            est   = exp(coef),
-            upper = exp(coef + qnorm(0.975) * se.coef.),
-            lower = exp(coef + qnorm(0.025) * se.coef.)) %>%
-  mutate(p.value = paste0(p.value, p.sig),
-         variable= str_remove(rowname, value)) -> x; x
+fit_mipo %>% 
+  summary() %>%
+  mutate(p.value = format.pval(p.value, digits = 3, eps = 0.001),
+         p.sig    = case_when(p.value < 0.001 ~ "***",
+                              p.value < 0.01 ~ "**",
+                              p.value < 0.05 ~ "*",
+                              TRUE ~ ""),
+         est   = exp(estimate),
+         upper = exp(estimate + qnorm(0.975) * std.error),
+         lower = exp(estimate + qnorm(0.025) * std.error)) %>%
+  mutate(p.value  = paste0(p.value, p.sig),
+         estimate = paste0(round(est, 3), "\n(", 
+                           round(lower, 3), " - ", 
+                           round(upper, 3), ")")) %>%
+  select(term, estimate, p.value, est, upper, lower)-> x
 
-iki %>% 
-  reshape2::melt(id.vars = c("kh", "tte", "status")) %>%
-  group_by(variable, value) %>%
-  summarise(n()) %>%
-  left_join(x) -> aaa
-  
-x$rowname 
-# Rowname = row.names(.) %>%
-#   str_replace("SexFemale", "Sex Female vs. Male") %>%
-#   str_replace("BMIc", "BMIc ") %>%
-#   str_replace("cClass", "c Class") %>%
-#   ifelse(str_detect(., ":"), paste(., " vs. Missing"), .)  %>% 
-#   str_replace("Age80", "Age 80 vs. 75"),
-
-
-gpl <- gpar(lty=1)
-cls <- fpColors(box="royalblue",line="darkblue", summary="royalblue")
-txt <- fpTxtGp(label = list(gpar(cex = 0.7, fontfamily = "Times")))
-forestplot(x[, 1:3], txt_gp = txt,
+forestplot(x[, 1:3], 
+           txt_gp = fpTxtGp(label = list(gpar(cex = 0.7, fontfamily = "Times"))),
+           title = "Hazard Ratio",
            mean  = x$est,
            lower = x$lower,
            upper = x$upper,
            zero   = 1,
-           clip   = c(0, 3.3),
            xlab   = "Relative Hazard Ratio",
-           boxsize = 0.3,
-           graph.pos  = 3,
-           col = cls,
-           hrzl_lines = list("2"=gpl, "3"=gpl, "7"=gpl, "12"=gpl))
-
+           boxsize = 0.1,
+           graph.pos  = 3)
 
 ggforest(fit_cox)
+
+library(broom); tidy(fit_cox); glance(fit_cox)
 
 # References --------------------------------------------------------------
 ## https://cran.r-project.org/web/packages/forestplot/vignettes/forestplot.html
