@@ -4,9 +4,7 @@ Yan Pan | 20.01.2020
 
 ```{r setup, echo=FALSE}
 library(ggplot2)
-kuolleet <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/kuolleet.txt", header = T)
-vakiluku <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/vakiluku.txt", header = T)
-kuolleisuus04 <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/kuolleisuus04.txt", header = T)
+load("eam_0.RData")
 
 lifetable <- function(np, c, d){
   N <- length(np)

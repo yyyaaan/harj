@@ -1,11 +1,11 @@
 # Elinaikamallit Harj.3
 
-Yan Pan | 28.01.2020
+Yan Pan | 28.01.2020 | Answers corrected
 
 ```{r setup, echo=FALSE}
 library(ggplot2)
 library(survival)
-cgd <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/cgd2.dat")
+load("eam_0.RData")
 cgd$sex <- factor(cgd$sex)
 cgd$anti <- factor(cgd$anti)
 

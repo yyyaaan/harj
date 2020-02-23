@@ -1,13 +1,11 @@
 # Elinaikamallit Harj.4
 
-Yan Pan | 04.02.2020
+Yan Pan | 04.02.2020 | Answeres corrected
 
 ```{r setup, echo=FALSE}
 library(ggplot2)
 library(survival)
-cgd <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/cgd2.dat")
-smoking <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/smoking.txt")
-
+load("eam_0.RData")
 ```
 
 ### Exercise 1
@@ -28,10 +26,37 @@ Sovita aineistoon regressiomalli, jossa on mukana kaikki kolme kovariaattia. Ole
 </blockquote>
 
 ```{r eam402}
-cgd$sex  <- factor(cgd$sex)
-cgd$anti <- factor(cgd$anti)
+cgd$sex   <- factor(cgd$sex)
+cgd$anti  <- factor(cgd$anti)
+fit_exp <- survreg(Surv(time, status) ~ treat + sex + anti, data = cgd, dist = 'exponential')
+fit_wei <- survreg(Surv(time, status) ~ treat + sex + anti, data = cgd, dist = 'weibull')
+fit_lgn <- survreg(Surv(time, status) ~ treat + sex + anti, data = cgd, dist = 'lognormal')
+fit_log <- survreg(Surv(time, status) ~ treat + sex + anti, data = cgd, dist = 'loglogistic')
 
+AIC(fit_exp); AIC(fit_wei); AIC(fit_lgn); AIC(fit_log)
+
+exp(coef(fit_exp)); exp(confint(fit_exp))
 ```
+
+All models are quite similar, but the Weibull one seems to be slightly better as indicated by the likelihood.
+
+### Exercise 3
+
+<blockquote>
+Tarkastellaan korvatulehdusaineistoa (ks. R4 harjoitukset) ja muuttjien valintaa. a) Lue aineisto R:ään ja tee muuttujista lapsia ja sukup faktoriarvoiset. b) Sovita ensin aineistoon log-normaalinen malli, jossa on mukana vain selittäjä lapsia. Sovita sitten kilpaileva malli, jossa on mukana kaikki selittäjät lapsia, tup ja sukup. Nyt mallit ovat sisäkkäisiä, ja ensimmäisessä mallissa on kaksi parametria vähemmän kuin jälkimmäisessä. Testaa log-uskottavuusfunktion erotuksen avulla, tarvitaanko mallissa selittäjää lapsia (ks. luentokalvojen s. 123-124).
+</blockquote>
+
+```{r eam403}
+korvatul$lapsia <- factor(korvatul$lapsia)
+korvatul$sukup  <- factor(korvatul$sukup)
+fit_1 <- survreg(Surv(time, delta) ~ lapsia, data = korvatul, dist = 'lognormal')
+fit_3 <- survreg(Surv(time, delta) ~ lapsia + tup + sukup, data = korvatul, dist = 'lognormal')
+
+T <- -fit_1$loglik[2] + fit_3$loglik[2]
+1-pchisq(T,1)
+```
+
+This means that adding 2 extra regressors does not improve (nor worsen) the model. In another word, the model with only `lapsia` is sufficient.
 
 ### Exercise 4
 
@@ -99,7 +124,7 @@ print(tbl_ord)
 
 We only need to count for the uncensored rows in the above table. The `R_simple` row counts for the set that have $x_{i1} = 1$
 
-$L(\beta_1) = \frac{e^\beta}{5e^\beta + 4} \frac{e^\beta}{4e^\beta + 3} \frac{e^\beta}{3e^\beta + 2} \frac{e^\beta}{2e^\beta} \frac{e^\beta}{e^\beta} = \frac 1 2 \frac{e^\beta}{5e^\beta + 4} \frac{e^\beta}{4e^\beta + 3} \frac{e^\beta}{3e^\beta + 2}$.
+$$L(\beta_1) = \frac{e^\beta}{5e^\beta + 4} \frac{e^\beta}{4e^\beta + 3} \frac{e^\beta}{3e^\beta + 2} \frac{e^\beta}{2e^\beta} \frac{e^\beta}{e^\beta} = \frac 1 2 \frac{e^\beta}{5e^\beta + 4} \frac{e^\beta}{4e^\beta + 3} \frac{e^\beta}{3e^\beta + 2}$$.
 
 ### Exercise 7
 

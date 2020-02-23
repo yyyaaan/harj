@@ -1,0 +1,140 @@
+# Elinaikamallit Harj.5
+
+Yan Pan | 11.02.2020 
+
+```{r setup, echo=FALSE, results='hide'}
+library(survival)
+library(survminer)
+load("eam_0.RData")
+leuk$sex <- as.factor(leuk$sex)
+```
+
+Credit: `survminer` package used for nicer and easier ploting. [Quick Ref Here](https://rpkgs.datanovia.com/survminer/survminer_cheatsheet.pdf)
+
+Data and library loading steps are not displayed.
+
+
+### Exercise 1
+
+<blockquote>
+Tutkitaan aineistoa leuk.txt (Henderson et al., 2002), joka sisältää 1043 leukemiapotilaan elinajat diagnoosin
+jälkeen sekä seuraavat muuttujat: cens = sensurointi-indikaattori (0 = sensuroitu elinaika); age = ikä; sex = sukupuoli (-1 = nainen, 1 = mies); wbc = valkosolujen lukumäärä; tpi = asuinalueen vaurautta kuvaava indeksi (matala indeksi = rikas alue).
+
+Lue aineisto R:ään ja tee muuttujasta sukupuoli faktoriarvoinen.
+
+a) Etsi Kaplan-Meierin välttöfunktion estimaatti ja piirrä se.
+
+b) Anna elinaikojen mediaanin estimaatti.
+
+c) Piirrä Kaplan-Meierin välttöfunktion estimaatit molemmille sukupuolille erikseen.
+
+d) Anna elinaikojen mediaanin estimaatit molemmille sukupuolille erikseen.
+
+e) Testaa tilastollisen testin avulla, eroavatko miesten ja naisten välttökäyrät toisistaan.
+</blockquote>
+
+```{r eam501}
+fit_km <- survfit(Surv(time, cens) ~ 1, data = leuk)
+ggsurvplot(fit_km, data = leuk) + ggtitle("Kaplan-Meier with CI")
+fit_km
+
+fit_km2 <- survfit(Surv(time, cens) ~ sex, data = leuk)
+ggsurvplot(fit_km2, data=leuk) + ggtitle("Kaplan-Meier by Sex")
+
+survdiff(Surv(time, cens) ~ sex, data = leuk); cat("\nAnswer: diff between sex not siginficant\n")
+```
+
+### Exercise 2
+
+<blockquote>
+Tarkastellaan edellisen tehtävän aineistoa.
+
+a) Sovita aineistoon Coxin suhteellisen vaaran malli käyttäen kaikkia mahdollisia kovariaatteja. Anna vaarasuhteet $e^{\hat\beta_i}$ likimääräisine 95% luottamusväleineen ja tulkitse tulokset huolellisesti.
+
+b) Piirrä Coxin mallin mukaiset välttöfunktioestimaatit 50 vuotiaille miehille , joilla $wbc = 40$ ja $tpi = 0$ sekä 70 vuotiaille miehille, joilla $wbc = 40$ ja $tpi = 0$. Mikä on vaarasuhde edellä mainittujen luokkien välillä?
+</blockquote>
+
+```{r eam502a}
+fit_cox <- coxph(Surv(time, cens) ~ age + sex + wbc + tpi, data = leuk)
+summary(fit_cox)
+```
+
+An increase of 1 in age will increase the risk by 1.03 times (in terms of hazard ratio); male have 1.053 times higher risk compared with women (non-significant); unit increase in white blood cell almost have no difference (1.003) and unit increase in wealth index usually implies 1.03 times higher risk.
+
+```{r eam502b}
+# use base R ploting
+plot (survfit(fit_cox, data.frame(age=50, wbc=40, tpi=0, sex="1")),
+      conf.int = FALSE, main = "Estimated Survival for Men with WBC=40 and TPI=0")
+lines(survfit(fit_cox, data.frame(age=70, wbc=40, tpi=0, sex="1")),
+      conf.int = FALSE, col = "red")
+
+
+pred <- data.frame(age = c(50, 70), wbc = 40, tpi = 0, sex = "1")
+ggadjustedcurves(fit_cox,  data = pred, variable = "age") + ggtitle("using survminer")
+
+```
+
+The difference in curves indicates the increase in risk when age changed from 50 to 70.
+
+### Exercise 3
+
+<blockquote>
+Tutkitaan aineistoa cgdrep.txt (Fleming and Harrington, 1991), joka sisältää 203 cgd-tautiin sairastuneiden potilaiden peräkkäisten tulehdusten väliset ajat sekä seuraavat muuttujat: id = potilaan tunnus; treat = placebo tai interferoni; sex = sukupuoli; age = ikä tutkimukseen tultaessa; height = pituus tutkimukseen tultaessa; weight = paino tutkimukseen tultaessa; steroids = steroidilääkityksen käyttö tutkimukseen tultaessa (1 = kyllä); tstart, tstop = tarkasteltavien aikavälien alku- ja loppu; status = sensurointi-idikaattori (1 = tulehdus); enum = potilaan havainnon järhestysnumero.
+
+Tarkastellaan nyt ensimmäisen tulehduksen ajankohtia. Poimi aineistosta vastaava osa-aineisto aineistosta. Tutki ensin Kaplan-Meierin menetelmän avulla, mitkä selittäjät saattavat vaikuttaa ensimmäisen tulehduksen ajankohtaan, toisin sanoen, piirrä välttöfunktion estimaatit erikseen (i) molemmille hoitoluokille, (ii) molemmille sukupuolille ja (iii) molemmille steroidilääkitysluokille.
+</blockquote>
+
+```{r eam503}
+cgdrep$time <- cgdrep$tstop - cgdrep$tstart
+cgd1 <- cgdrep[cgdrep$enum==1, ]
+toplot <- list()
+
+toplot[[1]] <- ggsurvplot(survfit(Surv(time, status) ~ treat,   data = cgd1), data = cgd1)
+toplot[[2]] <- ggsurvplot(survfit(Surv(time, status) ~ sex,     data = cgd1), data = cgd1) 
+toplot[[3]] <- ggsurvplot(survfit(Surv(time, status) ~ steroids, data = cgd1), data = cgd1)
+
+arrange_ggsurvplots(toplot)
+
+```
+
+### Exercise 4
+
+<blockquote>
+Sovita aineistoon Coxin malli. Ota ensin malliin mukaan kaikki selittäjät ja pohdi sen jälkeen, voisiko joitain selittäjiä jättää pois. Tulkitse lopullisen mallin tulokset huolella
+</blockquote>
+
+```{r eam504a}
+summary( coxph(Surv(time, status) ~ treat + sex + steroids , data = cgd1))
+```
+
+
+From the Exercise 3 KM-plots, we can observe that `sex` and `steroids` do not really show the "proportional hazard" and the above summary's significance also supports the idea. Therefore, we only use `treat`.
+
+```{r eam504b}
+summary( coxph(Surv(time, status) ~ treat, data = cgd1))
+```
+
+Active treatment using rFFN-g will significantly reduce the risk to 0.3349 times to those on placebo.
+
+
+### Exercise 5
+
+<blockfquote>
+Tarkastele alkuperäistä cgdrep.txt aineistoa ja sovita aineistoon fraily-malli samoilla selittäjillä kuin
+tehtävässä 5. Oleta Gamma-jakautunut frailty-parametri. Frailty-parametri kiinnitetään potilaan indeksiin. Tulkitse tulokset.
+</blockquote>
+
+```{r eam505}
+# default Frailty is Gamma, so let's be lazy
+fit_f <- coxph(Surv(time, status) ~ treat + frailty(id), data = cgdrep)
+summary(fit_f)
+```
+
+### Exercise 6
+
+```{r eam506}
+# This is the random effects for each subject? equiv. to the baseline harzard for each subject?
+exp(fit_f$frail)
+```
+
+

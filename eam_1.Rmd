@@ -4,7 +4,25 @@ Yan Pan | 11.01.2020
 
 Function `lifetable` is referenced from `r1-vast`, and code is hidden here.
 
+```{r courseData, eval = FALSE, echo = FALSE}
+# the data are save into eam_0.RData
+
+inf      <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/inf.dat", header = T)
+kuolleet <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/kuolleet.txt", header = T)
+vakiluku <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/vakiluku.txt", header = T)
+kuolleisuus04 <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/kuolleisuus04.txt", header = T)
+cgd      <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/cgd2.dat")
+smoking  <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/smoking.txt")
+korvatul <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/korvatul.dat")
+cgdrep   <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/cgdrep.txt")
+leuk     <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/leuk.txt")
+
+
+load("eam_0.RData")
+```
+
 ```{r setup, echo=F}
+load("eam_0.RData")
 # reference Taskinen (2020)
 lifetable <- function(np, c, d){
   N <- length(np)
@@ -27,7 +45,7 @@ lifetable <- function(np, c, d){
 <blockquote> Tarkastellaan kroonista tulehdustautia sairastavien potilaiden ensimmäisen tulehduksen ajankohtaa $T$. Aineisto on ryhmitelty kuukauden pituisiin jaksoihin ja kultakin jaksolta tunnetaan</blockquote>
 
 ```{r eam101}
-data <- read.table("http://users.jyu.fi/~slahola/files/surv_datoja/inf.dat", header = T)
+data  <- inf
 dataK <- data[data$treat == 1,]
 dataL <- data[data$treat == 2,]
 ltK <- lifetable(dataK$np, dataK$c, dataK$d)
