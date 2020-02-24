@@ -103,6 +103,7 @@ iki <- iki_ok %>%
 GGally::ggpairs(iki[, c("Age", "Sex", "tte")])
 
 remove(list = ls()[!str_detect(ls(), "iki|my")])
+haven::write_sas(iki, "iki.sas7bdat")
 
 # non-parametric ----------------------------------------------------------
 
@@ -182,3 +183,6 @@ library(broom); tidy(fit_cox); glance(fit_cox)
 
 ## https://openaccess.leidenuniv.nl/bitstream/handle/1887/11456/01.pdf?sequence=6
 ## https://rpkgs.datanovia.com/survminer/survminer_cheatsheet.pdf
+
+## https://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html
+## https://koppa.jyu.fi/avoimet/kirjasto/en/library-tutorial/citing-and-managing-references/citing-and-managing/how-to-cite

@@ -1,0 +1,33 @@
+---
+title: "eam_ht"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The purpose of this report is to analyze different variables that are potentially contribute to time-to-mortality, and the key research questions includes,
+1)	Are sex and age significant factors concerning time-to-mortality?
+2)	To what extent do BMI, WAIS and hand grip strength affect time-to-mortality?
+
+# Data and Methodology
+
+This report utilizes selected part of Ikivihreät-project data that contains XX subjects aged roughly 75 or 80 on study enrollment date (baseline). Subject characteristics and key measurements are collected at baseline, including sex, exact age, weight, height, Wechsler Adult Intelligence Scale (WAIS) and strength tests (VM12, VM13 and VM14). The survival follow-up continues until Ikivihreät-project cutoff date, which provides exact death date (or cutoff); alive subjects are additionally coded with Status 0. Only baseline data and survival follow-up are available to this report.
+
+## Variables and Missingess
+
+The time-to-event (TTE) response variable uses mortality as the primary endpoint , and is defined as number of survival years after baseline, that is, subject’s age at death (or on cutoff date) deducted by exact age at baseline. For example, subject with confirmed death at 81.3 years old and enrolled in Ikivihreät-project at the age of 74.9 has a TTE equals 6.1 years (81.3 – 74.9).  Considering the missingness, importance and similarity of available data, the variables Age, Sex, Body Mass Index (BMI), WAIS and hand grip strength (VM12) are appointed as explanatory variable, where BMI is calculated as Weight(kg)/Height(m)^2 and proper unit conversion has been applied.
+ 
+Missingness is not negligible in the analysis dataset since the proportion of complete cases are merely XX%. There are 4 subjects (0.6%) have TTE unrecorded, and they will always be excluded due to the fundamental importance of TTE variable. Though there is no sufficient evidence to support missing at random (MAR)  nor to deny the pattern, this report applies a naïve factorization method, where all missing values will be assigned to a factor level of “Missing”, and consequently BMI, WAIS and VM12 are all factorized. BMI is categorized as per simplified WHO standards; VM12 per Terveys 2000 categorization accounting for gender and age; and WAIS is categorized to 5 classes based on quantiles (Class I = 0-20 percentile, Class II = 20-40 percentile, …). The subject characteristics after factorization are summarized in Table XX. As a supplementary, multiple imputation by chained equations (MICE) will be performed, where missing values in BMI, WAIS and VM12 will be imputed and modelled as continuous variables. 
+
+## Statistical Methods
+
+With the selected Ikivihreät data, it can be easily discovered from Figure XX that two genders have clear differences in survival rate (PVALUE), in addition to the obvious differences between baseline age 75 and 80 (PVALUE). 
+
+# Results
+
+# Implications
+
+# References
+
