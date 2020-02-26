@@ -152,7 +152,6 @@ navbar:
       href: /web
     - icon: fa-home fa-lg
       href: https://yan.fi
-#output: html_fragment
 output:
   html_document:
     theme: readable

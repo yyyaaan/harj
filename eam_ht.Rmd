@@ -1,11 +1,17 @@
 ---
-title: "eam_ht"
-output: html_document
+title:  "working version"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=FALSE, results='hide'}
+knitr::opts_chunk$set(echo = FALSE)
+# source("eam_ht.R")
+load("aaa.RData")
+library(table1)
+library(DT)
+
+printdf <- function(df)  datatable(df, options = list(dom = "t", pageLength = nrow(df)))
 ```
+
 
 The purpose of this report is to analyze different variables that are potentially contribute to time-to-mortality, and the key research questions includes,
 1)	Are sex and age significant factors concerning time-to-mortality?
@@ -13,19 +19,37 @@ The purpose of this report is to analyze different variables that are potentiall
 
 # Data and Methodology
 
-This report utilizes selected part of Ikivihreät-project data that contains XX subjects aged roughly 75 or 80 on study enrollment date (baseline). Subject characteristics and key measurements are collected at baseline, including sex, exact age, weight, height, Wechsler Adult Intelligence Scale (WAIS) and strength tests (VM12, VM13 and VM14). The survival follow-up continues until Ikivihreät-project cutoff date, which provides exact death date (or cutoff); alive subjects are additionally coded with Status 0. Only baseline data and survival follow-up are available to this report.
+This report utilizes selected part of Ikivihreät-project data that contains `r nrow(ikivihreat)` subjects aged roughly 75 or 80 on study enrollment date (baseline). Subject characteristics and key measurements are collected at baseline, including sex, exact age, weight, height, Wechsler Adult Intelligence Scale (WAIS) and strength tests (VM12, VM13 and VM14). The survival follow-up continues until Ikivihreät-project cutoff date, which provides exact death date (or cutoff); alive subjects are additionally coded with Status 0. Only baseline data and survival follow-up are available to this report.
 
 ## Variables and Missingess
 
-The time-to-event (TTE) response variable uses mortality as the primary endpoint , and is defined as number of survival years after baseline, that is, subject’s age at death (or on cutoff date) deducted by exact age at baseline. For example, subject with confirmed death at 81.3 years old and enrolled in Ikivihreät-project at the age of 74.9 has a TTE equals 6.1 years (81.3 – 74.9).  Considering the missingness, importance and similarity of available data, the variables Age, Sex, Body Mass Index (BMI), WAIS and hand grip strength (VM12) are appointed as explanatory variable, where BMI is calculated as Weight(kg)/Height(m)^2 and proper unit conversion has been applied.
+The time-to-event (TTE) response variable uses mortality as the primary endpoint , and is defined as number of survival years after baseline, that is, subject’s age at death (or on cutoff date) deducted by exact age at baseline. For example, subject with confirmed death at 81.3 years old and enrolled in Ikivihreät-project at the age of 74.9 has a TTE equals 6.1 years. There are 4 subjects have missing exact age on enrollment, and in such case, the their exact age is replace by age group (75 or 80). This approach is valid as guaranteed by the project protocol, since the subjects on erollment must have exact age close to either 75 or 80. Considering the missingness, importance and similarity of available data, the variables Age, Sex, Body Mass Index (BMI), WAIS and hand grip strength (VM12) are appointed as explanatory variable, where BMI is calculated as Weight$(kg)$/Height$(m)^2$ and proper unit conversion has been applied.
  
-Missingness is not negligible in the analysis dataset since the proportion of complete cases are merely XX%. There are 4 subjects (0.6%) have TTE unrecorded, and they will always be excluded due to the fundamental importance of TTE variable. Though there is no sufficient evidence to support missing at random (MAR)  nor to deny the pattern, this report applies a naïve factorization method, where all missing values will be assigned to a factor level of “Missing”, and consequently BMI, WAIS and VM12 are all factorized. BMI is categorized as per simplified WHO standards; VM12 per Terveys 2000 categorization accounting for gender and age; and WAIS is categorized to 5 classes based on quantiles (Class I = 0-20 percentile, Class II = 20-40 percentile, …). The subject characteristics after factorization are summarized in Table XX. As a supplementary, multiple imputation by chained equations (MICE) will be performed, where missing values in BMI, WAIS and VM12 will be imputed and modelled as continuous variables. 
+There is no compelling outliers detected, and therefore sensitivity analysis deems unnecessary. Nevertheless, apart from TTE variable, missingness is not negligible in the dataset since the proportion of complete cases are merely `r round(100 * sum(complete.cases(ikivihreat)) / nrow(ikivihreat), 1)`%, and there is no sufficient evidence to support missing at random (MAR)  nor to deny the pattern. This report applies a naïve factorization method, where all missing values will be assigned to a factor level of “Missing”, and consequently BMI, WAIS and VM12 are all factorized. BMI is categorized as per simplified WHO standards; VM12 per Terveys 2000 categorization accounting for gender and age; and WAIS is categorized to 5 classes based on quantiles (Class I = 0-20 percentile, Class II = 20-40 percentile, …). The subject characteristics after factorization are summarized in Table XX. As a supplementary, multiple imputation by chained equations (MICE) will be performed, where missing values in BMI, WAIS and VM12 will be imputed and modelled as continuous variables. 
+
+```{r data_summary}
+label(iki_ok$tte)  <- "Time to Event"
+label(iki_ok$bmi)  <- "BMI (height and weight-derived)"
+label(iki_ok$BMI_) <- "BMI group"
+label(iki_ok$WAIS_)<- "WAIS group"
+label(iki_ok$vm12) <- "Hand grip strength (vm12)"
+label(iki_ok$VM12_)<- "Hand grip strength (vm12) group"
+
+iki_ok %>% 
+  mutate(Status = ifelse(status == 1, "1", "0"),
+         AgeGrp = ifelse(Age =="75", "Baseline Age 75", "Baseline Age 80")) %>%
+  table1(~tte + Status + bmi + BMI_ +  WAIS + WAIS_ + vm12 + VM12_ | Sex * AgeGrp, data = .)
+```
 
 ## Statistical Methods
 
 With the selected Ikivihreät data, it can be easily discovered from Figure XX that two genders have clear differences in survival rate (PVALUE), in addition to the obvious differences between baseline age 75 and 80 (PVALUE). 
 
 # Results
+
+```{r results}
+out_est_dt
+```
 
 # Implications
 

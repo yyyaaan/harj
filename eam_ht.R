@@ -64,29 +64,17 @@ u_WAIScat <- function(wais){
   return(out)
 }
 
-mysurvplot <- function(fit, group, data){
-  fit %>%
-    ggsurvplot_group_by(
-      group.by = group, data = data,
-      surv.median.line = "hv", conf.int = TRUE, pval = TRUE,
-      risk.table = TRUE, risk.table.pos = "in", risk.table.fontsize = 3,
-      ggtheme = theme_bw()
-    ) %>%
-    arrange_ggsurvplots() %>%
-    print()
-}
-
 # data --------------------------------------------------------------------
 
 iki_ok <- ikivihreat %>% 
   rowwise() %>% 
   mutate( 
     status = ifelse(Elostatus == "Kuollut", 1, 0),
-    tte    = elovuodet - Ika_tarkka ,
+    tte    = elovuodet - ifelse(is.na(Ika_tarkka), Ika, Ika_tarkka),
     bmi    = paino / ((pituus/100)^2),
-    BMIc   = u_BMIcat (paino, pituus),
-    WAISc  = u_WAIScat(WAIS),
-    VM12c  = u_vmcat  (vm12, sukup, Ika),
+    BMI_   = u_BMIcat (paino, pituus),
+    WAIS_  = u_WAIScat(WAIS),
+    VM12_  = u_vmcat  (vm12, sukup, Ika),
     VM13c  = u_vmcat  (vm13, sukup, Ika),
     VM14c  = u_vmcat  (vm14, sukup, Ika),
     Age    = factor(Ika, levels = c(75, 80)),
@@ -97,85 +85,128 @@ iki_ok <- ikivihreat %>%
 
 iki <- iki_ok %>% 
   filter(tte > 0) %>%
-  select(kh, tte, status, Sex, Age, BMIc, WAISc, VM12c) %>%
+  select(kh, tte, status, Sex, Age, BMI_, WAIS_, VM12_) %>%
   as.data.frame()
 
 GGally::ggpairs(iki[, c("Age", "Sex", "tte")])
 
 remove(list = ls()[!str_detect(ls(), "iki|my")])
-haven::write_sas(iki, "iki.sas7bdat")
+
+# foreign::write.foreign(iki, codefile = "iki",  datafile = "ikid", package = "SAS")
 
 # non-parametric ----------------------------------------------------------
 
+mysurvplot <- function(fit, group, data){
+  fit %>%
+    ggsurvplot_group_by(
+      group.by = group, data = data,
+      surv.median.line = "hv", conf.int = TRUE, pval = FALSE,
+      risk.table = TRUE, risk.table.pos = "in", risk.table.fontsize = 3,
+      ggtheme = theme_classic2(base_family = "Times"), palette = "Set2",
+      font.family = "Times") %>%
+    arrange_ggsurvplots() %>%
+    print()
+}
+
 survfit(Surv(tte, status) ~ Age, data=iki) %>% mysurvplot("Sex", iki)
 survfit(Surv(tte, status) ~ Sex, data=iki) %>% mysurvplot("Age", iki)
+survfit(Surv(tte, status) ~ Age + Sex, data=iki) %>% 
+  ggsurvplot(surv.median.line = "hv", conf.int = F, pval = T)
 
 # semi-parametric ---------------------------------------------------------
 
 ## general
-fit_cox <- coxph(Surv(tte, status) ~ Sex + Age + BMIc + WAISc + VM12c, data = iki) 
+fit_cox  <- coxph(Surv(tte, status) ~ Sex + Age + BMI_ + WAIS_ + VM12_, data = iki)
+fit_cox0 <- coxph(Surv(tte, status) ~ Sex + Age , data = iki) 
 fit_cox %>% cox.zph() %>% ggcoxzph()
 fit_cox %>% ggforest()
 
-fit_cox %>% ggadjustedcurves("Sex"  , iki)
-fit_cox %>% ggadjustedcurves("Age"  , iki)
-fit_cox %>% ggadjustedcurves("WAISc", iki)
-fit_cox %>% ggadjustedcurves("VM12c", iki)
+# fit_cox %>% ggadjustedcurves("Sex"  , iki)
+# fit_cox %>% ggadjustedcurves("Age"  , iki)
+# fit_cox %>% ggadjustedcurves("WAIS_", iki)
+# fit_cox %>% ggadjustedcurves("VM12_", iki)
 
 # parametric --------------------------------------------------------------
 
-survreg(Surv(tte, status) ~ Sex + Age + BMIc + WAISc + VM12c, data = iki) %>% plot()
+survreg(Surv(tte, status) ~ Sex + Age + BMI_ + WAIS_ + VM12_, data = iki) %>% plot()
 
 # Imputation --------------------------------------------------------------
 
 library(mice)
 
 iki_miss <- iki_ok %>% 
-  #  filter(tte > 0) %>%
-  select(kh, tte, status, Sex, Age, bmi, WAIS, vm12) %T>%
+  filter(tte > 0) %>%
+  mutate(BMI_value = 100*bmi, WAIS_value = 100*WAIS, VM12_value = 100*vm12) %>%
+  select(kh, tte, status, Sex, Age, BMI_value, WAIS_value, VM12_value) %T>%
   md.pattern(plot = TRUE, rotate.names = TRUE)
   
 fit_mipo <- iki_miss %>% 
-  mice(m=100, printFlag = FALSE) %>%
-  with(coxph(Surv(tte, status) ~ Age + Sex + bmi + WAIS + vm12)) %>%
+  mice(m=10, printFlag = FALSE) %>%
+  with(coxph(Surv(tte, status) ~ Age + Sex + BMI_value + WAIS_value + VM12_value)) %>%
   pool(dfcom = nrow(iki_miss) - 6)
 
 
 # forest plot -------------------------------------------------------------
 
+library(ggforestplot)
+library(broom)
 
-library(forestplot)
+m1 <- fit_cox0 %>% tidy() %>% mutate(Model = "Model 1")
+m2 <- fit_cox %>% tidy() %>% mutate(Model = "Model 2")
+m3 <- fit_mipo %>% summary() %>% mutate(Model = "Model 3") 
+mm <- bind_rows(m1, m2, m3)
 
-fit_mipo %>% 
-  summary() %>%
-  mutate(p.value = format.pval(p.value, digits = 3, eps = 0.001),
-         p.sig    = case_when(p.value < 0.001 ~ "***",
-                              p.value < 0.01 ~ "**",
-                              p.value < 0.05 ~ "*",
-                              TRUE ~ ""),
-         est   = exp(estimate),
-         upper = exp(estimate + qnorm(0.975) * std.error),
-         lower = exp(estimate + qnorm(0.025) * std.error)) %>%
-  mutate(p.value  = paste0(p.value, p.sig),
-         estimate = paste0(round(est, 3), "\n(", 
-                           round(lower, 3), " - ", 
-                           round(upper, 3), ")")) %>%
-  select(term, estimate, p.value, est, upper, lower)-> x
+mm %>% 
+  forestplot(name = term, pvalue = p.value, se = std.error,
+             logodds = TRUE, colour = Model, shape = Model)
 
-forestplot(x[, 1:3], 
-           txt_gp = fpTxtGp(label = list(gpar(cex = 0.7, fontfamily = "Times"))),
-           title = "Hazard Ratio",
-           mean  = x$est,
-           lower = x$lower,
-           upper = x$upper,
-           zero   = 1,
-           xlab   = "Relative Hazard Ratio",
-           boxsize = 0.1,
-           graph.pos  = 3)
 
-ggforest(fit_cox)
+# estimation table --------------------------------------------------------
 
-library(broom); tidy(fit_cox); glance(fit_cox)
+library(DT)
+sketch = htmltools::withTags(table(
+  class = 'display',
+  thead(tr(th(rowspan = 2, 'Term'),
+           th(colspan = 4, 'Base Model'),
+           th(colspan = 4, 'with Factorized Baseline Covariates'),
+           th(colspan = 4, 'with Imputated Baseline Covariates')),
+        tr(lapply(rep(c("Estimate", 'Lower CI', 'Upper CI', "p-value"), 3), th)))))
+
+## option 1
+mm %>%
+  transmute(term = term,
+            exp   = paste(exp(estimate), "\n", "(0.156)"),
+            ci.l  = exp(estimate + qnorm(0.025) * std.error),
+            ci.u  = exp(estimate + qnorm(0.975) * std.error),
+            pvalue= p.value %>% format.pval(eps = 0.001),
+            ref   = as.factor(Model)) -> tmp
+## option 2
+mm %>%
+  mutate(len = ifelse(Model == "Model 3", 5, 3)) %>%
+  transmute(term = term,
+            exp  = exp(estimate) %>% round(len),
+            cil  = exp(estimate + qnorm(0.025) * std.error) %>% round(len),
+            ciu  = exp(estimate + qnorm(0.975) * std.error) %>% round(len),
+            pval = p.value %>% format.pval(eps = 0.001),
+            ref  = as.factor(Model)) %>%
+  transmute(term = ifelse(str_detect(term, "Class|weight|Obese"), paste0(term, "<br/>- vs. Missing"), term),
+            est  = paste0(exp, "<br/>(", cil, "-", ciu, ")"),
+            pval = pval,
+            ref = ref) -> tmp
+
+
+filter(tmp, ref == levels(ref)[1]) %>% 
+  full_join(filter(tmp, ref == levels(ref)[2]), by = "term") %>%
+  full_join(filter(tmp, ref == levels(ref)[3]), by = "term") %>%
+  select(-ref.x, -ref.y, -ref) %>%
+  DT::datatable(rownames = FALSE, container = sketch, escape = FALSE,
+                options = list(dom="t", pageLength=nrow(.))) %>%
+  DT::formatRound(columns =  2:99, digits = 3) %>%
+  DT::formatRound(columns = 10:12, digits = 6) %>%
+  DT::formatStyle(c(1,5,9), `border-right` = "solid 1px")# -> out_est_dt
+
+
+
 
 # References --------------------------------------------------------------
 ## https://cran.r-project.org/web/packages/forestplot/vignettes/forestplot.html
