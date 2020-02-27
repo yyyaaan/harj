@@ -1,17 +1,25 @@
 ---
-title:  "working version"
+title:  "Fantastic"
 ---
 
 ```{r setup, include=FALSE, results='hide'}
-knitr::opts_chunk$set(echo = FALSE)
-# source("eam_ht.R")
-load("aaa.RData")
-library(table1)
-library(DT)
+knitr::opts_chunk$set(echo = FALSE, fig.width = 12, fig.height = 7, fig.show = 'hold')
+# fig.cap='title', out.width='90%'
 
-printdf <- function(df)  datatable(df, options = list(dom = "t", pageLength = nrow(df)))
+n_mi <<- 10
+source("eam_ht.R")
+# load("aaa.RData") 
+# library(tidyverse)
+# library(survminer)
+# library(survival)
+# library(table1)
+# library(DT)
+
+# printdf <- function(df)  datatable(df, options = list(dom = "t", pageLength = nrow(df)))
 ```
 
+
+We first use non-parametric methods to gain understanding of data, and afterwards, semi-parametric approaches are presented according to the findings using Cox proportional hazard models (Cox, 1972). To tackle the missingess, both factorization and multiple imputation are done.
 
 The purpose of this report is to analyze different variables that are potentially contribute to time-to-mortality, and the key research questions includes,
 1)	Are sex and age significant factors concerning time-to-mortality?
@@ -23,16 +31,17 @@ This report utilizes selected part of Ikivihreät-project data that contains `r 
 
 ## Variables and Missingess
 
-The time-to-event (TTE) response variable uses mortality as the primary endpoint , and is defined as number of survival years after baseline, that is, subject’s age at death (or on cutoff date) deducted by exact age at baseline. For example, subject with confirmed death at 81.3 years old and enrolled in Ikivihreät-project at the age of 74.9 has a TTE equals 6.1 years. There are 4 subjects have missing exact age on enrollment, and in such case, the their exact age is replace by age group (75 or 80). This approach is valid as guaranteed by the project protocol, since the subjects on erollment must have exact age close to either 75 or 80. Considering the missingness, importance and similarity of available data, the variables Age, Sex, Body Mass Index (BMI), WAIS and hand grip strength (VM12) are appointed as explanatory variable, where BMI is calculated as Weight$(kg)$/Height$(m)^2$ and proper unit conversion has been applied.
+The time-to-event (TTE) response variable uses mortality as the primary endpoint , and is defined as number of survival years after baseline, that is, subject’s age at death (or on cutoff date) deducted by exact age at baseline. For example, subject with confirmed death at 81.3 years old and enrolled in Ikivihreät-project at the age of 74.9 has a TTE equals 6.1 years. There are 4 subjects have TTE variable unobservable due to missing exact age on enrollment, and they will always be excluded from analyses accounting for the critical role of TTE variable in modelling and the small portion of such missingness (`r round(400/nrow(ikivihreat), 1)`%). Considering the missingness, importance and similarity of available data, the variables Age, Sex, Body Mass Index (BMI), WAIS and hand grip strength (VM12, unit converted from Newton to Kg) are appointed as explanatory variable, where BMI is calculated as Weight$(kg)$/Height$(m)^2$ and proper unit conversion has been applied.
  
-There is no compelling outliers detected, and therefore sensitivity analysis deems unnecessary. Nevertheless, apart from TTE variable, missingness is not negligible in the dataset since the proportion of complete cases are merely `r round(100 * sum(complete.cases(ikivihreat)) / nrow(ikivihreat), 1)`%, and there is no sufficient evidence to support missing at random (MAR)  nor to deny the pattern. This report applies a naïve factorization method, where all missing values will be assigned to a factor level of “Missing”, and consequently BMI, WAIS and VM12 are all factorized. BMI is categorized as per simplified WHO standards; VM12 per Terveys 2000 categorization accounting for gender and age; and WAIS is categorized to 5 classes based on quantiles (Class I = 0-20 percentile, Class II = 20-40 percentile, …). The subject characteristics after factorization are summarized in Table XX. As a supplementary, multiple imputation by chained equations (MICE) will be performed, where missing values in BMI, WAIS and VM12 will be imputed and modelled as continuous variables. 
+There is no compelling outliers detected, and therefore sensitivity analysis deems unnecessary. Nevertheless, apart from TTE variable, missingness is not negligible in the dataset since the proportion of complete cases are merely `r round(100 * sum(complete.cases(ikivihreat)) / nrow(ikivihreat), 1)`%. This report first applies a naïve factorization method, where all missing values will be assigned to a factor level of “Missing”, and consequently BMI, WAIS and VM12 are all factorized. BMI is categorized as per simplified WHO standards; VM12 per Terveys 2000 categorization that is adjusted for gender and age; and WAIS is categorized to 5 classes based on quantiles (Class I = 0-20 percentile, Class II = 20-40 percentile, …). The subject characteristics of both observed values and factorization are summarized in Table 1. Judging from the summary, there is no sign of missingness being dependent on unobserved values, and missing at random (MAR) can be assumed. In order to provide further insights on the role of baseline covariates, multiple imputation by chained equations (MICE) will be performed, where the missing values in BMI, WAIS and VM12 will be imputed and modelled as continuous variables. 
 
+Table 1: Subject characteristic by sex and baseline age
 ```{r data_summary}
 label(iki_ok$tte)  <- "Time to Event"
-label(iki_ok$bmi)  <- "BMI (height and weight-derived)"
+label(iki_ok$bmi)  <- "BMI (derived, kg/m^2)"
 label(iki_ok$BMI_) <- "BMI group"
 label(iki_ok$WAIS_)<- "WAIS group"
-label(iki_ok$vm12) <- "Hand grip strength (vm12)"
+label(iki_ok$vm12) <- "Hand grip strength (vm12, kg)"
 label(iki_ok$VM12_)<- "Hand grip strength (vm12) group"
 
 iki_ok %>% 
@@ -43,15 +52,74 @@ iki_ok %>%
 
 ## Statistical Methods
 
-With the selected Ikivihreät data, it can be easily discovered from Figure XX that two genders have clear differences in survival rate (PVALUE), in addition to the obvious differences between baseline age 75 and 80 (PVALUE). 
+We use two types of survival analyses to evaluate the effect of selected factors. Kaplan-Meie curves with log-rank tests are first presented by baseline age and gender. Meanwhile, Cox proportional harzards models are constructed in 3 ways. The base model seeks to concentrate on the effect of baseline age and sex on time-to-motalibty. Denote $h_i(t)$ to be the harzard ratio at time point $t$ for subject $i$, and $h_0(t)$ is some reference harzard at $t$; $\text{Sex}_\text{Female}$ and $\text{Age}_\text{80}$ are binary. Model 1 is expressed as,
+
+$$
+h_i(t) = \exp(\beta_1 \text{Sex}_\text{Female} + \beta_2 \text{Age}_\text{80}) h_0 (t).
+$$
+
+Using baseline covariates as factorized binary variables, the above model can be extend to
+
+$$
+h_i(t) = \exp(\gamma_1 \text{Sex}_\text{Female} + \gamma_2 \text{Age}_\text{80} + \gamma_3 \text{BMI}_\text{Underweight} + \cdots + \gamma_{7} \text{WAIS}_\text{Class 1} + \cdots +\gamma_{12} \text{VM12}_\text{Class 1}) h_0 (t) .
+$$
+
+Consider baseline covrarites as continuous varialbe, 10-cycle MICE imputation is performed; in each imputation cyle, the model is expressed as 
+
+$$
+h_i(t) = \exp(\delta_1 \text{Sex}_\text{Female} + \delta_2 \text{Age}_\text{80} + \delta_3 \text{BMI} + \delta_{4} \text{WAIS} +\delta_5 \text{VM12}) h_0 (t) .
+$$
+
+It should be note that subjects with missing TTE are still excluded from analysis in Model 3. `mice` package is used to conduct the imputation cycles, and the reported variances of estimates shall include both between-imputation and within-imputation variaces (Buuren & Groothuis-Oudshoorn, 2010). The details of MICE will not be covered in this report.
 
 # Results
 
+With the selected Ikivihreät data, it can be easily discovered from the Kaplan-Meier curves in Figure 1 that two genders have clear differences in survival rate, in addition to the expected differences between baseline age 75 and 80 (all $p$-value $< 0.05$). For baseline age 75 group, females have a median time-to-mortality of 11.38 years and males have 8.66 years. Among 80-year-old subjects, females are expected to be 7.99 years to mortaility and the number for males is only 5.93.
+
+```{r kmplots, fig.height=5, fig.cap='Figure 1: Kaplan-Meier survival curves with 95% confidence interval by baseline age and sex. Number of subjects at risk are displayed above x-axis; black dashed lines indicate median TTE. p-value shows the log-rank test result between two curves in each plot'}
+arrange_ggsurvplots(out_kmplots, ncol = 4, nrow = 1)
+```
+
+
 ```{r results}
+# http://www.sthda.com/english/wiki/cox-proportional-hazards-model#visualizing-the-estimated-distribution-of-survival-times
 out_est_dt
 ```
 
 # Implications
 
+```{r adjusted, out.width="50%", fig.width=6, fig.height=4}
+out_adj[[1]]; out_adj[[2]]; out_adj[[3]]; out_adj[[4]]
+```
+
 # References
 
+Cox, D. R. (1972). Regression models and life‐tables. _Journal of the Royal Statistical Society: Series B (Methodological), 34(2)_, 187-202.
+
+Buuren, S. V., & Groothuis-Oudshoorn, K. (2010). mice: Multivariate imputation by chained equations in R. _Journal of statistical software_, 1-68.
+
+
+# Appendix
+
+## A. Model Diagnostics
+
+For base model, the diagnostics indicate the fitness of the model.
+
+```{r diag1, out.width="50%", fig.width = 6, fig.height=10}
+out_diag[[1]]
+```
+
+For model with factorized baseline covariateds, the diagonictics are also fine.
+
+```{r diag2, fig.height=14, fig.width=12}
+out_diag[[2]]
+```
+
+## B. _R_ code for MICE imputated Cox model
+
+```{r mice, eval = FALSE, echo = TRUE}
+iki_miss %>% 
+  mice(m = 10, printFlag = FALSE) %>%
+  with(coxph(Surv(tte, status) ~ Age + Sex + BMI_value + WAIS_value + VM12_value)) %>%
+  pool(dfcom = nrow(iki_miss) - 6)
+```

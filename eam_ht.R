@@ -70,21 +70,24 @@ iki_ok <- ikivihreat %>%
   rowwise() %>% 
   mutate( 
     status = ifelse(Elostatus == "Kuollut", 1, 0),
-    tte    = elovuodet - ifelse(is.na(Ika_tarkka), Ika, Ika_tarkka),
+    tte    = elovuodet - Ika_tarkka,
     bmi    = paino / ((pituus/100)^2),
     BMI_   = u_BMIcat (paino, pituus),
     WAIS_  = u_WAIScat(WAIS),
     VM12_  = u_vmcat  (vm12, sukup, Ika),
     VM13c  = u_vmcat  (vm13, sukup, Ika),
     VM14c  = u_vmcat  (vm14, sukup, Ika),
+    vm12   = vm12/kg2newton,
+    vm13   = vm13/kg2newton,
+    vm14   = vm14/kg2newton,
     Age    = factor(Ika, levels = c(75, 80)),
     Sex    = ifelse(sukup == "mies", "Male", "Female") %>% factor(levels =  c("Male", "Female")),
     dateEND= parse_date(substr(1000000 + if_else(is.na(kpvm), Haastpv, kpvm), 2, 9), format="%d%m%y"),
     dateSTX= parse_date(substr(1000000 + syntaika, 2, 9) , format="%d%m%y"), 
-    statusX= ifelse(is.na(kpvm), 0 ,1)) # %>% mutate (tteX   = (dateEND - dateSTX)/365.25 + 100 - Age_tarkka)
+    statusX= ifelse(is.na(kpvm), 0 ,1)) %>% # mutate (tteX   = (dateEND - dateSTX)/365.25 + 100 - Age_tarkka)
+  filter(!is.na(tte))
 
 iki <- iki_ok %>% 
-  filter(tte > 0) %>%
   select(kh, tte, status, Sex, Age, BMI_, WAIS_, VM12_) %>%
   as.data.frame()
 
@@ -100,48 +103,44 @@ mysurvplot <- function(fit, group, data){
   fit %>%
     ggsurvplot_group_by(
       group.by = group, data = data,
-      surv.median.line = "hv", conf.int = TRUE, pval = FALSE,
+      surv.median.line = "hv", conf.int = TRUE, 
+      pval = TRUE, pval.size = 4, pval.coord = c(15, 0.8),
       risk.table = TRUE, risk.table.pos = "in", risk.table.fontsize = 3,
       ggtheme = theme_classic2(base_family = "Times"), palette = "Set2",
-      font.family = "Times") %>%
-    arrange_ggsurvplots() %>%
-    print()
+      font.family = "Times")
 }
-
-survfit(Surv(tte, status) ~ Age, data=iki) %>% mysurvplot("Sex", iki)
-survfit(Surv(tte, status) ~ Sex, data=iki) %>% mysurvplot("Age", iki)
-survfit(Surv(tte, status) ~ Age + Sex, data=iki) %>% 
-  ggsurvplot(surv.median.line = "hv", conf.int = F, pval = T)
+survfit(Surv(tte, status) ~ Age, data=iki) %>% mysurvplot("Sex", iki) -> p1
+survfit(Surv(tte, status) ~ Sex, data=iki) %>% mysurvplot("Age", iki) -> p2
+out_kmplots <- c(p1, p2)
 
 # semi-parametric ---------------------------------------------------------
 
-## general
 fit_cox  <- coxph(Surv(tte, status) ~ Sex + Age + BMI_ + WAIS_ + VM12_, data = iki)
 fit_cox0 <- coxph(Surv(tte, status) ~ Sex + Age , data = iki) 
-fit_cox %>% cox.zph() %>% ggcoxzph()
 fit_cox %>% ggforest()
 
-# fit_cox %>% ggadjustedcurves("Sex"  , iki)
-# fit_cox %>% ggadjustedcurves("Age"  , iki)
-# fit_cox %>% ggadjustedcurves("WAIS_", iki)
-# fit_cox %>% ggadjustedcurves("VM12_", iki)
+out_diag <- lapply(list(fit_cox0, fit_cox), . %>% cox.zph() %>% ggcoxzph(caption = "hi"))
 
-# parametric --------------------------------------------------------------
-
-survreg(Surv(tte, status) ~ Sex + Age + BMI_ + WAIS_ + VM12_, data = iki) %>% plot()
+out_adj <- lapply( list("Sex", "Age", "WAIS_", "VM12_"), 
+                   function(x) ggadjustedcurves(
+                     fit_cox, variable = x, data = iki,
+                     ggtheme = theme_classic2(base_family = "Times"), palette = "Set2",
+                     font.family = "Times") + labs(color = x) ) 
 
 # Imputation --------------------------------------------------------------
 
 library(mice)
 
+if(!exists("n_mi")) n_mi <- 10
+
 iki_miss <- iki_ok %>% 
   filter(tte > 0) %>%
-  mutate(BMI_value = 100*bmi, WAIS_value = 100*WAIS, VM12_value = 100*vm12) %>%
+  mutate(BMI_value = bmi, WAIS_value = WAIS, VM12_value = vm12) %>%
   select(kh, tte, status, Sex, Age, BMI_value, WAIS_value, VM12_value) %T>%
   md.pattern(plot = TRUE, rotate.names = TRUE)
   
 fit_mipo <- iki_miss %>% 
-  mice(m=10, printFlag = FALSE) %>%
+  mice(m = n_mi, printFlag = FALSE) %>%
   with(coxph(Surv(tte, status) ~ Age + Sex + BMI_value + WAIS_value + VM12_value)) %>%
   pool(dfcom = nrow(iki_miss) - 6)
 
@@ -166,30 +165,27 @@ mm %>%
 library(DT)
 sketch = htmltools::withTags(table(
   class = 'display',
-  thead(tr(th(rowspan = 2, 'Term'),
-           th(colspan = 4, 'Base Model'),
-           th(colspan = 4, 'with Factorized Baseline Covariates'),
-           th(colspan = 4, 'with Imputated Baseline Covariates')),
-        tr(lapply(rep(c("Estimate", 'Lower CI', 'Upper CI', "p-value"), 3), th)))))
+  thead(tr(th(rowspan = 2, 'Variable'),
+           th(colspan = 2, 'Base Model'),
+           th(colspan = 2, 'with Factorized Baseline Covariates'),
+           th(colspan = 2, 'with Imputated Baseline Covariates')),
+        tr(lapply(rep(c("Hazard Ratio (95% CI)", "p-value"), 3), th)))))
 
-## option 1
 mm %>%
-  transmute(term = term,
-            exp   = paste(exp(estimate), "\n", "(0.156)"),
-            ci.l  = exp(estimate + qnorm(0.025) * std.error),
-            ci.u  = exp(estimate + qnorm(0.975) * std.error),
-            pvalue= p.value %>% format.pval(eps = 0.001),
-            ref   = as.factor(Model)) -> tmp
-## option 2
-mm %>%
-  mutate(len = ifelse(Model == "Model 3", 5, 3)) %>%
-  transmute(term = term,
+  mutate(len = ifelse((str_detect(term, "value")), 3, 3)) %>%
+  transmute(term = term %>% 
+              str_replace("BMI_value", "BMI (kg/m2)") %>%
+              str_replace("WAIS_value", "WAIS Index") %>%
+              str_replace("VM12_value", "Hand Grip Strength (kg)"),
             exp  = exp(estimate) %>% round(len),
             cil  = exp(estimate + qnorm(0.025) * std.error) %>% round(len),
             ciu  = exp(estimate + qnorm(0.975) * std.error) %>% round(len),
-            pval = p.value %>% format.pval(eps = 0.001),
+            pval = case_when(p.value<0.001 ~ "<0.001***", 
+                             p.value<0.01  ~ paste0(round(p.value, 3), "**"),
+                             p.value<0.05  ~ paste0(round(p.value, 3), "*"),
+                             p.value<1.00  ~ paste0(round(p.value, 3))),
             ref  = as.factor(Model)) %>%
-  transmute(term = ifelse(str_detect(term, "Class|weight|Obese"), paste0(term, "<br/>- vs. Missing"), term),
+  transmute(term = str_replace(term, "BMI_|WAIS_|VM12_", "-- "),
             est  = paste0(exp, "<br/>(", cil, "-", ciu, ")"),
             pval = pval,
             ref = ref) -> tmp
@@ -198,12 +194,19 @@ mm %>%
 filter(tmp, ref == levels(ref)[1]) %>% 
   full_join(filter(tmp, ref == levels(ref)[2]), by = "term") %>%
   full_join(filter(tmp, ref == levels(ref)[3]), by = "term") %>%
+  add_row(term = "SexMale", est.x = "Ref.", est.y = "Ref.", est = "Ref.", .before = 1) %>%
+  add_row(term = "Age75",   est.x = "Ref.", est.y = "Ref.", est = "Ref.", .before = 3) %>%
+  add_row(term = "BMI_Missing", est.y = "Ref.", .before = 5) %>%
+  add_row(term = "WAIS_Missing", est.y = "Ref.", .before = 10) %>%
+  add_row(term = "VM12_Missing", est.y = "Ref.", .before = 16) %>%
+  add_row(term = "Continuous Variable", .before = 22) %>%
   select(-ref.x, -ref.y, -ref) %>%
-  DT::datatable(rownames = FALSE, container = sketch, escape = FALSE,
-                options = list(dom="t", pageLength=nrow(.))) %>%
-  DT::formatRound(columns =  2:99, digits = 3) %>%
-  DT::formatRound(columns = 10:12, digits = 6) %>%
-  DT::formatStyle(c(1,5,9), `border-right` = "solid 1px")# -> out_est_dt
+  datatable(rownames = FALSE, container = sketch, escape = FALSE,
+            options = list(dom="t", pageLength=nrow(.))) %>%
+  formatStyle(2:10, textAlign = 'center') %>%
+  formatStyle(1:10, target = 'row', 
+              backgroundColor = styleEqual(c("Ref.", "Continuous Variable"), rep("lightgrey",2))) %>%
+  formatStyle(c(1,3,5), `border-right` = "solid 1px") -> out_est_dt
 
 
 
